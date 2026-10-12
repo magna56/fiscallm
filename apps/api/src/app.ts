@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
-export const app = new Hono();
+// Vercel routes /api/* to this service and passes the path through unchanged.
+export const app = new Hono().basePath("/api");
 
 app.get("/health", (c) => c.json({ ok: true }));
 

@@ -10,7 +10,9 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "test": "vitest run",
+    "db:sync-prices": "tsx scripts/sync-prices.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
@@ -19,6 +21,8 @@
   "devDependencies": {
     "@types/node": "^20",
     "drizzle-kit": "^0.31.11",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   }
 }

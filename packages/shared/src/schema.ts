@@ -42,10 +42,15 @@ export const aiEvents = pgTable(
     model: text("model").notNull(),
     inputTokens: bigint("input_tokens", { mode: "number" }),
     outputTokens: bigint("output_tokens", { mode: "number" }),
+    // inputTokens excludes cache reads and cache writes, which are counted
+    // separately because they are priced differently.
     cachedTokens: bigint("cached_tokens", { mode: "number" }),
+    cacheWriteTokens: bigint("cache_write_tokens", { mode: "number" }),
     // Null when the model is not in the price table yet.
     costUsd: usd("cost_usd"),
-    costSource: text("cost_source", { enum: ["table", "client"] }).notNull(),
+    costSource: text("cost_source", {
+      enum: ["table", "override", "client"],
+    }).notNull(),
     feature: text("feature"),
   },
   (t) => [
@@ -62,9 +67,43 @@ export const modelPrices = pgTable(
     effectiveFrom: date("effective_from").notNull(),
     inputPerMtok: usd("input_per_mtok").notNull(),
     outputPerMtok: usd("output_per_mtok").notNull(),
+    // Null means cache reads or writes are billed at the input price.
     cachedPerMtok: usd("cached_per_mtok"),
+    cacheWritePerMtok: usd("cache_write_per_mtok"),
+    // Prompts longer than this many tokens (input + cache reads + cache
+    // writes) are billed at the long_* prices.
+    longContextThreshold: integer("long_context_threshold"),
+    longInputPerMtok: usd("long_input_per_mtok"),
+    longOutputPerMtok: usd("long_output_per_mtok"),
+    longCachedPerMtok: usd("long_cached_per_mtok"),
+    longCacheWritePerMtok: usd("long_cache_write_per_mtok"),
   },
   (t) => [primaryKey({ columns: [t.provider, t.model, t.effectiveFrom] })],
+).enableRLS();
+
+// A customer's negotiated pricing. model '*' covers every model of the
+// provider; a row for the exact model wins over it.
+export const appPriceOverrides = pgTable(
+  "app_price_overrides",
+  {
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    model: text("model").notNull().default("*"),
+    effectiveFrom: date("effective_from").notNull(),
+    // Either a discount on the list price, or flat prices of their own.
+    discountPct: numeric("discount_pct", { precision: 7, scale: 4 }),
+    inputPerMtok: usd("input_per_mtok"),
+    outputPerMtok: usd("output_per_mtok"),
+    cachedPerMtok: usd("cached_per_mtok"),
+    cacheWritePerMtok: usd("cache_write_per_mtok"),
+  },
+  (t) => [
+    primaryKey({
+      columns: [t.appId, t.provider, t.model, t.effectiveFrom],
+    }),
+  ],
 ).enableRLS();
 
 export const rcEvents = pgTable(

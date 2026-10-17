@@ -1,5 +1,8 @@
+import { fromAnthropic, fromGemini, fromOpenAI, readSSE, StreamUsage, type Usage } from "./usage.js";
+
 // Zero dependencies: fetch, timers and Web Crypto only, so the same code
 // runs on Node 20+, Cloudflare Workers, Deno (Supabase), Bun and Vercel.
+
 
 export interface TrackEvent {
   /** The RevenueCat app user ID of the person who made the request. */
@@ -35,9 +38,35 @@ export interface MeterOptions {
   logger?: { warn: (message: string) => void };
 }
 
+export interface TrackContext {
+  userId: string;
+  feature?: string;
+  /** Name an OpenAI-compatible provider, e.g. "groq" or "openrouter". */
+  provider?: string;
+  /** Overrides the model read from the response. */
+  model?: string;
+}
+
 export interface Meter {
   /** Queues an event. Never throws and never waits on the network. */
   track(event: TrackEvent): void;
+  /** Chat Completions or Responses API result, from the SDK or `res.json()`. */
+  trackOpenAI(response: unknown, ctx: TrackContext): void;
+  /** Messages API result, from the SDK or `res.json()`. */
+  trackAnthropic(response: unknown, ctx: TrackContext): void;
+  /** generateContent result, from @google/genai or `res.json()`. */
+  trackGemini(response: unknown, ctx: TrackContext): void;
+  /**
+   * Passes a streamed result through unchanged and tracks its usage when it
+   * ends. Works for OpenAI, Anthropic and Gemini SDK streams. OpenAI Chat
+   * Completions needs `stream_options: { include_usage: true }`.
+   */
+  trackStream<T>(stream: AsyncIterable<T>, ctx: TrackContext): AsyncIterable<T>;
+  /**
+   * For a raw provider `fetch` that streams server-sent events. Returns an
+   * equivalent Response to pass on; usage is read from a copy of the body.
+   */
+  trackSSE(response: Response, ctx: TrackContext): Response;
   /** Sends everything queued. Never rejects. */
   flush(): Promise<void>;
 }
@@ -86,6 +115,8 @@ export function createMeter(options: MeterOptions): Meter {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pendingRelease: (() => void) | undefined;
   const inflight = new Set<Promise<void>>();
+  // trackSSE copies still being read; flush() waits for them too.
+  const reading = new Set<Promise<void>>();
 
   async function post(batch: WireEvent[]): Promise<"ok" | "retry" | "drop"> {
     try {
@@ -166,7 +197,87 @@ export function createMeter(options: MeterOptions): Meter {
     }
   }
 
-  return {
+  function trackUsage(usage: Usage | null, ctx: TrackContext, source: string) {
+    if (!usage) {
+      warnOnce(`no-usage-${source}`, `${source}: no token usage found in the response; event skipped`);
+      return;
+    }
+    meter.track({
+      ...usage,
+      userId: ctx.userId,
+      feature: ctx.feature,
+      provider: ctx.provider ?? usage.provider,
+      model: ctx.model ?? usage.model,
+    });
+  }
+
+  function finishStream(acc: StreamUsage, ctx: TrackContext, source: string) {
+    if (acc.missingOpenAIUsage) {
+      warnOnce(
+        "no-include-usage",
+        `${source}: OpenAI stream had no usage; pass stream_options: { include_usage: true }`,
+      );
+      return;
+    }
+    trackUsage(acc.usage, ctx, source);
+  }
+
+  const meter: Meter = {
+    trackOpenAI(response, ctx) {
+      try {
+        trackUsage(fromOpenAI(response), ctx, "trackOpenAI");
+      } catch {}
+    },
+
+    trackAnthropic(response, ctx) {
+      try {
+        trackUsage(fromAnthropic(response), ctx, "trackAnthropic");
+      } catch {}
+    },
+
+    trackGemini(response, ctx) {
+      try {
+        trackUsage(fromGemini(response), ctx, "trackGemini");
+      } catch {}
+    },
+
+    trackStream(stream, ctx) {
+      return (async function* () {
+        const acc = new StreamUsage();
+        try {
+          for await (const chunk of stream) {
+            try {
+              acc.add(chunk);
+            } catch {}
+            yield chunk;
+          }
+        } finally {
+          // Also runs when the caller stops early; partial usage is still
+          // the best estimate of what was billed.
+          try {
+            finishStream(acc, ctx, "trackStream");
+          } catch {}
+        }
+      })();
+    },
+
+    trackSSE(response, ctx) {
+      try {
+        if (!response.body) return response;
+        const [mine, theirs] = response.body.tee();
+        const acc = new StreamUsage();
+        const done = readSSE(mine, (event) => acc.add(event))
+          .then(() => finishStream(acc, ctx, "trackSSE"))
+          .catch(() => {});
+        reading.add(done);
+        done.finally(() => reading.delete(done));
+        keepAlive(done);
+        return new Response(theirs, response);
+      } catch {
+        return response;
+      }
+    },
+
     track(event) {
       try {
         if (!options.apiKey) {
@@ -200,9 +311,11 @@ export function createMeter(options: MeterOptions): Meter {
 
     async flush() {
       try {
+        await Promise.all([...reading]);
         await sendQueued();
         await Promise.all([...inflight]);
       } catch {}
     },
   };
+  return meter;
 }

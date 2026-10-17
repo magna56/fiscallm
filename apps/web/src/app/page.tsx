@@ -315,6 +315,11 @@ function HowItWorks() {
       <div className="reveal mt-12">
         <FlowDemo />
       </div>
+      <p className="mt-6 text-center text-sm">
+        <Link href="/how-it-works" className="font-medium text-accent hover:underline">
+          Engineer? See exactly how it works →
+        </Link>
+      </p>
       <h3 className="mt-20 text-center text-2xl font-semibold tracking-tight">Set up in ten minutes</h3>
       <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
         {STEPS.map((s) => (

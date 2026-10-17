@@ -50,6 +50,7 @@ export function SiteFooter() {
         <Logo />
         <nav className="flex flex-wrap gap-5">
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
+          <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
           <Link href="/terms" className="hover:text-foreground">Terms</Link>
           <a href={`mailto:${CONTACT}`} className="hover:text-foreground">{CONTACT}</a>

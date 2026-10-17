@@ -15,7 +15,7 @@ export default function DocsPage() {
         <h1>Docs</h1>
         <p>
           <strong>In short:</strong> your backend reports each user&apos;s AI usage with one line of code, RevenueCat reports what they paid, and
-          FiscaLLM shows the margin per user, plan and trial. Setup takes about ten minutes.
+          FiscaLLM shows the margin per user, plan and trial. Setup takes about ten minutes. Curious what happens under the hood? <a href="/how-it-works">How it works</a>.
         </p>
         <p>
           Fastest: <a href="#ai-setup">let your AI coding assistant do it</a>. Otherwise follow the quickstart below.

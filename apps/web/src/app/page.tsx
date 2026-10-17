@@ -83,7 +83,7 @@ function Hero() {
           <Words text="than they pay." start={8} />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          FiscaLLM matches every user&apos;s AI cost to what they pay you in RevenueCat.
+          FiscaLLM matches every user&apos;s AI cost to what they pay you.
         </p>
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link

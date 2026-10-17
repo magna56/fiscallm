@@ -28,6 +28,8 @@ export const apps = pgTable("apps", {
   rcWebhookSecret: text("rc_webhook_secret").notNull(),
   // Applies RevenueCat SANDBOX events; production events always apply.
   testMode: boolean("test_mode").notNull().default(false),
+  // Monday summary email to the owner.
+  weeklyEmail: boolean("weekly_email").notNull().default(true),
   createdAt: ts("created_at").notNull().defaultNow(),
 }).enableRLS();
 

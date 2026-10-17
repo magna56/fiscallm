@@ -7,7 +7,9 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./db": "./src/db.ts",
-    "./metrics": "./src/metrics/index.ts"
+    "./metrics": "./src/metrics/index.ts",
+    "./report": "./src/report/index.ts",
+    "./report/send": "./src/report/send.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

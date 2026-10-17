@@ -1,0 +1,1 @@
+ALTER TABLE "apps" ADD COLUMN "weekly_email" boolean DEFAULT true NOT NULL;

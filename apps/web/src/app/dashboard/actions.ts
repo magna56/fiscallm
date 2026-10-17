@@ -6,7 +6,9 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireApp, requireUser } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getDb, metricsDb } from "@/lib/db";
+import { origin } from "@/lib/origin";
+import { sendWeeklyReport } from "@fiscallm/shared/report/send";
 import { keyCookie } from "@/lib/key-cookie";
 
 // The plain ingest key is shown once: kept in a short-lived cookie that
@@ -150,4 +152,29 @@ export async function deleteApp(appId: string, formData: FormData) {
   // Cascades to every table keyed by the app.
   await getDb().delete(schema.apps).where(eq(schema.apps.id, app.id));
   redirect("/dashboard");
+}
+
+export async function setWeeklyEmail(appId: string, on: boolean) {
+  const app = await requireApp(appId);
+  await getDb().update(schema.apps).set({ weeklyEmail: on }).where(eq(schema.apps.id, app.id));
+  revalidatePath(`/dashboard/${app.id}/settings`);
+}
+
+/** Sends last week's report to the signed-in owner now. */
+export async function sendTestReport(appId: string) {
+  const app = await requireApp(appId);
+  const user = await requireUser();
+  const settings = `/dashboard/${app.id}/settings`;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const signingSecret = process.env.CRON_SECRET;
+  if (!resendApiKey || !signingSecret || !user.email) redirect(`${settings}?error=Email+is+not+configured+yet`);
+
+  const result = await sendWeeklyReport(metricsDb(), app, user.email!, {
+    resendApiKey: resendApiKey!,
+    signingSecret: signingSecret!,
+    baseUrl: await origin(),
+  });
+  if (result === "sent") redirect(`${settings}?done=${encodeURIComponent(`Report sent to ${user.email}`)}`);
+  if (result === "no-activity") redirect(`${settings}?error=No+activity+in+the+last+7+days,+so+there+is+nothing+to+report`);
+  redirect(`${settings}?error=${encodeURIComponent(result.error)}`);
 }

@@ -12,8 +12,11 @@ import {
   deleteOverride,
   rotateKey,
   rotateWebhookSecret,
+  sendTestReport,
   setTestMode,
+  setWeeklyEmail,
 } from "../../actions";
+import Link from "next/link";
 
 export default function SettingsPage(props: PageProps<"/dashboard/[appId]/settings">) {
   return (
@@ -72,6 +75,33 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
               Turn {app.testMode ? "off" : "on"}
             </Button>
           </form>
+        </div>
+      </Card>
+
+      <Card title="Weekly email">
+        <div className="flex flex-col gap-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-foreground/70">
+              {app.weeklyEmail
+                ? "On: every Monday you get last week's cost, revenue and the users and plans that lost money."
+                : "Off."}
+            </p>
+            <form action={setWeeklyEmail.bind(null, app.id, !app.weeklyEmail)}>
+              <Button variant="secondary" type="submit">
+                Turn {app.weeklyEmail ? "off" : "on"}
+              </Button>
+            </form>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <form action={sendTestReport.bind(null, app.id)}>
+              <Button variant="secondary" type="submit">
+                Send me this week&apos;s report now
+              </Button>
+            </form>
+            <Link href={`/dashboard/${app.id}/report`} className="underline">
+              Preview
+            </Link>
+          </div>
         </div>
       </Card>
 

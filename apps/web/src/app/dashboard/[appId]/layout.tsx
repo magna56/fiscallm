@@ -16,11 +16,16 @@ export default function AppLayout({ children, params }: LayoutProps<"/dashboard/
             <AppName params={params} />
           </Suspense>
         </div>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="text-sm underline">
-            Sign out
-          </button>
-        </form>
+        <div className="flex items-center gap-4 text-sm">
+          <Link href="/account" className="underline">
+            Account
+          </Link>
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="underline">
+              Sign out
+            </button>
+          </form>
+        </div>
       </header>
       <Suspense>
         <Nav params={params} />

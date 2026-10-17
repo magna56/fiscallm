@@ -1,6 +1,7 @@
 import { schema } from "@fiscallm/shared";
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Button, Card, Input, Notice } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -12,11 +13,16 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">FiscaLLM</h1>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="text-sm underline">
-            Sign out
-          </button>
-        </form>
+        <div className="flex items-center gap-4 text-sm">
+          <Link href="/account" className="underline">
+            Account
+          </Link>
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="underline">
+              Sign out
+            </button>
+          </form>
+        </div>
       </header>
       <Suspense fallback={<p className="text-foreground/60">Loading…</p>}>
         <Apps searchParams={searchParams} />
@@ -27,6 +33,8 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
 
 async function Apps({ searchParams }: Pick<PageProps<"/dashboard">, "searchParams">) {
   const user = await requireUser();
+  const [profile] = await getDb().select({ userId: schema.profiles.userId }).from(schema.profiles).where(eq(schema.profiles.userId, user.id));
+  if (!profile) redirect("/welcome");
   const { error } = await searchParams;
   const apps = await getDb()
     .select({ id: schema.apps.id, name: schema.apps.name })

@@ -276,3 +276,16 @@ export const alertEvents = pgTable(
     index("alert_events_app_sent").on(t.appId, t.sentAt),
   ],
 ).enableRLS();
+
+// Who signed up: one row per Supabase user, filled in on the welcome step.
+export const profiles = pgTable("profiles", {
+  // Supabase auth.users.id
+  userId: uuid("user_id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  company: text("company").notNull(),
+  website: text("website"),
+  role: text("role"),
+  teamSize: text("team_size"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+}).enableRLS();

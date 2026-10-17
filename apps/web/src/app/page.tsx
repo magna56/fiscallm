@@ -79,8 +79,7 @@ function Hero() {
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="Find out which users cost you" start={0} /> <Words text="more in AI" start={6} gradient />{" "}
-          <Words text="than they pay." start={9} />
+          <Words text="See the AI cost of" start={0} /> <Words text="every single user." start={5} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
           FiscaLLM matches every user&apos;s AI cost to what they pay you.

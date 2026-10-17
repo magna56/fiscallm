@@ -175,30 +175,6 @@ return meter.trackSSE(upstream, { userId });`}</code>
         </table>
         <p>Each request has a two-second timeout and one retry. If FiscaLLM is unreachable, events are dropped and your app is unaffected.</p>
 
-                <h3 id="numbers-only">Prefer not to hand us the response?</h3>
-        <p>
-          Then pass the numbers yourself with <code>meter.track()</code>. Nothing else changes, and the response object is never given to FiscaLLM.
-          One rule matters: <code>inputTokens</code> must <strong>exclude</strong> cached tokens, because cached tokens are priced separately.
-        </p>
-        <pre>
-          <code>{`const cached = res.usage.prompt_tokens_details?.cached_tokens ?? 0;
-
-meter.track({
-  userId,
-  provider: "openai",
-  model: res.model,
-  inputTokens: res.usage.prompt_tokens - cached, // not counting cached
-  cachedTokens: cached,
-  outputTokens: res.usage.completion_tokens,
-  feature: "chat",
-});`}</code>
-        </pre>
-        <p>
-          Anthropic already reports cached tokens separately (<code>cache_read_input_tokens</code>, <code>cache_creation_input_tokens</code>), so
-          its <code>input_tokens</code> can be passed as is, with the other two as <code>cachedTokens</code> and <code>cacheWriteTokens</code>. For
-          Gemini, subtract <code>cachedContentTokenCount</code> from <code>promptTokenCount</code>. The helpers do exactly this; use{" "}
-          <code>track()</code> when you want to control what is read.
-        </p>
 
         <h2 id="python">Python</h2>
         <pre>

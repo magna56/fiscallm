@@ -1,14 +1,21 @@
 import { hashKey, schema } from "@fiscallm/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import { bodyLimit } from "hono/body-limit";
 import type { AnyDb } from "./db";
 import { loadOverrides, loadPrices } from "./prices";
 import { priceEvents, storeEvents } from "./store";
 import { batchSchema } from "./validate";
 
+const MAX_BODY_BYTES = 1024 * 1024;
+
 export function eventsRoute(getDb: () => AnyDb) {
-  return new Hono().post("/", bodyLimit({ maxSize: 1024 * 1024 }), async (c) => {
+  return new Hono().post("/", async (c) => {
+    // Not hono's bodyLimit: its stream wrapper never finishes reading the
+    // body on Vercel's Node runtime. Vercel itself caps bodies at 4.5 MB.
+    if (Number(c.req.header("content-length") ?? 0) > MAX_BODY_BYTES) {
+      return c.json({ error: "body too large" }, 413);
+    }
+
     const key = c.req.header("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1];
     if (!key) return c.json({ error: "missing ingest key" }, 401);
 

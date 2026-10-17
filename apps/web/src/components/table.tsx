@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { usd } from "./ui";
 
 export interface Column<T> {
   label: string;
@@ -36,6 +37,5 @@ export function Table<T>({ rows, columns, rowKey, empty }: { rows: T[]; columns:
   );
 }
 
-export const Money = ({ v }: { v: number }) => (
-  <span className={v < 0 ? "text-red-600" : ""}>{v.toLocaleString("en-US", { style: "currency", currency: "USD" })}</span>
-);
+// Small amounts keep 4 decimals, so a $0.0048 user does not read as $0.00.
+export const Money = ({ v }: { v: number }) => <span className={v < 0 ? "text-red-600" : ""}>{usd(v)}</span>;

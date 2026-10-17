@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoMark } from "./logo-mark";
 import type { ReactNode } from "react";
 
 export const CONTACT = "theaicommit@gmail.com";
@@ -6,9 +7,7 @@ export const CONTACT = "theaicommit@gmail.com";
 export function Logo() {
   return (
     <span className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-      <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] text-xs font-bold text-white shadow-sm">
-        F
-      </span>
+      <LogoMark className="h-7 w-7 drop-shadow-sm" />
       FiscaLLM
     </span>
   );

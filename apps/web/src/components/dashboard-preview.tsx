@@ -1,4 +1,5 @@
 import { CostChart } from "./cost-chart";
+import { LogoMark } from "./logo-mark";
 import data from "./demo-dashboard-data.json";
 import { Stat } from "./stat";
 import { Card, PageHeader, usd } from "./ui";
@@ -21,7 +22,7 @@ export function DashboardPreview() {
     <div className="pointer-events-none flex select-none bg-[#f7f7fb] text-left" aria-label="Example FiscaLLM dashboard">
       <aside className="hidden w-44 shrink-0 flex-col gap-3 border-r border-black/[0.06] bg-white/80 p-3 md:flex">
         <div className="flex items-center gap-1.5 px-1 pt-0.5 text-sm font-semibold">
-          <span className="grid h-5 w-5 place-items-center rounded-md bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] text-[10px] font-bold text-white">F</span>
+          <LogoMark className="h-5 w-5" />
           FiscaLLM
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-black/[0.08] bg-white px-2.5 py-1.5 text-xs shadow-sm">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { LogoMark } from "./logo-mark";
 
 // An animated walk-through of one request: app → backend → AI provider,
 // usage → FiscaLLM, revenue from RevenueCat, then a budget alert back to
@@ -148,7 +149,7 @@ export function FlowDemo() {
           <div className="w-[25cqw] min-w-[180px] rounded-2xl bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] p-[1.5px] shadow-xl shadow-indigo-500/20">
             <div className="rounded-[15px] bg-white p-3">
               <div className="flex items-center gap-1.5 text-[clamp(8px,1.05cqw,12px)] font-semibold">
-                <span className="grid h-4 w-4 place-items-center rounded bg-gradient-to-br from-[#6d5dfc] to-[#ec4899] text-[8px] text-white">F</span>
+                <LogoMark className="h-4 w-4" />
                 FiscaLLM
               </div>
               <div className="mt-2 grid grid-cols-3 gap-1 text-[clamp(7px,0.9cqw,10px)] text-black/50">

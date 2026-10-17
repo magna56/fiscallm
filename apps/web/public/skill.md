@@ -104,6 +104,17 @@ The `userId` must be the user's RevenueCat app user ID, or costs cannot be match
      - Web: `Purchases.getSharedInstance().getAppUserId()`
 3. Pass that value as `userId` in every tracking call.
 
+## 4b. No RevenueCat?
+
+If the app bills through something else (Stripe, its own App Store or Play server notifications), find where payments are confirmed (webhook handlers for invoice paid, refunds, subscription changes) and report each one, using the same userId as the AI calls:
+
+```ts
+meter.trackRevenue({ id: invoice.id, userId, type: "renewal", productId, amountUsd: invoice.amount_paid / 100, feePct: 0.03, periodEnd });
+// type: trial_started | purchase | renewal | refund | cancellation | expiration
+```
+
+Do not report payments RevenueCat already sends; they would count twice.
+
 ## 5. Python
 
 ```sh
@@ -119,6 +130,7 @@ res = client.chat.completions.create(model=model, messages=messages)
 meter.track_openai(res, user_id=user_id, feature="chat")
 # also: meter.track_anthropic, meter.track_gemini,
 # meter.track(user_id=..., provider="openai", model="whisper-1", units=minutes, unit="minute")
+# meter.track_revenue(id=..., user_id=..., type="purchase", amount_usd=9.99)  # without RevenueCat
 ```
 
 Serverless (Lambda, Cloud Functions): call `meter.flush()` before returning. Streams: `meter.track_stream(stream, user_id=user_id)` returns a stream to iterate instead.

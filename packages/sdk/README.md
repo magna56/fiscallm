@@ -41,6 +41,9 @@ meter.track({ userId, provider: "google", model: "veo-3.1-fast-generate-preview"
 // Anything else: the exact cost
 meter.track({ userId, provider: "fal", model: "flux", costUsd: 0.04 });
 
+// No RevenueCat? Report payments yourself:
+meter.trackRevenue({ id: invoice.id, userId, type: "renewal", amountUsd: 9.99, feePct: 0.15 });
+
 // Serverless without waitUntil (e.g. Firebase): before returning
 await meter.flush();
 ```

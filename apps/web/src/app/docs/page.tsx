@@ -29,7 +29,7 @@ export default function DocsPage() {
           <li>Install the SDK on your backend and track each AI call (below).</li>
           <li>Add the webhook URL from the app&apos;s Setup page to RevenueCat (below).</li>
         </ol>
-        <p>The Setup page shows when the first event and the first webhook arrive, and how many of your AI users it could match to RevenueCat.</p>
+        <p>The Setup page shows when the first event and the first webhook arrive, and how many of your AI users it could match to RevenueCat. No RevenueCat? <a href="#revenue-api">Send revenue with the API</a>.</p>
 
         <h2 id="ai-setup">Set up with an AI assistant</h2>
         <p>
@@ -220,6 +220,34 @@ meter.flush()   # or: await meter.aflush()`}</code>
           App Store and Play Store subscriptions come in renewal by renewal; for other stores (Stripe, Web Billing) RevenueCat only reports each
           subscription&apos;s total, which is counted on its start date. The key is
           stored encrypted only while the import runs.
+        </p>
+
+        <h2 id="revenue-api">Revenue without RevenueCat</h2>
+        <p>
+          If your app does not use RevenueCat, or some payments go through another system (Stripe on the web, your own App Store server
+          notifications), send them yourself. They count exactly like RevenueCat events. Use one source per payment: sending the same payment
+          from RevenueCat and the API counts it twice.
+        </p>
+        <pre>
+          <code>{`meter.trackRevenue({
+  id: invoice.id,              // unique; retries are ignored
+  userId,                      // same id you pass to trackOpenAI
+  type: "renewal",             // trial_started | purchase | renewal | refund | cancellation | expiration
+  productId: "pro_monthly",
+  amountUsd: 9.99,             // gross, USD; required for purchase, renewal, refund
+  feePct: 0.15, taxPct: 0.1,   // or netUsd: 7.49
+  periodEnd: subscription.current_period_end,
+  isTrialConversion: true,     // first paid period after a trial
+});
+
+# Python
+meter.track_revenue(id=invoice.id, user_id=user_id, type="purchase",
+                    amount_usd=9.99, net_usd=7.49, period_end=period_end)`}</code>
+        </pre>
+        <p>
+          Or <code>POST https://fiscallm.com/api/v1/revenue</code> with <code>{`{ "events": [ … ] }`}</code> and the same fields, using your
+          ingest key. Use <code>oneTime: true</code> for lifetime or credit purchases, and <code>amountUsd</code> as a positive number for
+          refunds.
         </p>
 
         <h2 id="prices">Prices</h2>

@@ -1,6 +1,6 @@
 {
   "name": "fiscallm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Track AI cost per user against subscription revenue. Zero-dependency SDK for your backend.",
   "license": "MIT",
   "type": "module",

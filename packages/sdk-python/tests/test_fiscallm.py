@@ -119,6 +119,21 @@ class UnitsTest(unittest.TestCase):
         self.assertNotIn("unit", rec.events[1])
 
 
+class RevenueTest(unittest.TestCase):
+    def test_sends_revenue_to_its_endpoint(self):
+        from datetime import datetime, timezone
+
+        rec = Recorder()
+        m = meter(rec)
+        m.track_revenue(id="inv_1", user_id="u", type="renewal", amount_usd=9.99, fee_pct=0.15, period_end=datetime(2026, 11, 17, tzinfo=timezone.utc))
+        m.flush()
+        url, _, batch = rec.calls[0]
+        self.assertEqual(url, "https://fiscallm.com/api/v1/revenue")
+        self.assertEqual(batch[0]["periodEnd"], "2026-11-17T00:00:00Z")
+        self.assertEqual((batch[0]["amountUsd"], batch[0]["feePct"]), (9.99, 0.15))
+        self.assertNotIn("netUsd", batch[0])
+
+
 class StreamTest(unittest.TestCase):
     def test_sync_stream_passes_chunks_and_reads_cumulative_usage(self):
         rec = Recorder()

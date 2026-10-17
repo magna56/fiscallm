@@ -30,7 +30,8 @@ const STEPS = [
 
 const FAQ: [string, string][] = [
   ["What does FiscaLLM store?", "User IDs, token counts, models and RevenueCat events. Never prompts or responses."],
-  ["Which apps is it for?", "Subscription apps on RevenueCat that call AI from their own backend, in TypeScript or Python."],
+  ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
+  ["Do I need RevenueCat?", "No. RevenueCat connects with one webhook, but you can also send payments from Stripe or any billing system with one SDK call."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request."],
   ["What does it cost?", "Nothing during the beta."],
 ];

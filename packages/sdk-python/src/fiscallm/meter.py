@@ -75,6 +75,7 @@ class Meter:
         self._warned: set = set()
         self._closed = False
         self._thread: Optional[threading.Thread] = None
+        self._revenue_threads: List[threading.Thread] = []
         if not api_key:
             self._warn_once("no-key", "no api_key given; events are not sent")
         atexit.register(self.flush)
@@ -141,6 +142,65 @@ class Meter:
         except Exception:  # Metering must never break the caller.
             pass
 
+    def track_revenue(
+        self,
+        *,
+        id: str,
+        user_id: str,
+        type: str,
+        product_id: Optional[str] = None,
+        amount_usd: Optional[float] = None,
+        net_usd: Optional[float] = None,
+        tax_pct: Optional[float] = None,
+        fee_pct: Optional[float] = None,
+        period_end: Optional[datetime] = None,
+        is_trial_conversion: Optional[bool] = None,
+        one_time: Optional[bool] = None,
+        environment: Optional[str] = None,
+        ts: Optional[datetime] = None,
+    ) -> None:
+        """Reports a payment from your own billing system, for apps without
+        RevenueCat. ``type`` is trial_started, purchase, renewal, refund,
+        cancellation or expiration; ``amount_usd`` is required for purchase,
+        renewal and refund. Retries with the same ``id`` are ignored. Sent
+        right away on a background thread."""
+        try:
+            if not self._api_key:
+                return
+            if not id or not user_id or not type:
+                self._warn_once("invalid-revenue", "track_revenue() needs id, user_id and type; event skipped")
+                return
+
+            def iso(d: Optional[datetime]) -> Optional[str]:
+                if d is None:
+                    return None
+                if d.tzinfo is None:
+                    d = d.replace(tzinfo=timezone.utc)
+                return d.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+            event = {
+                "id": str(id),
+                "userId": str(user_id),
+                "type": type,
+                "ts": iso(ts or datetime.now(timezone.utc)),
+                "productId": product_id,
+                "amountUsd": amount_usd,
+                "netUsd": net_usd,
+                "taxPct": tax_pct,
+                "feePct": fee_pct,
+                "periodEnd": iso(period_end),
+                "isTrialConversion": is_trial_conversion,
+                "oneTime": one_time,
+                "environment": environment,
+            }
+            event = {k: v for k, v in event.items() if v is not None}
+            url = self._endpoint[: -len("/events")] + "/revenue" if self._endpoint.endswith("/events") else self._endpoint
+            t = threading.Thread(target=self._send, args=([event], url), name="fiscallm-revenue", daemon=True)
+            t.start()
+            self._revenue_threads = [x for x in self._revenue_threads if x.is_alive()] + [t]
+        except Exception:
+            pass
+
     def track_openai(self, response: Any, *, user_id: str, feature: Optional[str] = None, provider: Optional[str] = None, model: Optional[str] = None) -> None:
         """A Chat Completions or Responses API result, from the SDK or ``r.json()``.
         Set ``provider`` for OpenAI-compatible APIs such as Groq or OpenRouter."""
@@ -166,6 +226,8 @@ class Meter:
         """Sends everything queued, waiting at most a few seconds. Never raises."""
         try:
             self._send_all()
+            for t in list(self._revenue_threads):
+                t.join(timeout=2 * TIMEOUT_S + RETRY_DELAY_S)
         except Exception:
             pass
 
@@ -270,12 +332,13 @@ class Meter:
                     return
                 self._send(batch)
 
-    def _send(self, batch: List[Dict[str, Any]]) -> None:
+    def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None) -> None:
+        url = url or self._endpoint
         body = json.dumps({"events": batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.2.0"}
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.3.0"}
         for attempt in range(2):
             try:
-                status = self._post(self._endpoint, headers, body)
+                status = self._post(url, headers, body)
             except Exception:
                 status = 0
             if 200 <= status < 300:
@@ -285,4 +348,4 @@ class Meter:
                 return
             if attempt == 0:
                 time.sleep(RETRY_DELAY_S)
-        self._warn_once("unreachable", f"could not reach {self._endpoint}; {len(batch)} events dropped")
+        self._warn_once("unreachable", f"could not reach {url}; {len(batch)} events dropped")

@@ -7,12 +7,14 @@ import { weeklyReportRoute } from "./cron/weekly-report";
 import { dailyRoute } from "./cron/daily";
 import { unsubscribeRoute } from "./unsubscribe";
 import { importRoute } from "./revenuecat/import/route";
+import { revenueRoute } from "./revenue/route";
 
 // Vercel routes /api/* to this service and passes the path through unchanged.
 export const app = new Hono().basePath("/api");
 
 app.get("/health", (c) => c.json({ ok: true }));
 app.route("/v1/events", eventsRoute(getDb));
+app.route("/v1/revenue", revenueRoute(getDb));
 app.route("/webhooks/rc", revenueCatRoute(getDb));
 app.route("/cron/retention", retentionRoute(getDb));
 app.route("/cron/weekly-report", weeklyReportRoute(getDb));

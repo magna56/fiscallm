@@ -31,6 +31,31 @@ export interface TrackEvent {
   ts?: Date | string;
 }
 
+/**
+ * A payment from your own billing system (Stripe, App Store, Play), for
+ * apps without RevenueCat. Retries with the same `id` are ignored.
+ */
+export interface RevenueEvent {
+  /** Your unique id for this event, e.g. the payment or invoice id. */
+  id: string;
+  userId: string;
+  type: "trial_started" | "purchase" | "renewal" | "refund" | "cancellation" | "expiration";
+  productId?: string;
+  /** Gross amount in USD; required for purchase, renewal and refund. */
+  amountUsd?: number;
+  /** What you keep after tax and fees; or give taxPct and feePct (0 to 1). */
+  netUsd?: number;
+  taxPct?: number;
+  feePct?: number;
+  /** When the paid or trial period ends; omit for one-time purchases. */
+  periodEnd?: Date | string;
+  isTrialConversion?: boolean;
+  oneTime?: boolean;
+  environment?: "production" | "sandbox";
+  /** When it happened. Defaults to now. */
+  ts?: Date | string;
+}
+
 export interface MeterOptions {
   apiKey: string | undefined;
   /**
@@ -75,6 +100,8 @@ export interface Meter {
    * equivalent Response to pass on; usage is read from a copy of the body.
    */
   trackSSE(response: Response, ctx: TrackContext): Response;
+  /** Reports a payment, for apps without RevenueCat. Sent right away, in the background. */
+  trackRevenue(event: RevenueEvent): void;
   /** Sends everything queued. Never rejects. */
   flush(): Promise<void>;
 }
@@ -129,9 +156,9 @@ export function createMeter(options: MeterOptions): Meter {
   // trackSSE copies still being read; flush() waits for them too.
   const reading = new Set<Promise<void>>();
 
-  async function post(batch: WireEvent[]): Promise<"ok" | "retry" | "drop"> {
+  async function post(batch: unknown[], url = endpoint): Promise<"ok" | "retry" | "drop"> {
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -150,11 +177,11 @@ export function createMeter(options: MeterOptions): Meter {
     }
   }
 
-  async function send(batch: WireEvent[]): Promise<void> {
-    if ((await post(batch)) !== "retry") return;
+  async function send(batch: unknown[], url = endpoint): Promise<void> {
+    if ((await post(batch, url)) !== "retry") return;
     await sleep(RETRY_DELAY_MS);
-    if ((await post(batch)) === "retry") {
-      warnOnce("unreachable", `could not reach ${endpoint}; ${batch.length} events dropped`);
+    if ((await post(batch, url)) === "retry") {
+      warnOnce("unreachable", `could not reach ${url}; ${batch.length} events dropped`);
     }
   }
 
@@ -286,6 +313,27 @@ export function createMeter(options: MeterOptions): Meter {
         return new Response(theirs, response);
       } catch {
         return response;
+      }
+    },
+
+    trackRevenue(event) {
+      try {
+        if (!options.apiKey) {
+          warnOnce("no-key", "no apiKey given; events are not sent");
+          return;
+        }
+        if (!event?.id || !event.userId || !event.type) {
+          warnOnce("invalid-revenue", "trackRevenue() needs id, userId and type; event skipped");
+          return;
+        }
+        const iso = (d: Date | string | undefined) => (d === undefined ? undefined : new Date(d).toISOString());
+        const wire = { ...event, userId: String(event.userId), ts: iso(event.ts) ?? new Date().toISOString(), periodEnd: iso(event.periodEnd) };
+        const p = send([wire], endpoint.replace(/\/events$/, "/revenue")).catch(() => {});
+        inflight.add(p);
+        p.finally(() => inflight.delete(p));
+        keepAlive(p);
+      } catch {
+        // Metering must never break the caller.
       }
     },
 

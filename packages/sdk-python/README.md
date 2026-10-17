@@ -36,6 +36,9 @@ meter.track(user_id=user_id, provider="google", model="veo-3.1-fast-generate-pre
 # Anything else: the exact cost
 meter.track(user_id=user_id, provider="fal", model="flux-pro", cost_usd=0.05)
 
+# No RevenueCat? Report payments yourself:
+meter.track_revenue(id=invoice_id, user_id=user_id, type="renewal", amount_usd=9.99, fee_pct=0.15)
+
 # Serverless (AWS Lambda, Cloud Functions): before returning
 meter.flush()          # or: await meter.aflush()
 ```

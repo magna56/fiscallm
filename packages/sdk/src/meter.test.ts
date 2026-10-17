@@ -155,6 +155,17 @@ describe("createMeter", () => {
     expect(batch[1].unit).toBeUndefined();
   });
 
+  it("sends revenue to the revenue endpoint right away", async () => {
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    meter.trackRevenue({ id: "inv_1", userId: "u", type: "renewal", amountUsd: 9.99, feePct: 0.15, periodEnd: new Date("2026-11-17T00:00:00Z") });
+    await meter.flush();
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://fiscallm.com/api/v1/revenue");
+    const [e] = JSON.parse((init as RequestInit).body as string).events;
+    expect(e).toMatchObject({ id: "inv_1", type: "renewal", amountUsd: 9.99, periodEnd: "2026-11-17T00:00:00.000Z" });
+    expect(e.ts).toBeTruthy();
+  });
+
   it("survives a waitUntil that throws", async () => {
     const meter = createMeter({
       apiKey: "k",

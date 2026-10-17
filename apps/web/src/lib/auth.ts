@@ -2,10 +2,14 @@ import "server-only";
 import { schema } from "@fiscallm/shared";
 import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { getDb } from "./db";
 import { createClient } from "./supabase/server";
 
 export async function requireUser() {
+  // Signed-in pages are per request; Supabase reads the clock, which
+  // Next.js does not allow while prerendering a shell.
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

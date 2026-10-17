@@ -34,8 +34,15 @@ function money(m: Money | null) {
  * webhook delivers the same purchases, and importing them too would count
  * revenue twice.
  */
-export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date): RcEventRow[] {
+export function convertCustomer(
+  appId: string,
+  h: CustomerHistory,
+  cutoff: Date,
+  productNames: Map<string, string> | null = null,
+): RcEventRow[] {
   const rows: RcEventRow[] = [];
+  // Webhooks name products by store identifier; use the same names.
+  const name = (id: string | null) => (id ? (productNames?.get(id) ?? id) : null);
   const base = (id: string, type: string, at: number, extra: Partial<RcEventRow>): RcEventRow => ({
     appId,
     id: `import:${id}`,
@@ -59,7 +66,7 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
       const trial = s.status === "trialing" && (total?.gross ?? 0) === 0;
       rows.push(
         base(`${s.id}:summary`, "INITIAL_PURCHASE", s.starts_at, {
-          productId: s.product_id,
+          productId: name(s.product_id),
           periodType: trial ? "TRIAL" : "NORMAL",
           store,
           environment: env,
@@ -69,9 +76,9 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
         }),
       );
       if (s.status === "expired" && s.ends_at != null && s.ends_at < cutoff.getTime()) {
-        rows.push(base(`${s.id}:expired`, "EXPIRATION", s.ends_at, { productId: s.product_id, store, environment: env, expirationAt: date(s.ends_at) }));
+        rows.push(base(`${s.id}:expired`, "EXPIRATION", s.ends_at, { productId: name(s.product_id), store, environment: env, expirationAt: date(s.ends_at) }));
       } else if (s.gives_access && s.auto_renewal_status === "will_not_renew") {
-        rows.push(base(`${s.id}:cancelled`, "CANCELLATION", s.starts_at + 1, { productId: s.product_id, store, environment: env, priceUsd: "0", netUsd: "0" }));
+        rows.push(base(`${s.id}:cancelled`, "CANCELLATION", s.starts_at + 1, { productId: name(s.product_id), store, environment: env, priceUsd: "0", netUsd: "0" }));
       }
       continue;
     }
@@ -85,7 +92,7 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
       const trial = i === 0 && firstIsTrial;
       rows.push(
         base(`${s.id}:${tx.id}`, i === 0 ? "INITIAL_PURCHASE" : "RENEWAL", tx.purchased_at, {
-          productId: tx.product_store_identifier || s.product_id,
+          productId: tx.product_store_identifier || name(s.product_id),
           periodType: trial ? "TRIAL" : "NORMAL",
           store,
           environment: env,
@@ -99,7 +106,7 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
 
     const lastAt = txs.at(-1)?.purchased_at ?? s.starts_at;
     if (lastAt >= cutoff.getTime()) continue;
-    const productId = txs.at(-1)?.product_store_identifier || s.product_id;
+    const productId = txs.at(-1)?.product_store_identifier || name(s.product_id);
     if (s.status === "expired" && s.ends_at != null && s.ends_at < cutoff.getTime()) {
       rows.push(base(`${s.id}:expired`, "EXPIRATION", s.ends_at, { productId, store, environment: env, expirationAt: date(s.ends_at) }));
     } else if (s.gives_access && s.auto_renewal_status === "will_not_renew") {
@@ -114,7 +121,7 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
     const store = p.store?.toUpperCase() ?? null;
     rows.push(
       base(p.id, "NON_RENEWING_PURCHASE", p.purchased_at, {
-        productId: p.product_id,
+        productId: name(p.product_id),
         periodType: "NORMAL",
         store,
         environment: env,
@@ -127,7 +134,7 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
       const paid = money(p.revenue_in_usd);
       rows.push(
         base(`${p.id}:refund`, "CANCELLATION", p.purchased_at + 1, {
-          productId: p.product_id,
+          productId: name(p.product_id),
           store,
           environment: env,
           priceUsd: dec(-p.revenue_in_usd.gross),

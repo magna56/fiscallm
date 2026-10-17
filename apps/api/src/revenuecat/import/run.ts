@@ -47,6 +47,7 @@ export async function runImportChunk(
 
   let cursor = job.cursor;
   try {
+    const productNames = await api.productNames();
     for (;;) {
       const page = await api.customers(cursor);
       for (const customerId of page.ids) {
@@ -58,12 +59,24 @@ export async function runImportChunk(
           subscriptions.push({ subscription, transactions });
         }
         const purchases = await api.purchases(customerId);
-        const rows = convertCustomer(appId, { customerId, subscriptions, purchases }, job.cutoff);
+        const rows = convertCustomer(appId, { customerId, subscriptions, purchases }, job.cutoff, productNames);
 
         await db.transaction(async (tx) => {
           let added = 0;
           if (rows.length > 0) {
-            added = (await tx.insert(schema.rcEvents).values(rows).onConflictDoNothing().returning({ id: schema.rcEvents.id })).length;
+            // Re-imports only fix product names (e.g. once the key may read
+            // products); unchanged rows are left alone and not counted.
+            added = (
+              await tx
+                .insert(schema.rcEvents)
+                .values(rows)
+                .onConflictDoUpdate({
+                  target: [schema.rcEvents.appId, schema.rcEvents.id],
+                  set: { productId: sql`excluded.product_id` },
+                  setWhere: sql`${schema.rcEvents.productId} IS DISTINCT FROM excluded.product_id`,
+                })
+                .returning({ id: schema.rcEvents.id })
+            ).length;
           }
           // Keep the canonical id webhooks may already have chosen.
           const [known] = await tx

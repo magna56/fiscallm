@@ -202,7 +202,7 @@ export async function startImport(appId: string, formData: FormData) {
     signal: AbortSignal.timeout(10_000),
   }).catch(() => null);
   if (!check) fail("Could not reach RevenueCat; try again");
-  if (check!.status === 401 || check!.status === 403) fail("RevenueCat refused the key. Use a v2 secret key with read access to customers, subscriptions and purchases.");
+  if (check!.status === 401 || check!.status === 403) fail("RevenueCat refused the key. Use a v2 secret key with read-only access to Customer information and Project configuration.");
   if (check!.status === 404) fail("RevenueCat did not find that project ID");
   if (!check!.ok) fail(`RevenueCat answered ${check!.status}`);
 

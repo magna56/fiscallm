@@ -200,7 +200,7 @@ meter.flush()   # or: await meter.aflush()`}</code>
         </p>
         <p>
           RevenueCat sends only new events. To bring in subscribers who paid before you connected, use Settings → Import past subscribers: paste
-          your RevenueCat project ID and a v2 secret key with read-only access to customer information, and FiscaLLM imports their purchases,
+          your RevenueCat project ID and a v2 secret key with read-only access to customer information and project configuration, and FiscaLLM imports their purchases,
           renewals and trials from RevenueCat&apos;s API. Purchases the webhook already delivered are skipped, so nothing counts twice.
           App Store and Play Store subscriptions come in renewal by renewal; for other stores (Stripe, Web Billing) RevenueCat only reports each
           subscription&apos;s total, which is counted on its start date. The key is

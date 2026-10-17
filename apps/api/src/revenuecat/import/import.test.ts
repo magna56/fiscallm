@@ -126,6 +126,7 @@ function fakeApi(customers: Record<string, Customer>, pageSize = 2, fail?: RcApi
       return found.txs;
     },
     purchases: async (id: string) => customers[id]!.purchases,
+    productNames: async () => new Map([["prod_rc", "pro_monthly"]]),
   };
   return api;
 }
@@ -178,6 +179,8 @@ describe("runImportChunk", () => {
     const j = await job();
     expect(j).toMatchObject({ status: "done", customersDone: 4, eventsImported: 7, keyCipher: null, error: null });
     expect(Number((await subscriber("d"))!.netRevenueUsd)).toBeCloseTo(15);
+    // Named like webhooks do, via the product list.
+    expect((await subscriber("d"))!.productId).toBe("pro_monthly");
     expect(await subscriber("a")).toMatchObject({ state: "paid", productId: "pro_monthly" });
     expect(Number((await subscriber("a"))!.netRevenueUsd)).toBeCloseTo(14.985);
     expect((await subscriber("a"))!.convertedAt).not.toBeNull();

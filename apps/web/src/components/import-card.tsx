@@ -46,8 +46,9 @@ export function ImportCard({ appId, job }: { appId: string; job: Job | undefined
               <Input name="secretKey" required type="password" placeholder="v2 secret key (sk_…)" autoComplete="off" />
             </div>
             <p className="text-xs text-foreground/60">
-              In RevenueCat: Project settings → API keys → New secret key, version V2, read-only access to Customer information. The key is
-              kept encrypted only while the import runs.
+              In RevenueCat: Project settings → API keys → New secret API key, version V2, with read-only access to Customer information and to
+              Project configuration (for product names). Your project ID is under Project settings → General. The key is kept encrypted only
+              while the import runs.
             </p>
             <div>
               <Button type="submit">{job ? "Import again" : "Start import"}</Button>

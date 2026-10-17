@@ -54,6 +54,11 @@ export interface RcApi {
   subscriptions(customerId: string): Promise<RcSubscription[]>;
   transactions(subscriptionId: string): Promise<RcTransaction[]>;
   purchases(customerId: string): Promise<RcPurchase[]>;
+  /**
+   * RevenueCat product id → store identifier ("pro_monthly"), which is what
+   * webhooks report. Null when the key may not read products.
+   */
+  productNames(): Promise<Map<string, string> | null>;
 }
 
 export class RcApiError extends Error {
@@ -122,5 +127,15 @@ export function revenueCatApi(projectId: string, secretKey: string, opts: { sand
     subscriptions: (id) => all<RcSubscription>(`/customers/${encodeURIComponent(id)}/subscriptions?${env}limit=100`),
     transactions: (id) => all<RcTransaction>(`/subscriptions/${encodeURIComponent(id)}/transactions?limit=100`),
     purchases: (id) => all<RcPurchase>(`/customers/${encodeURIComponent(id)}/purchases?${env}limit=100`),
+    async productNames() {
+      try {
+        const products = await all<{ id: string; store_identifier: string }>(`/products?limit=100`);
+        return new Map(products.map((p) => [p.id, p.store_identifier]));
+      } catch (e) {
+        // Needs "Project configuration: read"; without it keep RevenueCat's ids.
+        if (e instanceof RcApiError && (e.status === 401 || e.status === 403)) return null;
+        throw e;
+      }
+    },
   };
 }

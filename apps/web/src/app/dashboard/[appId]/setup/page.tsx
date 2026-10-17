@@ -46,7 +46,7 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
       <Card title="Status">
         <ul className="flex flex-col gap-2 text-sm">
           <Check ok={ai!.n > 0} label="First AI event received" detail={ai!.last ? `${ai!.n} events, last ${ago(ai!.last)}` : "Waiting for your backend…"} />
-          <Check ok={rc!.n > 0} label="First RevenueCat webhook received" detail={rc!.last ? `${rc!.n} events, last ${ago(rc!.last)}` : "Waiting for RevenueCat…"} />
+          <Check ok={rc!.n > 0} label="First RevenueCat webhook received" detail={rc!.n > 0 ? `${rc!.n} events, latest dated ${ago(rc!.last!)}` : "Waiting for RevenueCat…"} />
           <Check
             ok={(o?.matchRate ?? 0) > 0}
             label="AI users matched to RevenueCat"

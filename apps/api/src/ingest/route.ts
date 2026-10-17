@@ -36,7 +36,10 @@ export function eventsRoute(getDb: () => AnyDb) {
       return c.json({ error: "invalid events", issues }, 400);
     }
 
-    const [prices, overrides] = await Promise.all([loadPrices(db), loadOverrides(db, app.id)]);
+    // Sequential on purpose: concurrent queries on one connection are
+    // pipelined, which Supabase's transaction pooler cannot handle.
+    const prices = await loadPrices(db);
+    const overrides = await loadOverrides(db, app.id);
     const rows = priceEvents(app.id, parsed.data.events, prices, overrides);
     return c.json(await storeEvents(db, rows), 202);
   });

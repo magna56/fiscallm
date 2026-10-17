@@ -366,6 +366,7 @@ function CodeSection() {
         </p>
         <ul className="mt-6 space-y-2 text-sm">
           {[
+            "Reads only the model name and token counts from res, never the answer text",
             "Never throws, never blocks your response",
             "Batches in the background with waitUntil",
             "Retries are de-duplicated, so nothing counts twice",

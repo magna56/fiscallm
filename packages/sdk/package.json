@@ -1,6 +1,6 @@
 {
   "name": "fiscallm",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Track AI cost per user against subscription revenue. Zero-dependency SDK for your backend.",
   "license": "MIT",
   "type": "module",
@@ -17,11 +17,7 @@
   "engines": {
     "node": ">=20"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/magna56/ai_spend_book.git",
-    "directory": "packages/sdk"
-  },
+  "homepage": "https://fiscallm.com/docs",
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",

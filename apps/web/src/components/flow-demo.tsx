@@ -81,7 +81,8 @@ export function FlowDemo() {
 
   return (
     <div ref={ref} className="flex flex-col gap-4">
-      <div className="relative w-full overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#fafaff] via-white to-[#fdf7fb]" style={{ aspectRatio: "16 / 8.2", containerType: "inline-size" }}>
+      <MobileFlow step={step} cost={cost} margin={revenue === 0 ? null : margin} />
+      <div className="relative hidden w-full overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#fafaff] via-white to-[#fdf7fb] sm:block" style={{ aspectRatio: "16 / 8.2", containerType: "inline-size" }}>
         <div className="dot-grid opacity-60" aria-hidden />
 
         {/* connection lines */}
@@ -246,4 +247,60 @@ function Typed({ text, run }: { text: string; run: boolean }) {
     return () => clearInterval(id);
   }, [run, text]);
   return <span>{text.slice(0, n) || " "}</span>;
+}
+
+// Phones: the same story as a column of stops, the active ones lit up.
+const MOBILE_ROWS: { key: keyof typeof NODES; name: string; detail: string }[] = [
+  { key: "phone", name: "Your app", detail: "a user asks for something" },
+  { key: "backend", name: "Your backend", detail: "meter.trackOpenAI(res, { userId })" },
+  { key: "ai", name: "AI provider", detail: "OpenAI · Anthropic · Gemini" },
+  { key: "fiscallm", name: "FiscaLLM", detail: "cost, revenue and margin per user" },
+  { key: "rc", name: "RevenueCat", detail: "purchases and renewals" },
+];
+
+function MobileFlow({ step, cost, margin }: { step: number; cost: number; margin: number | null }) {
+  const current = STEPS[step]!;
+  const lit = new Set<string>();
+  for (const [key, at] of Object.entries(NODES)) {
+    if (current.packet && (current.packet.from === at || current.packet.to === at)) lit.add(key);
+  }
+  if (step === 0) lit.add("phone");
+  if (step === 5 || step === 7) lit.add("fiscallm");
+  return (
+    <ol className="flex flex-col gap-2 sm:hidden">
+      {MOBILE_ROWS.map((r) => {
+        const on = lit.has(r.key);
+        const sending = current.packet && current.packet.from === NODES[r.key];
+        return (
+          <li key={r.key}>
+            <div
+              className={`rounded-xl border px-4 py-3 transition-all duration-500 ${
+                on ? "border-[#6d5dfc]/40 bg-[#6d5dfc]/[0.06] shadow-md shadow-indigo-500/10" : "border-black/5 bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold">{r.name}</span>
+                {r.key === "fiscallm" && (
+                  <span className="font-mono text-xs tabular-nums">
+                    ${cost.toFixed(2)}{" "}
+                    {margin !== null && <span className={margin < 0 ? "text-red-600" : "text-green-600"}>{`${margin < 0 ? "−" : "+"}$${Math.abs(margin).toFixed(2)}`}</span>}
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 truncate font-mono text-[11px] text-black/50">{r.detail}</div>
+              {r.key === "fiscallm" && step >= 7 && <div className="mt-1.5 text-xs text-red-600">🔔 user_k3x9 passed the $5 budget</div>}
+            </div>
+            {sending && current.packet && (
+              <div className="my-1 flex justify-center">
+                <span className="inline-flex items-center gap-1.5 rounded-full border bg-white px-2 py-0.5 text-xs font-medium" style={{ borderColor: current.packet.color, color: current.packet.color }}>
+                  <span className="h-1.5 w-1.5 animate-ping rounded-full" style={{ background: current.packet.color }} />
+                  {current.packet.label} →
+                </span>
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

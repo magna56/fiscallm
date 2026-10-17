@@ -74,7 +74,7 @@ function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          Free during the beta · SDKs for TypeScript &amp; Python
+          Free during the beta<span className="hidden sm:inline"> · SDKs for TypeScript &amp; Python</span>
           <span aria-hidden>→</span>
         </Link>
 
@@ -83,7 +83,7 @@ function Hero() {
           <Words text="than they pay." start={8} />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          Every user pays the same. Each one costs you a different amount in AI. See who makes you money, and who doesn&apos;t.
+          FiscaLLM matches every user&apos;s AI cost to what they pay you in RevenueCat.
         </p>
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link

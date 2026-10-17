@@ -50,6 +50,16 @@ export default function HowItWorksPage() {
           You call <code>meter.trackOpenAI(res, {"{ userId }"})</code> after the provider responds. The SDK reads the usage object from the response
           and queues an event. It never reads message content.
         </p>
+        <div className="my-5 rounded-2xl border border-[#6d5dfc]/20 bg-[#6d5dfc]/[0.06] p-4 text-sm">
+          <p className="!my-0 font-medium text-foreground">What is <code>res</code>? And what do we read from it?</p>
+          <p className="!my-1.5">
+            <code>res</code> is the object your AI provider&apos;s SDK returned for the call you just made. FiscaLLM reads exactly two things from it:{" "}
+            <strong>the model name</strong> and <strong>the token counts</strong> (<code>res.usage</code>).
+          </p>
+          <p className="!my-0">
+            It never reads the answer text, the prompt or any message content, and none of that is sent. Only the model name and the counts leave your backend.
+          </p>
+        </div>
         <table>
           <thead>
             <tr>

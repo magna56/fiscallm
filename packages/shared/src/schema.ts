@@ -1,5 +1,6 @@
 import {
   bigint,
+  boolean,
   date,
   index,
   integer,
@@ -25,6 +26,8 @@ export const apps = pgTable("apps", {
   name: text("name").notNull(),
   ingestKeyHash: text("ingest_key_hash").notNull().unique(),
   rcWebhookSecret: text("rc_webhook_secret").notNull(),
+  // Applies RevenueCat SANDBOX events; production events always apply.
+  testMode: boolean("test_mode").notNull().default(false),
   createdAt: ts("created_at").notNull().defaultNow(),
 }).enableRLS();
 
@@ -109,11 +112,11 @@ export const appPriceOverrides = pgTable(
 export const rcEvents = pgTable(
   "rc_events",
   {
-    // RevenueCat event id; retries reuse it.
-    id: text("id").primaryKey(),
     appId: uuid("app_id")
       .notNull()
       .references(() => apps.id, { onDelete: "cascade" }),
+    // RevenueCat event id; retries reuse it.
+    id: text("id").notNull(),
     type: text("type").notNull(),
     appUserId: text("app_user_id"),
     originalAppUserId: text("original_app_user_id"),
@@ -125,12 +128,17 @@ export const rcEvents = pgTable(
     taxPct: numeric("tax_pct", { precision: 7, scale: 4 }),
     commissionPct: numeric("commission_pct", { precision: 7, scale: 4 }),
     netUsd: usd("net_usd"),
+    isTrialConversion: boolean("is_trial_conversion"),
     purchasedAt: ts("purchased_at"),
     expirationAt: ts("expiration_at"),
     eventTs: ts("event_ts").notNull(),
     raw: jsonb("raw").notNull(),
   },
-  (t) => [index("rc_events_app_user").on(t.appId, t.appUserId)],
+  (t) => [
+    primaryKey({ columns: [t.appId, t.id] }),
+    index("rc_events_app_user").on(t.appId, t.appUserId),
+    index("rc_events_app_original_user").on(t.appId, t.originalAppUserId),
+  ],
 ).enableRLS();
 
 export const userAliases = pgTable(
@@ -142,7 +150,10 @@ export const userAliases = pgTable(
     alias: text("alias").notNull(),
     canonicalUserId: text("canonical_user_id").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.appId, t.alias] })],
+  (t) => [
+    primaryKey({ columns: [t.appId, t.alias] }),
+    index("user_aliases_app_canonical").on(t.appId, t.canonicalUserId),
+  ],
 ).enableRLS();
 
 export const subscribers = pgTable(

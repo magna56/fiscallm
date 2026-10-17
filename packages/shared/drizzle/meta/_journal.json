@@ -22,6 +22,13 @@
       "when": 1792194759072,
       "tag": "0002_classy_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792198893178,
+      "tag": "0003_overrated_maximus",
+      "breakpoints": true
     }
   ]
 }

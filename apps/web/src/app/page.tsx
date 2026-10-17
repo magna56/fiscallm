@@ -1,116 +1,395 @@
-import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SiteFooter, SiteHeader } from "@/components/site";
+
+const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Deno", "Bun", "RevenueCat"];
 
 const STEPS = [
   {
-    title: "Report usage from your backend",
-    body: "One call after each AI request: meter.trackOpenAI(res, { userId }). Works with OpenAI, Anthropic, Gemini and anything with a price. It runs in the background and never blocks or breaks your response.",
+    n: "01",
+    title: "Track AI calls on your backend",
+    body: "Add one line after each AI request. The SDK reports token counts in the background and never slows or breaks your response.",
+    code: "meter.trackOpenAI(res, { userId })",
   },
   {
+    n: "02",
     title: "Connect RevenueCat",
     body: "Paste one webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of store fees and tax.",
+    code: "https://fiscallm.com/api/webhooks/rc/…",
   },
   {
-    title: "See who costs more than they pay",
-    body: "AI cost against revenue per user, per plan and per trial cohort. The users losing you money, sorted worst first.",
+    n: "03",
+    title: "See your real margin per user",
+    body: "AI cost next to revenue for every user, plan and trial cohort, with the people losing you money at the top.",
+    code: "demo-heavy   −$16.41",
   },
 ];
 
-const QUESTIONS = [
-  ["What does it store?", "User IDs, token counts, model names and subscription events. Never prompts or responses: they stay on your backend."],
-  ["Which apps is it for?", "Subscription apps that call AI models from their own backend (a Worker, Supabase or Firebase function, or a Node server) and use RevenueCat."],
-  ["How is cost calculated?", "From the providers' list prices, kept up to date, including cached tokens and long-prompt pricing. Negotiated rates can be added per provider or model."],
-  ["What does it cost?", "Nothing during the beta."],
+const FAQ: [string, string][] = [
+  ["What exactly does FiscaLLM store?", "User IDs, token counts, model names and RevenueCat subscription events. Never prompts or responses: those stay on your backend."],
+  ["Which apps is it for?", "Subscription apps that call AI models from their own backend, such as a Cloudflare Worker, a Supabase or Firebase function, or a Node server, and that use RevenueCat."],
+  ["How is the cost calculated?", "From each provider's list price on the day of the call, including cached tokens, cache writes and long-prompt pricing. If you have a negotiated rate, add it in Settings."],
+  ["What if FiscaLLM is down?", "Your app is unaffected. The SDK sends in the background with a two-second timeout and one retry, then drops the event."],
+  ["What does it cost?", "Nothing during the beta. We will tell you well before any paid plan applies to you."],
 ];
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="flex min-h-full flex-1 flex-col overflow-x-clip">
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-20 px-6 pb-20 pt-10">
-        <section className="flex flex-col items-start gap-6">
-          <p className="rounded-full border border-foreground/15 px-3 py-1 text-xs text-foreground/70">
-            For AI-powered subscription apps on RevenueCat
-          </p>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Know which users cost you more in AI than they pay.
-          </h1>
-          <p className="max-w-2xl text-lg text-foreground/70">
-            FiscaLLM puts each user&apos;s AI spend next to their subscription revenue, so you can see your real margin per user,
-            per plan and per free trial before the bill arrives.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/login" className="rounded bg-foreground px-4 py-2 font-medium text-background">
-              Start free
-            </Link>
-            <Link href="/docs" className="rounded border border-foreground/20 px-4 py-2 font-medium">
-              Read the docs
-            </Link>
-          </div>
-          <p className="text-sm text-foreground/50">Free during the beta. Ten minutes to set up.</p>
-        </section>
-
-        <section className="overflow-hidden rounded-xl border border-foreground/10 shadow-sm">
-          <Image
-            src="/screenshots/overview.png"
-            alt="FiscaLLM dashboard: AI cost, net revenue and margin, with a daily chart and cost by model"
-            width={924}
-            height={492}
-            priority
-            className="h-auto w-full"
-          />
-        </section>
-
-        <section>
-          <h2 className="mb-6 text-2xl font-semibold">How it works</h2>
-          <ol className="grid gap-6 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="rounded-lg border border-foreground/10 p-5">
-                <div className="mb-2 text-sm text-foreground/50">{i + 1}</div>
-                <h3 className="mb-2 font-medium">{s.title}</h3>
-                <p className="text-sm text-foreground/70">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="grid gap-8 md:grid-cols-2">
-          <div>
-            <h2 className="mb-3 text-2xl font-semibold">Questions it answers</h2>
-            <ul className="flex flex-col gap-2 text-foreground/80">
-              <li>• What share of my revenue goes to AI providers?</li>
-              <li>• Which plan loses money once AI is paid for?</li>
-              <li>• What does a free trial cost me, and per converted trial?</li>
-              <li>• Which paying users cost more than they pay?</li>
-              <li>• Which model and which feature drive the bill?</li>
-            </ul>
-          </div>
-          <pre className="overflow-x-auto rounded-lg bg-foreground/5 p-4 text-xs leading-relaxed">
-            <code>{`import { createMeter } from "fiscallm";
-
-const meter = createMeter({ apiKey: env.FISCALLM_KEY });
-
-const res = await openai.chat.completions.create({
-  model, messages,
-});
-meter.trackOpenAI(res, { userId, feature: "chat" });`}</code>
-          </pre>
-        </section>
-
-        <section>
-          <h2 className="mb-6 text-2xl font-semibold">FAQ</h2>
-          <dl className="grid gap-6 md:grid-cols-2">
-            {QUESTIONS.map(([q, a]) => (
-              <div key={q}>
-                <dt className="font-medium">{q}</dt>
-                <dd className="mt-1 text-sm text-foreground/70">{a}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+      <main className="flex flex-col">
+        <Hero />
+        <Runtimes />
+        <Problem />
+        <HowItWorks />
+        <Features />
+        <CodeSection />
+        <Privacy />
+        <Faq />
+        <FinalCta />
       </main>
       <SiteFooter />
     </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative isolate">
+      <div className="aurora" aria-hidden>
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="dot-grid" aria-hidden />
+      <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pt-20 text-center sm:pt-28">
+        <Link
+          href="/docs"
+          className="fade-up glass inline-flex items-center gap-2 rounded-full border border-black/5 px-3 py-1 text-xs text-muted shadow-sm"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+          </span>
+          Free during the beta · SDK on npm
+          <span aria-hidden>→</span>
+        </Link>
+
+        <h1 className="fade-up delay-1 mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
+          Know which users cost you <span className="text-gradient">more in AI</span> than they pay.
+        </h1>
+        <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
+          FiscaLLM puts every user&apos;s AI spend next to their subscription revenue, so you see your real margin per user, plan and free
+          trial before the provider bill arrives.
+        </p>
+        <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/login"
+            className="rounded-full bg-foreground px-6 py-3 font-medium text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:shadow-xl"
+          >
+            Start free
+          </Link>
+          <Link href="/docs" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
+            Read the docs
+          </Link>
+        </div>
+        <p className="fade-up delay-3 mt-4 text-sm text-muted">10-minute setup · No prompts leave your backend</p>
+
+        <div className="relative mt-16 w-full max-w-5xl">
+          <div className="glow" aria-hidden />
+          <div className="product-frame overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl shadow-indigo-500/10">
+            <div className="flex items-center gap-2 border-b border-black/5 bg-[#fafafc] px-4 py-3">
+              <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+              <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+              <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/dashboard</span>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/screenshots/overview.png"
+              alt="FiscaLLM dashboard: AI cost, net revenue, AI cost as a share of revenue and margin, with a daily chart"
+              width={924}
+              height={492}
+              className="h-auto w-full"
+            />
+          </div>
+
+          <FloatCard className="float -left-4 top-[58%] hidden md:block lg:-left-16">
+            <div className="text-xs text-muted">Biggest cost driver</div>
+            <div className="mt-1 font-mono text-sm">claude-sonnet-5-5</div>
+            <div className="mt-2 h-1.5 w-40 rounded-full bg-black/[0.05]">
+              <div className="h-1.5 w-[74%] rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
+            </div>
+            <div className="mt-1 text-xs text-muted">74% of AI cost</div>
+          </FloatCard>
+          <FloatCard className="float-slow -right-4 bottom-16 hidden md:block lg:-right-14">
+            <div className="text-xs text-muted">Paying user losing you money</div>
+            <div className="mt-1 flex items-center justify-between gap-6 font-mono text-sm">
+              <span>user_k3x9…</span>
+              <span className="font-semibold text-red-600">−$16.41</span>
+            </div>
+            <div className="mt-1 text-xs text-muted">pays $7.49 · costs $23.90</div>
+          </FloatCard>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FloatCard({ className, children }: { className: string; children: ReactNode }) {
+  return <div className={`glass absolute z-20 rounded-xl border border-black/5 p-4 text-left shadow-xl shadow-black/10 ${className}`}>{children}</div>;
+}
+
+function Runtimes() {
+  const row = [...RUNTIMES, ...RUNTIMES];
+  return (
+    <section className="mx-auto mt-20 w-full max-w-6xl px-6">
+      <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted">Works with your stack</p>
+      <div className="marquee mt-6 overflow-hidden">
+        <div className="marquee-track gap-10">
+          {row.map((r, i) => (
+            <span key={i} className="whitespace-nowrap text-lg font-medium text-foreground/40">
+              {r}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNode; body?: string }) {
+  return (
+    <div className="reveal mx-auto max-w-2xl text-center">
+      <p className="text-sm font-medium text-accent">{eyebrow}</p>
+      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+      {body && <p className="mt-4 text-lg text-muted">{body}</p>}
+    </div>
+  );
+}
+
+function Problem() {
+  const items = [
+    ["Flat price, variable cost", "Every subscriber pays the same, but a heavy user can burn through ten times the tokens of a light one."],
+    ["Two systems that never meet", "Your provider bill knows tokens. RevenueCat knows revenue. Neither knows which user is which."],
+    ["Trials that quietly lose money", "Free trials run on real AI. Without numbers you cannot tell what a trial costs or what a conversion is worth."],
+  ];
+  return (
+    <section className="mx-auto mt-32 w-full max-w-6xl px-6">
+      <SectionHead
+        eyebrow="The problem"
+        title={
+          <>
+            AI apps run on <span className="text-gradient">thin, invisible margins</span>
+          </>
+        }
+        body="Subscription pricing assumed software costs nothing per user. With AI, every message has a price."
+      />
+      <div className="mt-12 grid gap-4 md:grid-cols-3">
+        {items.map(([t, b]) => (
+          <div key={t} className="reveal card-glow rounded-2xl border border-black/5 bg-white p-6">
+            <h3 className="font-semibold">{t}</h3>
+            <p className="mt-2 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HowItWorks() {
+  return (
+    <section id="how" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead eyebrow="How it works" title="Set up in ten minutes" body="No proxy, no changes to how you call AI providers, nothing in your app's request path." />
+      <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
+        <div className="absolute left-0 right-0 top-9 hidden h-px bg-gradient-to-r from-transparent via-black/10 to-transparent md:block" aria-hidden />
+        {STEPS.map((s) => (
+          <li key={s.n} className="reveal card-glow relative rounded-2xl border border-black/5 bg-white p-6">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#6d5dfc] to-[#a855f7] text-sm font-semibold text-white shadow-md shadow-indigo-500/30">
+              {s.n}
+            </span>
+            <h3 className="mt-5 font-semibold">{s.title}</h3>
+            <p className="mt-2 text-sm text-muted">{s.body}</p>
+            <code className="mt-4 block truncate rounded-lg bg-[#fafafc] px-3 py-2 font-mono text-xs text-foreground/70">{s.code}</code>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function Features() {
+  return (
+    <section id="features" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead eyebrow="What you get" title="Every number that decides your margin" />
+      <div className="mt-12 grid auto-rows-[minmax(180px,auto)] gap-4 md:grid-cols-6">
+        <Tile className="md:col-span-4" title="Margin per user" body="Revenue minus AI cost for every subscriber, worst first. Filter to paying users who cost more than they pay.">
+          <div className="mt-5 space-y-2 font-mono text-xs">
+            {[
+              ["user_k3x9…", "paid", "−$16.41", "w-[92%] bg-red-400"],
+              ["user_2b7q…", "paid", "−$4.08", "w-[40%] bg-red-300"],
+              ["user_9m1c…", "trial", "−$0.34", "w-[12%] bg-amber-300"],
+              ["user_p0aa…", "paid", "+$46.15", "w-[70%] bg-green-400"],
+            ].map(([u, s, m, bar]) => (
+              <div key={u} className="flex items-center gap-3">
+                <span className="w-24 shrink-0">{u}</span>
+                <span className="w-12 shrink-0 text-muted">{s}</span>
+                <span className="h-1.5 flex-1 rounded-full bg-black/[0.04]">
+                  <span className={`block h-1.5 rounded-full ${bar}`} />
+                </span>
+                <span className={`w-16 shrink-0 text-right ${m.startsWith("−") ? "text-red-600" : "text-green-600"}`}>{m}</span>
+              </div>
+            ))}
+          </div>
+        </Tile>
+        <Tile className="md:col-span-2" title="Cost per trial" body="AI spent during free trials, per trial and per converted trial, by start week.">
+          <div className="mt-5 flex items-end gap-1.5">
+            {[40, 65, 52, 80, 58, 90, 70].map((h, i) => (
+              <span key={i} className="w-full rounded-t bg-gradient-to-t from-[#6d5dfc] to-[#a855f7] opacity-80" style={{ height: `${h * 0.7}px` }} />
+            ))}
+          </div>
+        </Tile>
+        <Tile className="md:col-span-2" title="Plans that lose money" body="Each product's revenue, AI cost and margin, so you can price plans on real numbers." />
+        <Tile className="md:col-span-2" title="Cost by model and feature" body="See whether chat, summaries or images drive the bill, and which model to switch." />
+        <Tile className="md:col-span-2" title="Monday email" body="Last week's margin and the users and plans that lost money, in your inbox." />
+        <Tile className="md:col-span-3" title="Accurate prices, your prices" body="List prices kept current, including cached tokens and long-prompt rates. Add negotiated discounts per provider or model." />
+        <Tile className="md:col-span-3" title="Built for mobile subscriptions" body="Trials, renewals, refunds, upgrades and anonymous-to-logged-in users from RevenueCat, all handled." />
+      </div>
+    </section>
+  );
+}
+
+function Tile({ className = "", title, body, children }: { className?: string; title: string; body: string; children?: ReactNode }) {
+  return (
+    <div className={`reveal card-glow flex flex-col rounded-2xl border border-black/5 bg-gradient-to-b from-white to-[#fafafc] p-6 ${className}`}>
+      <h3 className="font-semibold">{title}</h3>
+      <p className="mt-2 text-sm text-muted">{body}</p>
+      {children}
+    </div>
+  );
+}
+
+function CodeSection() {
+  return (
+    <section className="mx-auto mt-32 grid w-full max-w-6xl items-center gap-10 px-6 md:grid-cols-2">
+      <div className="reveal">
+        <p className="text-sm font-medium text-accent">For developers</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">One line per AI call</h2>
+        <p className="mt-4 text-lg text-muted">
+          A zero-dependency TypeScript SDK with helpers for OpenAI, Anthropic and Gemini, streaming support, and a plain HTTP API for everything else.
+        </p>
+        <ul className="mt-6 space-y-2 text-sm">
+          {["Never throws, never blocks your response", "Batches in the background with waitUntil", "Retries are de-duplicated, so nothing counts twice"].map((t) => (
+            <li key={t} className="flex gap-2">
+              <span className="text-accent">✓</span>
+              {t}
+            </li>
+          ))}
+        </ul>
+        <Link href="/docs" className="mt-8 inline-block font-medium text-accent hover:underline">
+          Read the docs →
+        </Link>
+      </div>
+      <div className="reveal relative">
+        <div className="glow" aria-hidden />
+        <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#0f0f1a] shadow-2xl">
+          <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3 text-xs text-white/50">
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+            <span className="ml-2">worker.ts</span>
+          </div>
+          <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-white/90">
+            <code>
+              <span className="text-[#c792ea]">import</span> {"{ createMeter }"} <span className="text-[#c792ea]">from</span>{" "}
+              <span className="text-[#c3e88d]">&quot;fiscallm&quot;</span>;{"\n\n"}
+              <span className="text-[#c792ea]">const</span> meter = <span className="text-[#82aaff]">createMeter</span>({"{"}
+              {"\n"}  apiKey: env.FISCALLM_KEY,{"\n"}  waitUntil: ctx.waitUntil.<span className="text-[#82aaff]">bind</span>(ctx),{"\n"}
+              {"}"});{"\n\n"}
+              <span className="text-[#c792ea]">const</span> res = <span className="text-[#c792ea]">await</span> openai.chat.completions
+              {"\n"}  .<span className="text-[#82aaff]">create</span>({"{ model, messages }"});{"\n\n"}
+              <span className="text-white/40">{"// that's it"}</span>
+              {"\n"}meter.<span className="text-[#82aaff]">trackOpenAI</span>(res, {"{ userId, feature: "}
+              <span className="text-[#c3e88d]">&quot;chat&quot;</span>
+              {" }"});
+            </code>
+          </pre>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Privacy() {
+  return (
+    <section className="mx-auto mt-32 w-full max-w-6xl px-6">
+      <div className="reveal relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f3ff] via-white to-[#fdf2f8] p-10 md:p-14">
+        <div className="grid gap-10 md:grid-cols-2">
+          <div>
+            <p className="text-sm font-medium text-accent">Privacy by design</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">Your users&apos; conversations never reach us</h2>
+            <p className="mt-4 text-muted">
+              The SDK sends counts, not content. No prompts, no responses, no names or emails: just an ID, a model and the number of tokens.
+            </p>
+          </div>
+          <ul className="grid gap-3 text-sm">
+            {[
+              ["Counts, not content", "Token numbers and model names only."],
+              ["90-day raw retention", "Raw events are deleted after 90 days; daily totals stay."],
+              ["Delete anytime", "Remove an app's data in one click from Settings."],
+              ["Hashed keys", "Ingest keys are stored as hashes, never in plain text."],
+            ].map(([t, b]) => (
+              <li key={t} className="glass rounded-xl border border-black/5 p-4">
+                <div className="font-medium">{t}</div>
+                <div className="text-muted">{b}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Faq() {
+  return (
+    <section className="mx-auto mt-32 w-full max-w-3xl px-6">
+      <SectionHead eyebrow="FAQ" title="Questions, answered" />
+      <div className="mt-10 divide-y divide-black/5 rounded-2xl border border-black/5 bg-white">
+        {FAQ.map(([q, a]) => (
+          <details key={q} className="reveal group px-6 py-5">
+            <summary className="flex items-center justify-between gap-4 font-medium">
+              {q}
+              <span className="chev text-xl text-muted transition-transform">+</span>
+            </summary>
+            <p className="mt-3 text-sm text-muted">{a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FinalCta() {
+  return (
+    <section className="mx-auto my-32 w-full max-w-6xl px-6">
+      <div className="reveal relative isolate overflow-hidden rounded-3xl bg-[#0f0f1a] px-8 py-16 text-center text-white md:py-20">
+        <div className="aurora aurora-dark" aria-hidden>
+          <span />
+          <span />
+          <span />
+        </div>
+        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Stop guessing your AI margins.</h2>
+        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and RevenueCat in ten minutes. Free during the beta.</p>
+        <div className="relative mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/login" className="rounded-full bg-white px-6 py-3 font-medium text-[#0f0f1a] transition hover:-translate-y-0.5">
+            Start free
+          </Link>
+          <Link href="/docs" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
+            Read the docs
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -3,34 +3,56 @@ import type { ReactNode } from "react";
 
 export const CONTACT = "theaicommit@gmail.com";
 
+export function Logo() {
+  return (
+    <span className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+      <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] text-xs font-bold text-white shadow-sm">
+        F
+      </span>
+      FiscaLLM
+    </span>
+  );
+}
+
 export function SiteHeader() {
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
-      <Link href="/" className="text-lg font-semibold">
-        FiscaLLM
-      </Link>
-      <nav className="flex items-center gap-5 text-sm">
-        <Link href="/docs" className="text-foreground/70 hover:text-foreground">
-          Docs
+    <header className="glass sticky top-0 z-40 border-b border-black/5">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-3.5">
+        <Link href="/">
+          <Logo />
         </Link>
-        <Link href="/login" className="rounded bg-foreground px-3 py-1.5 font-medium text-background">
-          Sign in
-        </Link>
-      </nav>
+        <nav className="flex items-center gap-1 text-sm sm:gap-2">
+          <Link href="/#how" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+            How it works
+          </Link>
+          <Link href="/#features" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+            Features
+          </Link>
+          <Link href="/docs" className="rounded-full px-3 py-1.5 text-muted hover:text-foreground">
+            Docs
+          </Link>
+          <Link href="/login" className="rounded-full px-3 py-1.5 text-muted hover:text-foreground">
+            Sign in
+          </Link>
+          <Link href="/login" className="rounded-full bg-foreground px-4 py-1.5 font-medium text-white transition hover:opacity-85">
+            Start free
+          </Link>
+        </nav>
+      </div>
     </header>
   );
 }
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-foreground/10">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap justify-between gap-3 px-6 py-6 text-sm text-foreground/60">
-        <span>FiscaLLM</span>
-        <nav className="flex gap-5">
-          <Link href="/docs">Docs</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <a href={`mailto:${CONTACT}`}>{CONTACT}</a>
+    <footer className="mt-auto border-t border-black/5">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted">
+        <Logo />
+        <nav className="flex flex-wrap gap-5">
+          <Link href="/docs" className="hover:text-foreground">Docs</Link>
+          <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+          <Link href="/terms" className="hover:text-foreground">Terms</Link>
+          <a href={`mailto:${CONTACT}`} className="hover:text-foreground">{CONTACT}</a>
         </nav>
       </div>
     </footer>
@@ -40,7 +62,7 @@ export function SiteFooter() {
 /** Long-form text pages: docs, privacy, terms. */
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pb-16 text-[15px] leading-relaxed [&_a]:underline [&_code]:rounded [&_code]:bg-foreground/5 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_h1]:mb-2 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-semibold [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-foreground/5 [&_pre]:p-4 [&_pre]:text-xs [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-3 [&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-foreground/10 [&_td]:py-1.5 [&_td]:pr-3 [&_th]:py-1.5 [&_th]:pr-3 [&_th]:text-left [&_th]:font-medium [&_ul]:list-disc [&_ul]:pl-5">
+    <div className="mx-auto w-full max-w-3xl px-6 pb-16 pt-10 text-[15px] leading-relaxed [&_a]:text-accent [&_a]:underline [&_code]:rounded [&_code]:bg-black/[0.04] [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_h1]:mb-2 [&_h1]:text-4xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h2]:mt-12 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-semibold [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_p]:text-foreground/80 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-black/5 [&_pre]:bg-[#fafafc] [&_pre]:p-4 [&_pre]:text-xs [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-4 [&_table]:w-full [&_table]:text-sm [&_td]:border-t [&_td]:border-black/5 [&_td]:py-2 [&_td]:pr-3 [&_th]:py-2 [&_th]:pr-3 [&_th]:text-left [&_th]:font-medium [&_ul]:list-disc [&_ul]:pl-5">
       {children}
     </div>
   );

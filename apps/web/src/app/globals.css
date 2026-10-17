@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
+/* Light theme only. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0b0b14;
+  --muted: #5b5b6b;
+  --accent: #6d5dfc;
+  --accent-2: #a855f7;
+  --accent-3: #ec4899;
+  --ring: rgba(109, 93, 252, 0.25);
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* ---------- Landing page ---------- */
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 45%, var(--accent-3) 90%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-pan {
+  to { background-position: 100% center; }
+}
+
+/* Soft drifting colour blobs behind the hero. */
+.aurora {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 720px;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.55;
+  z-index: 0;
+}
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(1) { width: 520px; height: 520px; left: 8%; top: 10%; background: #c7d2fe; }
+.aurora span:nth-child(2) { width: 460px; height: 460px; right: 10%; top: 0; background: #f5d0fe; animation-duration: 22s; animation-delay: -6s; }
+.aurora span:nth-child(3) { width: 380px; height: 380px; left: 40%; top: 35%; background: #bae6fd; animation-duration: 26s; animation-delay: -12s; }
+
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, 40px) scale(1.12); }
+  100% { transform: translate(-40px, 20px) scale(0.95); }
+}
+
+/* Deeper colours for the dark call-to-action panel. */
+.aurora-dark { opacity: 0.5; filter: blur(80px); }
+.aurora-dark span:nth-child(1) { background: #4f46e5; }
+.aurora-dark span:nth-child(2) { background: #a21caf; }
+.aurora-dark span:nth-child(3) { background: #0ea5e9; opacity: 0.6; }
+
+/* Faint dot grid that fades out toward the edges. */
+.dot-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(11, 11, 20, 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 100%);
+  z-index: 0;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+/* Product shot tilted back slightly, settling flat on load. */
+.product-frame {
+  transform: perspective(1600px) rotateX(10deg) scale(0.97);
+  transform-origin: center top;
+  animation: settle 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+}
+@keyframes settle {
+  to { transform: perspective(1600px) rotateX(0deg) scale(1); }
+}
+
+.glow {
+  position: absolute;
+  inset: 8% 6% -6%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+  filter: blur(60px);
+  opacity: 0.28;
+  border-radius: 40px;
+  z-index: -1;
+}
+
+.float { animation: float 6s ease-in-out infinite; }
+.float-slow { animation: float 8s ease-in-out -3s infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.fade-up { animation: fade-up 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Sections reveal as they scroll in, where the browser supports it. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+}
+
+/* Cards light up their border on hover. */
+.card-glow {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-glow:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px -18px rgba(109, 93, 252, 0.35);
+}
+.card-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.card-glow:hover::before { opacity: 1; }
+
+/* Endless row of runtime names. */
+.marquee { mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent); }
+.marquee-track { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+.shine {
+  background: linear-gradient(110deg, var(--foreground) 45%, #3b3b52 50%, var(--foreground) 55%);
+  background-size: 250% 100%;
+  animation: shine 4s ease-in-out infinite;
+}
+@keyframes shine { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] .chev { transform: rotate(45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .product-frame { transform: none; }
 }

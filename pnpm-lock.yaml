@@ -218,8 +218,8 @@ importers:
         specifier: ^0.45.4
         version: 0.45.4(@electric-sql/pglite@0.5.10)(postgres@3.4.9)
       fiscallm:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       next:
         specifier: 16.4.0
         version: 16.4.0(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2291,8 +2291,8 @@ packages:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
 
-  fiscallm@0.1.0:
-    resolution: {integrity: sha512-ZDR9wAIIYHaobnAyA99DtzM0EHzU0rZXs+AtXP8g70MbCUcuLVKQPPqoqt+lKifeIl4FmNlS/KgvpF5o4rdEZQ==}
+  fiscallm@0.1.1:
+    resolution: {integrity: sha512-uVhUS7LFX4iFnWDF6+hT8yUo4ae1yXetMt6uIhzEiNqFOzK0wiQ8pa5ylWhQswUI0FAGbMgXKhqBWb2wi3veSw==}
     engines: {node: '>=20'}
 
   flat-cache@4.0.1:
@@ -5176,7 +5176,7 @@ snapshots:
       locate-path: 6.0.0
       path-exists: 4.0.0
 
-  fiscallm@0.1.0: {}
+  fiscallm@0.1.1: {}
 
   flat-cache@4.0.1:
     dependencies:

@@ -5,4 +5,4 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - fiscallm@0.1.0
+  - fiscallm@0.1.0 || 0.1.1

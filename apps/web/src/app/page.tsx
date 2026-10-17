@@ -27,6 +27,7 @@ const STEPS = [
 ];
 
 const FAQ: [string, string][] = [
+  ["What does FiscaLLM do, in one sentence?", "It tells AI app developers which users, plans and trials make money and which lose it, so they can fix pricing and limits before the AI bill eats their margin."],
   ["What exactly does FiscaLLM store?", "User IDs, token counts, model names and RevenueCat subscription events. Never prompts or responses: those stay on your backend."],
   ["Which apps is it for?", "Subscription apps that call AI models from their own backend, in TypeScript or Python (a Cloudflare Worker, a Supabase or Firebase function, a Node, FastAPI or Django server), and that use RevenueCat. Other languages can use the HTTP API."],
   ["How is the cost calculated?", "From each provider's list price on the day of the call, including cached tokens, cache writes and long-prompt pricing. If you have a negotiated rate, add it in Settings."],
@@ -45,6 +46,8 @@ export default function Home() {
         <Problem />
         <HowItWorks />
         <Features />
+        <Actions />
+        <Audience />
         <CodeSection />
         <Privacy />
         <Faq />
@@ -209,8 +212,8 @@ function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNo
 
 function Problem() {
   const items = [
-    ["Flat price, variable cost", "Every subscriber pays the same, but a heavy user can burn through ten times the tokens of a light one."],
-    ["Two systems that never meet", "Your provider bill knows tokens. RevenueCat knows revenue. Neither knows which user is which."],
+    ["Flat price, variable cost", "Every subscriber pays the same, but one heavy user can cost more in AI than a hundred light ones."],
+    ["Two systems that never meet", "Your AI provider's bill knows tokens. RevenueCat knows who paid. Neither knows which user is which."],
     ["Trials that quietly lose money", "Free trials run on real AI. Without numbers you cannot tell what a trial costs or what a conversion is worth."],
   ];
   return (
@@ -219,11 +222,18 @@ function Problem() {
         eyebrow="The problem"
         title={
           <>
-            AI apps run on <span className="text-gradient">thin, invisible margins</span>
+            Two users pay the same. <span className="text-gradient">One of them loses you money.</span>
           </>
         }
-        body="Subscription pricing assumed software costs nothing per user. With AI, every message has a price."
+        body="Subscription pricing assumed software costs nothing per user. With AI, every message has a price, and you only see the total at the end of the month."
       />
+
+      <div className="reveal mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2">
+        <UserCompare name="Light user" plan="$9.99 / month" pays={7.49} cost={0.2} />
+        <UserCompare name="Heavy user" plan="$9.99 / month" pays={7.49} cost={25} />
+      </div>
+      <p className="mt-3 text-center text-xs text-muted">Net revenue after store fees and tax. AI cost from the provider&apos;s list prices.</p>
+
       <Spotlight className="mt-12 grid gap-4 md:grid-cols-3">
         {items.map(([t, b]) => (
           <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
@@ -232,6 +242,140 @@ function Problem() {
           </div>
         ))}
       </Spotlight>
+
+      <div className="reveal mx-auto mt-12 flex max-w-4xl flex-col items-stretch gap-3 md:flex-row md:items-center">
+        <Source title="AI provider bill" body="tokens, models, total cost" />
+        <Joiner />
+        <div className="flex-1 rounded-2xl bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] p-[1.5px]">
+          <div className="rounded-[15px] bg-white px-5 py-4 text-center">
+            <div className="font-semibold">FiscaLLM</div>
+            <div className="text-sm text-muted">joins them per user: cost, revenue, margin</div>
+          </div>
+        </div>
+        <Joiner flip />
+        <Source title="RevenueCat" body="purchases, renewals, trials, refunds" />
+      </div>
+    </section>
+  );
+}
+
+function UserCompare({ name, plan, pays, cost }: { name: string; plan: string; pays: number; cost: number }) {
+  const margin = pays - cost;
+  const max = 25;
+  const fmt = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(n).toFixed(2)}`;
+  return (
+    <div className="spot card-glow rounded-2xl border border-black/5 bg-white p-6">
+      <div className="flex items-baseline justify-between">
+        <h3 className="font-semibold">{name}</h3>
+        <span className="text-xs text-muted">{plan}</span>
+      </div>
+      <dl className="mt-4 space-y-3 text-sm">
+        <div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Pays you</dt>
+            <dd className="tabular-nums">{fmt(pays)}</dd>
+          </div>
+          <div className="mt-1 h-2 rounded-full bg-black/[0.04]">
+            <div className="h-2 rounded-full bg-green-400" style={{ width: `${(pays / max) * 100}%` }} />
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between">
+            <dt className="text-muted">Costs you in AI</dt>
+            <dd className="tabular-nums">{fmt(cost)}</dd>
+          </div>
+          <div className="mt-1 h-2 rounded-full bg-black/[0.04]">
+            <div className="h-2 rounded-full bg-red-400" style={{ width: `${Math.max(1, (cost / max) * 100)}%` }} />
+          </div>
+        </div>
+        <div className="flex justify-between border-t border-black/5 pt-3 font-semibold">
+          <dt>Margin</dt>
+          <dd className={`tabular-nums ${margin < 0 ? "text-red-600" : "text-green-600"}`}>{fmt(margin)}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+function Source({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="flex-1 rounded-2xl border border-black/10 bg-[#fafafc] px-5 py-4 text-center">
+      <div className="font-medium">{title}</div>
+      <div className="text-sm text-muted">{body}</div>
+    </div>
+  );
+}
+
+function Joiner({ flip = false }: { flip?: boolean }) {
+  return (
+    <div className="beam mx-auto h-8 w-px bg-black/10 md:h-px md:w-12" aria-hidden>
+      <span className="sr-only">{flip ? "from" : "to"}</span>
+    </div>
+  );
+}
+
+function Actions() {
+  const actions: [string, string][] = [
+    ["Price plans on real numbers", "See which plan loses money once AI is paid for, and set prices or limits that keep every plan profitable."],
+    ["Cap heavy users", "Set a budget per user. When someone passes it, a webhook tells your backend so it can slow them down or ask them to upgrade."],
+    ["Switch the expensive feature", "Find the feature and model that drive the bill, then move it to a cheaper model where users will not notice."],
+    ["Fix trials that do not pay off", "Know what a trial costs and what each converted trial costs, then shorten trials or limit AI during them."],
+    ["Catch problems the same day", "Alerts when a user, the whole app or AI's share of revenue goes over your line, by email or webhook."],
+    ["Stay on top every week", "A Monday email with last week's margin and the users and plans that lost money."],
+  ];
+  return (
+    <section className="mx-auto mt-32 w-full max-w-6xl px-6">
+      <SectionHead
+        eyebrow="What you can do with it"
+        title="Turn the numbers into decisions"
+        body="Seeing the problem is step one. FiscaLLM is built around the decisions that fix it."
+      />
+      <Spotlight className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {actions.map(([t, b], i) => (
+          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+            <span className="text-sm font-semibold text-accent">{String(i + 1).padStart(2, "0")}</span>
+            <h3 className="mt-2 font-semibold">{t}</h3>
+            <p className="mt-2 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </Spotlight>
+    </section>
+  );
+}
+
+function Audience() {
+  const handled = [
+    "Cached tokens and long prompts",
+    "Image, voice and video pricing",
+    "Trials and conversions",
+    "Refunds and upgrades",
+    "Anonymous to logged-in users",
+    "Negotiated AI prices",
+    "History from before you connected",
+    "Sandbox and test purchases",
+  ];
+  return (
+    <section className="mx-auto mt-32 w-full max-w-6xl px-6">
+      <div className="reveal grid gap-10 rounded-3xl border border-black/5 bg-white p-8 md:grid-cols-2 md:p-12">
+        <div>
+          <p className="shimmer text-sm font-medium">Who it is for</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight">AI-powered subscription apps</h2>
+          <p className="mt-4 text-muted">
+            Indie developers and small teams whose app sells subscriptions through RevenueCat and calls OpenAI, Anthropic, Gemini or other AI
+            providers from its own backend, in TypeScript or Python. For many of these apps, AI is the biggest cost after the app store&apos;s cut.
+          </p>
+        </div>
+        <div>
+          <p className="text-sm font-medium">Handles the hard parts</p>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {handled.map((h) => (
+              <li key={h} className="rounded-full border border-black/10 bg-[#fafafc] px-3 py-1.5 text-sm">
+                {h}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </section>
   );
 }

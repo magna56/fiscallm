@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Prose, SiteFooter, SiteHeader } from "@/components/site";
+import { GuideShell } from "@/components/guide-shell";
 
 const TITLE = "How to track OpenAI cost per user";
+const PATH = "/guides/track-openai-cost-per-user";
 const DESCRIPTION =
   "Your OpenAI bill shows tokens, not users. Read the usage object, price it, store it per user, and compare it with what each user pays. Code in TypeScript and Python.";
 
@@ -13,26 +14,9 @@ export const metadata: Metadata = {
   openGraph: { type: "article", title: TITLE, description: DESCRIPTION },
 };
 
-const ARTICLE = {
-  "@context": "https://schema.org",
-  "@type": "TechArticle",
-  headline: TITLE,
-  description: DESCRIPTION,
-  author: { "@type": "Organization", name: "FiscaLLM" },
-  publisher: { "@type": "Organization", name: "FiscaLLM", logo: { "@type": "ImageObject", url: "https://fiscallm.com/icon.svg" } },
-  mainEntityOfPage: "https://fiscallm.com/guides/track-openai-cost-per-user",
-};
-
 export default function Guide() {
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <SiteHeader />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ARTICLE) }} />
-      <Prose>
-        <p className="!mb-0 text-sm text-muted">
-          <Link href="/guides">Guides</Link>
-        </p>
-        <h1>{TITLE}</h1>
+    <GuideShell title={TITLE} description={DESCRIPTION} path={PATH}>
         <p>
           <strong>In short:</strong> every OpenAI response tells you how many tokens it used. To get cost per user, read that usage, multiply it by
           the model&apos;s price, and add it to a running total keyed by your user ID. Then set it next to what that user pays you.
@@ -148,8 +132,6 @@ meter.track_openai(res, user_id=user_id, feature="chat")`}</code>
         <p>Not if you send events in the background and never await them on the request path.</p>
         <h3>Do I need to send prompts to track cost?</h3>
         <p>No. Cost depends only on the model and the token counts. Never send message content.</p>
-      </Prose>
-      <SiteFooter />
-    </div>
+    </GuideShell>
   );
 }

@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/track-anthropic-claude-cost-per-user",
+    title: "How to track Anthropic Claude cost per user",
+    body: "Claude's usage fields, cache reads and writes priced correctly, streaming, and comparing cost with revenue.",
+  },
+  {
     href: "/guides/track-openai-cost-per-user",
     title: "How to track OpenAI cost per user",
     body: "Read the usage object, price it, store it per user, and compare it with what each user pays.",

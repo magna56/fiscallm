@@ -77,6 +77,30 @@ export default function HowItWorksPage() {
             <tr><td><code>feature</code></td><td>Your label for the call site, such as <code>chat</code>.</td></tr>
           </tbody>
         </table>
+        <h3 id="numbers-only">Prefer not to hand us the response?</h3>
+        <p>
+          Then pass the numbers yourself with <code>meter.track()</code>. Nothing else changes, and the response object is never given to FiscaLLM.
+          One rule matters: <code>inputTokens</code> must <strong>exclude</strong> cached tokens, because cached tokens are priced separately.
+        </p>
+        <pre>
+          <code>{`const cached = res.usage.prompt_tokens_details?.cached_tokens ?? 0;
+
+meter.track({
+  userId,
+  provider: "openai",
+  model: res.model,
+  inputTokens: res.usage.prompt_tokens - cached, // not counting cached
+  cachedTokens: cached,
+  outputTokens: res.usage.completion_tokens,
+  feature: "chat",
+});`}</code>
+        </pre>
+        <p>
+          Anthropic already reports cached tokens separately (<code>cache_read_input_tokens</code>, <code>cache_creation_input_tokens</code>), so
+          its <code>input_tokens</code> can be passed as is, with the other two as <code>cachedTokens</code> and <code>cacheWriteTokens</code>. For
+          Gemini, subtract <code>cachedContentTokenCount</code> from <code>promptTokenCount</code>. The helpers do exactly this; use{" "}
+          <code>track()</code> when you want to control what is read.
+        </p>
         <p>
           Events are batched (up to 100 per request) and sent in the background: through <code>waitUntil</code> on Workers and Vercel, on a two-second
           timer on a long-running server, or on <code>meter.flush()</code> in Lambda-style runtimes. A request has a short timeout and one retry,

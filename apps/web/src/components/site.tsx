@@ -25,9 +25,6 @@ export function SiteHeader() {
           <Link href="/#how" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             How it works
           </Link>
-          <Link href="/#features" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
-            Features
-          </Link>
           <Link href="/docs" className="rounded-full px-3 py-1.5 text-muted hover:text-foreground">
             Docs
           </Link>

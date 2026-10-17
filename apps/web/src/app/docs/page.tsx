@@ -13,7 +13,13 @@ export default function DocsPage() {
       <SiteHeader />
       <Prose>
         <h1>Docs</h1>
-        <p>Setup takes about ten minutes: create an app, report AI usage from your backend, and connect RevenueCat.</p>
+        <p>
+          <strong>In short:</strong> your backend reports each user&apos;s AI usage with one line of code, RevenueCat reports what they paid, and
+          FiscaLLM shows the margin per user, plan and trial. Setup takes about ten minutes.
+        </p>
+        <p>
+          Fastest: <a href="#ai-setup">let your AI coding assistant do it</a>. Otherwise follow the quickstart below.
+        </p>
 
         <h2 id="quickstart">Quickstart</h2>
         <ol>

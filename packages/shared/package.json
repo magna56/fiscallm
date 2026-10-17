@@ -15,7 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "test": "vitest run",
     "db:sync-prices": "tsx scripts/sync-prices.ts",
-    "create-app": "tsx scripts/create-app.ts"
+    "create-app": "tsx scripts/create-app.ts",
+    "seed-demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

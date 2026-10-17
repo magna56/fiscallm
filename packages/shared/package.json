@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
-    "./db": "./src/db.ts"
+    "./db": "./src/db.ts",
+    "./metrics": "./src/metrics/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
@@ -21,6 +22,7 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
     "@types/node": "^20",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.23.15",

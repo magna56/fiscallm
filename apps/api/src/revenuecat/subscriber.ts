@@ -57,6 +57,8 @@ export function computeSubscriber(events: readonly RcEvent[], now: Date): Subscr
 
   let s: SubscriberState | null = null;
   let micros = 0;
+  // Lifetime purchases (no expiry) keep a user paying until refunded.
+  const lifetime = new Set<string>();
 
   for (const e of sorted) {
     if ((REVENUE_TYPES.has(e.type) || isRefund(e)) && e.netUsd !== null) {
@@ -86,6 +88,7 @@ export function computeSubscriber(events: readonly RcEvent[], now: Date): Subscr
       s.productId = e.productId ?? s.productId;
       if (e.expirationAt) s.expiresAt = e.expirationAt;
     } else if (e.type === "NON_RENEWING_PURCHASE") {
+      if (!e.expirationAt) lifetime.add(e.productId ?? "");
       if (s.state === "expired") {
         s.state = "paid";
         s.productId = e.productId ?? s.productId;
@@ -93,6 +96,7 @@ export function computeSubscriber(events: readonly RcEvent[], now: Date): Subscr
         s.expiresAt = e.expirationAt;
       }
     } else if (e.type === "CANCELLATION") {
+      if (isRefund(e)) lifetime.delete(e.productId ?? "");
       // A refund ends access; a plain cancellation only turns off renewal.
       s.state = isRefund(e) ? "expired" : s.state === "expired" ? "expired" : "cancelled";
     } else if (e.type === "EXPIRATION") {
@@ -104,6 +108,11 @@ export function computeSubscriber(events: readonly RcEvent[], now: Date): Subscr
   if (!s) return null;
   // The EXPIRATION webhook can lag behind the actual expiry.
   if (s.state !== "expired" && s.expiresAt && s.expiresAt < now) s.state = "expired";
+  if (s.state === "expired" && lifetime.size > 0) {
+    s.state = "paid";
+    s.productId = [...lifetime][0] || s.productId;
+    s.expiresAt = null;
+  }
   s.netRevenueUsd = micros / 1e6;
   return s;
 }

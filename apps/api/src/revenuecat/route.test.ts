@@ -195,6 +195,17 @@ describe("POST /webhooks/rc/:appId", () => {
     expect((await subscriber())!.productId).toBe("pro_yearly");
   });
 
+  it("keeps a lifetime buyer paying after a subscription lapses, until refunded", async () => {
+    await send(
+      ev("NON_RENEWING_PURCHASE", { product_id: "lifetime", expiration_at_ms: null, price: 99 }),
+      ev("INITIAL_PURCHASE", { product_id: "pro_yearly", event_timestamp_ms: t0 + DAY, expiration_at_ms: t0 + 2 * DAY }),
+    );
+    expect(await subscriber()).toMatchObject({ state: "paid", productId: "lifetime", expiresAt: null });
+
+    await send(ev("CANCELLATION", { product_id: "lifetime", price: -99, event_timestamp_ms: t0 + 2 * DAY }));
+    expect((await subscriber())!.state).toBe("expired");
+  });
+
   it("rejects a payload without an event id", async () => {
     expect((await post({ type: "RENEWAL" })).status).toBe(400);
   });

@@ -27,7 +27,7 @@ export function AuthShell({ title, subtitle, children, aside = true }: { title: 
               See the AI cost of <span className="text-gradient">every single user.</span>
             </h2>
             <ul className="mt-6 space-y-3 text-muted">
-              {["Margin per user, plan and free trial", "Which model and feature drive the bill", "Alerts before a user gets expensive", "Free during the beta"].map((t) => (
+              {["Margin per user, plan and free trial", "Which model and feature drive the bill", "Alerts before a user gets expensive", "Free and open source"].map((t) => (
                 <li key={t} className="flex gap-2">
                   <span className="text-accent">✓</span>
                   {t}

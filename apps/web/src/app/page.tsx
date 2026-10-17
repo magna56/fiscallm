@@ -33,7 +33,7 @@ const FAQ: [string, string][] = [
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
   ["Do I need RevenueCat?", "No. RevenueCat connects with one webhook, but you can also send payments from Stripe or any billing system with one SDK call."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request."],
-  ["What does it cost?", "Nothing during the beta."],
+  ["What does it cost?", "Nothing. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
 ];
 
 const JSON_LD = {
@@ -46,6 +46,7 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       logo: "https://fiscallm.com/icon.svg",
       email: CONTACT,
+      sameAs: ["https://github.com/magna56/fiscallm"],
     },
     {
       "@type": "SoftwareApplication",
@@ -55,6 +56,8 @@ const JSON_LD = {
       operatingSystem: "Web",
       description: "Matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial.",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      license: "https://opensource.org/licenses/MIT",
+      codeRepository: "https://github.com/magna56/fiscallm",
       publisher: { "@id": "https://fiscallm.com/#org" },
     },
     {
@@ -104,7 +107,7 @@ function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          Free during the beta<span className="hidden sm:inline"> · SDKs for TypeScript &amp; Python</span>
+          Free and open source<span className="hidden sm:inline"> · SDKs for TypeScript &amp; Python</span>
           <span aria-hidden>→</span>
         </Link>
 
@@ -472,9 +475,9 @@ function FinalCta() {
           <span />
         </div>
         <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Stop guessing your AI margins.</h2>
-        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and RevenueCat in ten minutes. Free during the beta.</p>
+        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and RevenueCat in ten minutes. Free and open source.</p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
-          We&apos;re looking for our first 10 apps. Tell us what you build and we&apos;ll help you set it up:{" "}
+          We&apos;re looking for our first 10 apps. Tell us what you build and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
           <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">
             {CONTACT}
           </a>

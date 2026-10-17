@@ -33,6 +33,9 @@ export function SiteHeader() {
           <Link href="/how-it-works" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             For engineers
           </Link>
+          <a href="https://github.com/magna56/fiscallm" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground md:block">
+            GitHub
+          </a>
           <Link href="/docs" className="rounded-full px-3 py-1.5 text-muted hover:text-foreground">
             Docs
           </Link>
@@ -57,6 +60,7 @@ export function SiteFooter() {
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/guides" className="hover:text-foreground">Guides</Link>
+          <a href="https://github.com/magna56/fiscallm" className="hover:text-foreground">GitHub</a>
           <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
           <Link href="/terms" className="hover:text-foreground">Terms</Link>
           <a href={`mailto:${CONTACT}`} className="hover:text-foreground">{CONTACT}</a>

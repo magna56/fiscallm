@@ -140,7 +140,7 @@ const userId = req.headers["x-rc-app-user-id"];`}</code>
 // RevenueCat → Integrations → Webhooks → paste the URL and authorization value from your Setup page`}</code>
       </pre>
       <p>
-        It&apos;s free during the beta. <Link href="/demo">Open the demo dashboard</Link> (no sign-up), read <Link href="/how-it-works">how it works</Link>
+        It&apos;s free and open source. <Link href="/demo">Open the demo dashboard</Link> (no sign-up), read <Link href="/how-it-works">how it works</Link>
         , or <Link href="/login">start free</Link>. Per-provider details:{" "}
         <Link href="/guides/track-openai-cost-per-user">OpenAI</Link> and{" "}
         <Link href="/guides/track-anthropic-claude-cost-per-user">Anthropic Claude</Link>.

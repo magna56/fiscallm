@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CONTACT, Prose, SiteFooter, SiteHeader } from "@/components/site";
 
-export const metadata: Metadata = { description: "The terms for using FiscaLLM during the free beta.", alternates: { canonical: "/terms" }, title: "Terms · FiscaLLM" };
+export const metadata: Metadata = { description: "The terms for using the free, open-source FiscaLLM and its hosted service.", alternates: { canonical: "/terms" }, title: "Terms · FiscaLLM" };
 
 export default function TermsPage() {
   return (
@@ -9,13 +9,19 @@ export default function TermsPage() {
       <SiteHeader />
       <Prose>
         <h1>Terms of service</h1>
-        <p>Last updated: 17 October 2026</p>
+        <p>Last updated: 18 October 2026</p>
         <p>By creating an account or sending data to FiscaLLM you agree to these terms. Contact: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</p>
 
         <h2>The service</h2>
         <p>
-          FiscaLLM is in beta and free to use. Features may change, and we may introduce paid plans; we will tell you before anything you use
-          starts to cost money.
+          FiscaLLM is open source (MIT licence) and free to use. The code is on <a href="https://github.com/magna56/fiscallm">GitHub</a>, and you can run your own copy. The
+          hosted service at fiscallm.com is run by the maintainer on a best-effort basis, with no uptime guarantee.
+        </p>
+        <h2>Fair use of the hosted service</h2>
+        <p>
+          The hosted service is free under fair use. We may throttle or suspend usage that is abusive, harms the service or other users, or is far
+          beyond normal use for an app. We will try to contact you first. We may introduce paid plans for the hosted service in future; we will tell
+          you before anything you use starts to cost money, and self-hosting stays free.
         </p>
 
         <h2>Your responsibilities</h2>

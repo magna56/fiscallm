@@ -127,7 +127,7 @@ message = client.messages.create(model=model, max_tokens=1024, messages=messages
 meter.track_anthropic(message, user_id=user_id, feature="summary")`}</code>
       </pre>
       <p>
-        Free during the beta. <Link href="/demo">Try the demo dashboard</Link> (no sign-up), see <Link href="/how-it-works">how it works</Link>, or{" "}
+        Free and open source. <Link href="/demo">Try the demo dashboard</Link> (no sign-up), see <Link href="/how-it-works">how it works</Link>, or{" "}
         <Link href="/login">start free</Link>. Using OpenAI too? Read <Link href="/guides/track-openai-cost-per-user">the OpenAI version</Link>.
       </p>
 

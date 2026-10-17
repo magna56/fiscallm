@@ -121,7 +121,7 @@ res = client.chat.completions.create(model=model, messages=messages)
 meter.track_openai(res, user_id=user_id, feature="chat")`}</code>
         </pre>
         <p>
-          It&apos;s free during the beta. <Link href="/demo">See the demo dashboard</Link> (no sign-up), read{" "}
+          It&apos;s free and open source. <Link href="/demo">See the demo dashboard</Link> (no sign-up), read{" "}
           <Link href="/how-it-works">how it works</Link>, or <Link href="/login">start free</Link>.
         </p>
 

@@ -5,6 +5,7 @@ import { waitUntil } from "@vercel/functions";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AnyDb } from "./db";
+import { noteAccepted, overMonthlyCap } from "./limit";
 import { loadOverrides, loadPrices } from "./prices";
 import { priceEvents, storeEvents } from "./store";
 import { batchSchema } from "./validate";
@@ -30,6 +31,20 @@ export function eventsRoute(getDb: () => AnyDb) {
       .limit(1);
     if (!app) return c.json({ error: "invalid ingest key" }, 401);
 
+    const blocked = await overMonthlyCap(db, app.id);
+    if (blocked) {
+      // 403, not 429: the SDKs retry a 429 and would stay silent about the drop.
+      return c.json(
+        {
+          error: `monthly event limit reached (${blocked.limit.toLocaleString("en-US")} events per app). It resets on ${blocked.resetsAt}. Self-host FiscaLLM for no limit, or open an issue if you need more.`,
+          limit: blocked.limit,
+          used: blocked.used,
+          resetsAt: blocked.resetsAt,
+        },
+        403,
+      );
+    }
+
     const body = await c.req.json().catch(() => undefined);
     const parsed = batchSchema.safeParse(body);
     if (!parsed.success) {
@@ -45,6 +60,7 @@ export function eventsRoute(getDb: () => AnyDb) {
     const overrides = await loadOverrides(db, app.id);
     const rows = priceEvents(app.id, parsed.data.events, prices, overrides);
     const result = await storeEvents(db, rows);
+    noteAccepted(app.id, result.accepted);
     if (result.accepted > 0) {
       // Budgets are checked after the response, so ingest stays fast.
       const userIds = [...new Set(parsed.data.events.map((e) => e.userId))];

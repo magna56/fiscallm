@@ -19,8 +19,9 @@ export default function TermsPage() {
         </p>
         <h2>Fair use of the hosted service</h2>
         <p>
-          The hosted service is free under fair use. We may throttle or suspend usage that is abusive, harms the service or other users, or is far
-          beyond normal use for an app. We will try to contact you first. We may introduce paid plans for the hosted service in future; we will tell
+          The hosted service is free under fair use. The hosted service accepts up to 100,000 events per app per calendar month; after that it refuses new events until the 1st
+          (self-hosting has no limit). We may also throttle or suspend usage that is abusive, harms the service or other users, or is far beyond normal
+          use for an app. We will try to contact you first. We may introduce paid plans for the hosted service in future; we will tell
           you before anything you use starts to cost money, and self-hosting stays free.
         </p>
 

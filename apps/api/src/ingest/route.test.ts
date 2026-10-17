@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import { fileURLToPath } from "node:url";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { AnyDb } from "./db";
+import { clearUsageCache } from "./limit";
 import { clearPriceCache } from "./prices";
 import { eventsRoute } from "./route";
 
@@ -35,6 +36,8 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   clearPriceCache();
+  clearUsageCache();
+  delete process.env.MONTHLY_EVENT_CAP;
   await db.delete(schema.apps);
   key = generateIngestKey();
   const [app] = await db
@@ -156,3 +159,36 @@ describe("POST /v1/events", () => {
     expect(await db.select().from(schema.aiEvents)).toHaveLength(0);
   });
 });
+
+describe("monthly event cap", () => {
+  it("is off by default", async () => {
+    expect((await post({ events: [event()] })).status).toBe(202);
+  });
+
+  it("accepts events under the cap, then refuses with a clear message once it is reached", async () => {
+    process.env.MONTHLY_EVENT_CAP = "3";
+    expect((await post({ events: [event(), event()] })).status).toBe(202);
+    expect((await post({ events: [event()] })).status).toBe(202);
+    // 3 of 3 used: the next batch is refused and nothing is stored.
+    const res = await post({ events: [event()] });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string; limit: number; used: number; resetsAt: string };
+    expect(body.limit).toBe(3);
+    expect(body.used).toBe(3);
+    expect(body.error).toContain("monthly event limit");
+    expect(body.resetsAt).toMatch(/^\d{4}-\d{2}-01$/);
+    const total = (await daily()).reduce((n, r) => n + r.requests, 0);
+    expect(total).toBe(3);
+  });
+
+  it("counts apps separately", async () => {
+    process.env.MONTHLY_EVENT_CAP = "1";
+    expect((await post({ events: [event()] })).status).toBe(202);
+    expect((await post({ events: [event()] })).status).toBe(403);
+    // another app is unaffected
+    const otherKey = generateIngestKey();
+    await db.insert(schema.apps).values({ name: "other", ownerId: crypto.randomUUID(), ingestKeyHash: await hashKey(otherKey), rcWebhookSecret: "y" });
+    expect((await post({ events: [event()] }, `Bearer ${otherKey}`)).status).toBe(202);
+  });
+});
+

@@ -87,6 +87,10 @@ Meter(api_key=os.environ["FISCALLM_KEY"], endpoint="http://localhost:8787/api/v1
 2. Install the SDK (`npm install fiscallm` or `pip install fiscallm`) and set `endpoint` to `https://your-domain/api/v1/events`.
 3. For revenue, paste the webhook URL and authorization value from the app's Setup page into RevenueCat, or send revenue yourself with the revenue API.
 
+## Optional: a monthly event cap
+
+By default there is no limit. To protect a small database or a free hosting tier, set `MONTHLY_EVENT_CAP` (for example `100000`). Each app may then send that many events per calendar month (UTC). Beyond it the ingest API answers `403` with a clear message and the SDKs print it once; counting restarts on the 1st. The count is cached for a minute, so the cap can overshoot slightly. The Setup page shows usage as an app nears the limit.
+
 ## Updating
 
 ```sh

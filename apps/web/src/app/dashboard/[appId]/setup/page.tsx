@@ -1,3 +1,4 @@
+import { eventsThisMonth, monthlyEventCap, nextMonthStart } from "@fiscallm/shared/limits";
 import { lastDays, overview } from "@fiscallm/shared/metrics";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -33,6 +34,8 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
   const state = await setupState(app.id);
   const o = state.complete ? await overview(metricsDb(), app.id, lastDays(30)) : null;
   const done = state.complete;
+  const cap = monthlyEventCap();
+  const used = cap === null ? 0 : await eventsThisMonth(metricsDb(), app.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,6 +43,19 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
 
       <PageHeader title={`Set up ${app.name}`} subtitle="Three steps. This page updates by itself as data arrives." />
       <SetupChecklist appId={app.id} state={state} />
+
+      {cap !== null && used >= cap && (
+        <Notice tone="error">
+          This app reached the monthly limit of {cap.toLocaleString("en-US")} events, so new events are being refused until {nextMonthStart()}. Self-host
+          FiscaLLM for no limit, or open an issue if you need more.
+        </Notice>
+      )}
+      {cap !== null && used < cap && used >= cap * 0.8 && (
+        <Notice>
+          {used.toLocaleString("en-US")} of {cap.toLocaleString("en-US")} events used this month. New events are refused at the limit, which resets on{" "}
+          {nextMonthStart()}.
+        </Notice>
+      )}
 
       {o && o.matchRate !== null && (
         <Notice>

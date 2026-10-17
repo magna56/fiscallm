@@ -344,7 +344,7 @@ class Meter:
             if 200 <= status < 300:
                 return
             if status and status != 429 and status < 500:
-                self._warn_once(f"http-{status}", f"events rejected ({status}); check the api_key")
+                self._warn_once(f"http-{status}", f"events rejected ({status}); check the api_key, or you may have reached the monthly event limit")
                 return
             if attempt == 0:
                 time.sleep(RETRY_DELAY_S)

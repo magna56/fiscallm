@@ -342,6 +342,13 @@ Content-Type: application/json
           <code>id</code> already received are counted as duplicates and ignored, so retrying is safe. Timestamps may be up to 90 days old.
         </p>
 
+        <h2 id="limits">Limits</h2>
+        <p>
+          The hosted service accepts up to 100,000 events per app per calendar month (UTC). After that the API answers 403 until the 1st, and the SDKs print
+          the message once. Self-hosted copies have no limit by default. Need more? <a href="https://github.com/magna56/fiscallm/issues">Open an issue</a> or
+          self-host.
+        </p>
+
         <h2 id="data">Data and retention</h2>
         <ul>
           <li>Raw AI events are kept 90 days; daily totals per user are kept until you delete them.</li>

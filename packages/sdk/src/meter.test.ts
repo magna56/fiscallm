@@ -41,7 +41,7 @@ describe("createMeter", () => {
     expect(batch[0].id).toMatch(/^[0-9a-f-]{36}$/);
     expect(batch[0].id).not.toBe(batch[1].id);
     const [url, init] = fetchMock.mock.calls[0]!;
-    expect(url).toBe("https://aispendbook.vercel.app/api/v1/events");
+    expect(url).toBe("https://fiscallm.com/api/v1/events");
     expect((init as RequestInit).headers).toMatchObject({ authorization: "Bearer k" });
   });
 

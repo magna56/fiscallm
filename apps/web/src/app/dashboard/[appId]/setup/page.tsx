@@ -142,7 +142,8 @@ function ago(d: Date | string) {
 }
 
 function sdkSnippet(key: string, base: string) {
-  const endpoint = base === "https://aispendbook.vercel.app" ? "" : `\n  endpoint: "${base}/api/v1/events",`;
+  // The SDK sends to fiscallm.com by default; other hosts (previews, local) need the endpoint.
+  const endpoint = base === "https://fiscallm.com" ? "" : `\n  endpoint: "${base}/api/v1/events",`;
   return `import { createMeter } from "fiscallm";
 
 // FISCALLM_KEY=${key}

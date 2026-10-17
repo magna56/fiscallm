@@ -7,7 +7,7 @@ import { generateIngestKey, generateWebhookSecret, hashKey } from "../src/keys";
 import { apps } from "../src/schema";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
-const [ownerId, base = "https://aispendbook.vercel.app"] = process.argv.slice(2);
+const [ownerId, base = "https://fiscallm.com"] = process.argv.slice(2);
 if (!ownerId) throw new Error("Usage: pnpm seed-demo <owner user id> [base url]");
 
 // Deterministic, so reruns give the same picture.

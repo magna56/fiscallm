@@ -1,7 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 
-/** The public origin this request came in on, e.g. https://aispendbook.vercel.app */
+/** The public origin this request came in on, e.g. https://fiscallm.com */
 export async function origin() {
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";

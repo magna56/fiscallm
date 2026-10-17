@@ -85,7 +85,7 @@ interface WireEvent {
   feature?: string;
 }
 
-const DEFAULT_ENDPOINT = "https://aispendbook.vercel.app/api/v1/events";
+const DEFAULT_ENDPOINT = "https://fiscallm.com/api/v1/events";
 export const MAX_BATCH = 100;
 const TIMEOUT_MS = 2000;
 const RETRY_DELAY_MS = 250;

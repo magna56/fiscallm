@@ -1,13 +1,58 @@
 # FiscaLLM
 
-See what each user costs you in AI, against what they pay.
+**See the AI cost of every single user.** FiscaLLM matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial, and which model or feature drives the bill.
+
+[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works)
+
+## The problem
+
+AI apps charge a flat price but pay a variable cost. One user costs $0.20 a month in AI, another costs $25. Your AI provider's bill shows tokens, your subscription tool shows payments, and neither shows the user.
+
+## How it works
+
+```ts
+import { createMeter } from "fiscallm";
+
+const meter = createMeter({ apiKey: process.env.FISCALLM_KEY, waitUntil });
+
+const res = await openai.chat.completions.create({ model, messages });
+meter.trackOpenAI(res, { userId, feature: "chat" });
+```
+
+```python
+from fiscallm import Meter
+
+meter = Meter(api_key=os.environ["FISCALLM_KEY"])
+res = client.chat.completions.create(model=model, messages=messages)
+meter.track_openai(res, user_id=user_id, feature="chat")
+```
+
+- The SDK reads **only the model name and token counts** from the response. Never prompts or answers.
+- Events are batched and sent in the background. Tracking never throws and never blocks your response.
+- Each event has a client-generated UUID, so retries cannot double count.
+- Revenue comes from a RevenueCat webhook, or from your own code with `trackRevenue` / `track_revenue`.
+- Both are joined on the user ID. RevenueCat aliases are resolved, so anonymous and logged-in users merge.
+
+Cost is priced on arrival: exact `costUsd` if given, otherwise per-token (input, output, cache read and cache write priced separately) or per-unit (images, audio, video) from a price table. Unknown models are flagged as unpriced, never counted as zero.
+
+Net revenue is `price × (1 − tax − store commission)`.
 
 ## Layout
 
-- `apps/web`: Next.js dashboard and landing page
-- `apps/api`: Hono API (ingest and webhooks), deployed on Vercel
-- `packages/sdk`: TypeScript SDK
-- `packages/shared`: database schema and shared types
+| Path | What it is |
+|---|---|
+| `apps/web` | Next.js site and dashboard |
+| `apps/api` | Hono API: ingest, RevenueCat webhook, revenue API, cron jobs |
+| `packages/shared` | Drizzle schema, pricing, metrics, alerts |
+| `packages/sdk` | TypeScript SDK (`fiscallm` on npm) |
+| `packages/sdk-python` | Python SDK (`fiscallm` on PyPI) |
+
+Stack: TypeScript, Next.js, Hono, Postgres (Supabase) with Drizzle, hosted on Vercel.
+
+## Limits
+
+- It needs a backend between your app and the AI provider. Apps that call a provider straight from the phone are not covered yet.
+- Revenue comes from RevenueCat or the revenue API. Direct App Store and Google Play connections are not built yet.
 
 ## Development
 
@@ -15,13 +60,16 @@ See what each user costs you in AI, against what they pay.
 pnpm install
 pnpm dev:web   # http://localhost:3000
 pnpm dev:api   # http://localhost:8787/api/health
+pnpm test
 ```
 
 Copy `.env.example` to `apps/web/.env.local` and `packages/shared/.env` and fill in the values.
-
-Database migrations:
 
 ```sh
 pnpm db:generate
 pnpm db:migrate
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).

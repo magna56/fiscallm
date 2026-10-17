@@ -28,6 +28,9 @@ export function SiteHeader() {
           <Link href="/#how" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             How it works
           </Link>
+          <Link href="/how-it-works" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+            For engineers
+          </Link>
           <Link href="/docs" className="rounded-full px-3 py-1.5 text-muted hover:text-foreground">
             Docs
           </Link>

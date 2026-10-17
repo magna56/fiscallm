@@ -92,8 +92,8 @@ function Hero() {
           >
             Start free
           </Link>
-          <Link href="/docs" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
-            Read the docs
+          <Link href="/demo" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
+            View live demo
           </Link>
         </div>
         <p className="fade-up delay-3 mt-4 text-sm text-muted">10-minute setup · No prompts leave your backend</p>
@@ -448,8 +448,8 @@ function FinalCta() {
           <Link href="/login" className="rounded-full bg-white px-6 py-3 font-medium text-[#0f0f1a] transition hover:-translate-y-0.5">
             Start free
           </Link>
-          <Link href="/docs" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
-            Read the docs
+          <Link href="/demo" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
+            View live demo
           </Link>
         </div>
       </div>

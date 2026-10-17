@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { CodeTabs, type CodeToken, Spotlight } from "@/components/fx";
 import { DashboardPreview } from "@/components/dashboard-preview";
 import { FlowDemo } from "@/components/flow-demo";
-import { SiteFooter, SiteHeader } from "@/components/site";
+import { CONTACT, SiteFooter, SiteHeader } from "@/components/site";
 
 const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
 
@@ -444,6 +444,12 @@ function FinalCta() {
         </div>
         <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Stop guessing your AI margins.</h2>
         <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and RevenueCat in ten minutes. Free during the beta.</p>
+        <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
+          We&apos;re looking for our first 10 apps. Tell us what you build and we&apos;ll help you set it up:{" "}
+          <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">
+            {CONTACT}
+          </a>
+        </p>
         <div className="relative mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/login" className="rounded-full bg-white px-6 py-3 font-medium text-[#0f0f1a] transition hover:-translate-y-0.5">
             Start free

@@ -205,6 +205,9 @@ importers:
       '@fiscallm/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@revenuecat/purchases-js':
+        specifier: ^1.71.0
+        version: 1.71.0
       '@supabase/ssr':
         specifier: ^0.12.7
         version: 0.12.7(@supabase/supabase-js@2.117.3)
@@ -214,6 +217,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@electric-sql/pglite@0.5.10)(postgres@3.4.9)
+      fiscallm:
+        specifier: ^0.1.0
+        version: 0.1.0
       next:
         specifier: 16.4.0
         version: 16.4.0(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -1177,6 +1183,9 @@ packages:
         optional: true
       react-redux:
         optional: true
+
+  '@revenuecat/purchases-js@1.71.0':
+    resolution: {integrity: sha512-FC118I8NvBh1gvFCw/JtL6oRoZwXws4TnfGtUY7YFPZIA39+kTpmWkGxQwSwn9XXqXPtBVD1b3Hvs7d+OgBpHQ==}
 
   '@rolldown/binding-android-arm-eabi@1.2.14':
     resolution: {integrity: sha512-aWR+XKH9+rW7m5fWq/5360J3mHycrx/o6xZM2DQFdJnTMdyP7/WzxPjhtLbVWdKo2y612/4U1bWqb3HQhiF7vg==}
@@ -2281,6 +2290,10 @@ packages:
   find-up@5.0.0:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
+
+  fiscallm@0.1.0:
+    resolution: {integrity: sha512-ZDR9wAIIYHaobnAyA99DtzM0EHzU0rZXs+AtXP8g70MbCUcuLVKQPPqoqt+lKifeIl4FmNlS/KgvpF5o4rdEZQ==}
+    engines: {node: '>=20'}
 
   flat-cache@4.0.1:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
@@ -4019,6 +4032,8 @@ snapshots:
       react: 19.3.0
       react-redux: 9.3.0(@types/react@19.3.0)(react@19.3.0)(redux@5.0.1)
 
+  '@revenuecat/purchases-js@1.71.0': {}
+
   '@rolldown/binding-android-arm-eabi@1.2.14':
     optional: true
 
@@ -5160,6 +5175,8 @@ snapshots:
     dependencies:
       locate-path: 6.0.0
       path-exists: 4.0.0
+
+  fiscallm@0.1.0: {}
 
   flat-cache@4.0.1:
     dependencies:

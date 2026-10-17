@@ -4,3 +4,5 @@ packages:
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - fiscallm@0.1.0

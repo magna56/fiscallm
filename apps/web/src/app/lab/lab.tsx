@@ -77,7 +77,7 @@ export function Lab({ dashboardUrl }: { dashboardUrl: string }) {
         <h2 className="mb-2 font-medium">3. Use AI as this user</h2>
         <div className="flex flex-col gap-2">
           <select className={field} value={provider} onChange={(e) => setProvider(e.target.value as "gemini" | "openai")}>
-            <option value="gemini">Gemini 2.5 Flash</option>
+            <option value="gemini">Gemini 3.8 Flash</option>
             <option value="openai">OpenAI GPT-4.1 nano</option>
           </select>
           <textarea className={field} rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} />

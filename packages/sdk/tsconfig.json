@@ -1,5 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "lib": ["ES2022", "DOM"] },
+  // NodeNext enforces the .js import extensions plain ESM consumers need.
+  "compilerOptions": { "lib": ["ES2022", "DOM"], "module": "NodeNext", "moduleResolution": "NodeNext" },
   "include": ["src"]
 }

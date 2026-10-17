@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CodeTabs, type CodeToken, CountUp, Spotlight } from "@/components/fx";
+import { DashboardPreview } from "@/components/dashboard-preview";
 import { FlowDemo } from "@/components/flow-demo";
 import { SiteFooter, SiteHeader } from "@/components/site";
 
@@ -111,17 +112,10 @@ function Hero() {
               <span className="h-3 w-3 rounded-full bg-[#28c840]" />
               <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/dashboard</span>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/screenshots/overview.png"
-              alt="FiscaLLM dashboard: AI cost, net revenue, AI cost as a share of revenue and margin, with a daily chart"
-              width={924}
-              height={492}
-              className="h-auto w-full"
-            />
+            <DashboardPreview />
           </div>
 
-          <FloatCard className="float -left-4 top-[58%] hidden md:block lg:-left-16">
+          <FloatCard className="float -left-4 top-[16%] hidden md:block xl:-left-44">
             <div className="text-xs text-muted">Biggest cost driver</div>
             <div className="mt-1 font-mono text-sm">claude-sonnet-5-5</div>
             <div className="mt-2 h-1.5 w-40 rounded-full bg-black/[0.05]">
@@ -129,7 +123,7 @@ function Hero() {
             </div>
             <div className="mt-1 text-xs text-muted">74% of AI cost</div>
           </FloatCard>
-          <FloatCard className="float-slow -right-4 bottom-16 hidden md:block lg:-right-14">
+          <FloatCard className="float-slow -right-4 top-[46%] hidden md:block xl:-right-44">
             <div className="text-xs text-muted">Paying user losing you money</div>
             <div className="mt-1 flex items-center justify-between gap-6 font-mono text-sm">
               <span>user_k3x9…</span>
@@ -390,7 +384,6 @@ function HowItWorks() {
       </div>
       <h3 className="mt-20 text-center text-2xl font-semibold tracking-tight">Set up in ten minutes</h3>
       <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
-        <div className="beam absolute left-0 right-0 top-9 hidden h-px bg-gradient-to-r from-transparent via-black/10 to-transparent md:block" aria-hidden />
         {STEPS.map((s) => (
           <li key={s.n} className="reveal card-glow spot relative rounded-2xl border border-black/5 bg-white p-6">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#6d5dfc] to-[#a855f7] text-sm font-semibold text-white shadow-md shadow-indigo-500/30">

@@ -205,10 +205,11 @@ details[open] .chev { transform: rotate(45deg); }
   animation-delay: calc(var(--i) * 2.5s - 2.5s);
   opacity: 0;
 }
+/* Each word holds for a quarter of the cycle; the next slides in as it leaves. */
 @keyframes rotate-word {
   0% { transform: translateY(100%); opacity: 0; }
-  5%, 22% { transform: translateY(0); opacity: 1; }
-  27%, 100% { transform: translateY(-100%); opacity: 0; }
+  3%, 25% { transform: translateY(0); opacity: 1; }
+  28%, 100% { transform: translateY(-100%); opacity: 0; }
 }
 
 /* Gradient border that spins around the primary button. */

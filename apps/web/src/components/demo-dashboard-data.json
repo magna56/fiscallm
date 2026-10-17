@@ -1,0 +1,193 @@
+{
+  "costUsd": 745.82,
+  "revenueUsd": 908.23,
+  "costShare": 0.8211849370867427,
+  "marginUsd": 162.4,
+  "requests": 29288,
+  "unmatchedCostUsd": 2.14,
+  "matchRate": 0.5631067961165048,
+  "daily": [
+    {
+      "day": "2026-09-17",
+      "costUsd": 17.02,
+      "revenueUsd": 16.18
+    },
+    {
+      "day": "2026-09-18",
+      "costUsd": 19.18,
+      "revenueUsd": 14.99
+    },
+    {
+      "day": "2026-09-19",
+      "costUsd": 16.84,
+      "revenueUsd": 0
+    },
+    {
+      "day": "2026-09-20",
+      "costUsd": 19.1,
+      "revenueUsd": 50.99
+    },
+    {
+      "day": "2026-09-21",
+      "costUsd": 19.76,
+      "revenueUsd": 0
+    },
+    {
+      "day": "2026-09-22",
+      "costUsd": 16.15,
+      "revenueUsd": 7.69
+    },
+    {
+      "day": "2026-09-23",
+      "costUsd": 21.63,
+      "revenueUsd": 30.27
+    },
+    {
+      "day": "2026-09-24",
+      "costUsd": 22.52,
+      "revenueUsd": 14.19
+    },
+    {
+      "day": "2026-09-25",
+      "costUsd": 16.38,
+      "revenueUsd": 110.47
+    },
+    {
+      "day": "2026-09-26",
+      "costUsd": 20.6,
+      "revenueUsd": 7.69
+    },
+    {
+      "day": "2026-09-27",
+      "costUsd": 21.71,
+      "revenueUsd": 8.49
+    },
+    {
+      "day": "2026-09-28",
+      "costUsd": 22.56,
+      "revenueUsd": 16.98
+    },
+    {
+      "day": "2026-09-29",
+      "costUsd": 21.87,
+      "revenueUsd": 121.45
+    },
+    {
+      "day": "2026-09-30",
+      "costUsd": 19.89,
+      "revenueUsd": 23.48
+    },
+    {
+      "day": "2026-10-01",
+      "costUsd": 27.31,
+      "revenueUsd": 6.49
+    },
+    {
+      "day": "2026-10-02",
+      "costUsd": 22.44,
+      "revenueUsd": 14.49
+    },
+    {
+      "day": "2026-10-03",
+      "costUsd": 23.99,
+      "revenueUsd": 49.28
+    },
+    {
+      "day": "2026-10-04",
+      "costUsd": 33.53,
+      "revenueUsd": 29.77
+    },
+    {
+      "day": "2026-10-05",
+      "costUsd": 31.74,
+      "revenueUsd": 14.19
+    },
+    {
+      "day": "2026-10-06",
+      "costUsd": 28.17,
+      "revenueUsd": 14.99
+    },
+    {
+      "day": "2026-10-07",
+      "costUsd": 25.53,
+      "revenueUsd": 35.36
+    },
+    {
+      "day": "2026-10-08",
+      "costUsd": 24.71,
+      "revenueUsd": 36.76
+    },
+    {
+      "day": "2026-10-09",
+      "costUsd": 27.26,
+      "revenueUsd": 33.17
+    },
+    {
+      "day": "2026-10-10",
+      "costUsd": 30.04,
+      "revenueUsd": 54.28
+    },
+    {
+      "day": "2026-10-11",
+      "costUsd": 35.26,
+      "revenueUsd": 53.48
+    },
+    {
+      "day": "2026-10-12",
+      "costUsd": 34.12,
+      "revenueUsd": 56.98
+    },
+    {
+      "day": "2026-10-13",
+      "costUsd": 34.97,
+      "revenueUsd": 30.67
+    },
+    {
+      "day": "2026-10-14",
+      "costUsd": 28.6,
+      "revenueUsd": 0
+    },
+    {
+      "day": "2026-10-15",
+      "costUsd": 31.11,
+      "revenueUsd": 38.46
+    },
+    {
+      "day": "2026-10-16",
+      "costUsd": 31.85,
+      "revenueUsd": 16.98
+    }
+  ],
+  "byModel": [
+    {
+      "key": "anthropic/claude-sonnet-5-5",
+      "costUsd": 554.36
+    },
+    {
+      "key": "google/gemini-3.8-flash",
+      "costUsd": 88.28
+    },
+    {
+      "key": "fal/flux-pro",
+      "costUsd": 56
+    },
+    {
+      "key": "openai/gpt-5-mini",
+      "costUsd": 47.18
+    }
+  ],
+  "byFeature": [
+    {
+      "key": "chat",
+      "costUsd": 642.64
+    },
+    {
+      "key": "image",
+      "costUsd": 56
+    },
+    {
+      "key": "summary",
+      "costUsd": 47.18
+    }
+  ]
+}

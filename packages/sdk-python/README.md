@@ -1,0 +1,40 @@
+# fiscallm
+
+Track the AI cost of each user of your app against their subscription revenue. Zero dependencies, Python 3.9+.
+
+The SDK never sits in the path of your AI calls: tracking only queues an event, a background thread sends batches, and it never raises. Prompts and responses are never sent, only token counts.
+
+```sh
+pip install fiscallm
+```
+
+```python
+import os
+from fiscallm import Meter
+
+meter = Meter(api_key=os.environ["FISCALLM_KEY"])  # one per process
+
+# user_id must be the user's RevenueCat app user ID.
+res = openai_client.chat.completions.create(model=model, messages=messages)
+meter.track_openai(res, user_id=user_id, feature="chat")
+
+meter.track_anthropic(message, user_id=user_id)
+meter.track_gemini(result, user_id=user_id)
+
+# Streams (sync or async): iterate the returned stream.
+stream = meter.track_stream(
+    openai_client.chat.completions.create(model=model, messages=messages, stream=True,
+                                          stream_options={"include_usage": True}),
+    user_id=user_id,
+)
+
+# Anything not priced per token:
+meter.track(user_id=user_id, provider="fal", model="flux-pro", cost_usd=0.05)
+
+# Serverless (AWS Lambda, Cloud Functions): before returning
+meter.flush()          # or: await meter.aflush()
+```
+
+OpenAI-compatible APIs work with `meter.track_openai(res, user_id=user_id, provider="groq")`.
+
+Docs: https://fiscallm.com/docs

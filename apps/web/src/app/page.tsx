@@ -344,7 +344,12 @@ function CodeSection() {
           A zero-dependency TypeScript SDK with helpers for OpenAI, Anthropic and Gemini, streaming support, and a plain HTTP API for everything else.
         </p>
         <ul className="mt-6 space-y-2 text-sm">
-          {["Never throws, never blocks your response", "Batches in the background with waitUntil", "Retries are de-duplicated, so nothing counts twice"].map((t) => (
+          {[
+            "Never throws, never blocks your response",
+            "Batches in the background with waitUntil",
+            "Retries are de-duplicated, so nothing counts twice",
+            "Or let your AI assistant set it up with our setup skill",
+          ].map((t) => (
             <li key={t} className="flex gap-2">
               <span className="text-accent">✓</span>
               {t}

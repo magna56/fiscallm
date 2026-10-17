@@ -3,6 +3,7 @@ import { lastDays, overview } from "@fiscallm/shared/metrics";
 import { count, eq, max } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
+import { AiSetup } from "@/components/ai-setup";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { CopyButton, CopyField } from "@/components/copy-button";
 import { Button, Card, Code, Notice, pct } from "@/components/ui";
@@ -57,6 +58,10 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
             }
           />
         </ul>
+      </Card>
+
+      <Card title="Set up with AI (fastest)">
+        <AiSetup />
       </Card>
 
       <Card title="1. Send AI usage from your backend">

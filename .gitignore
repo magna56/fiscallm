@@ -7,3 +7,6 @@ dist
 !.env.example
 *.tsbuildinfo
 .DS_Store
+__pycache__/
+*.egg-info/
+packages/sdk-python/dist/

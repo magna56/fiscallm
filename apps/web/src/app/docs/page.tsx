@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SKILL_INSTALL, SKILL_PROMPT } from "@/components/ai-setup";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
@@ -23,6 +24,19 @@ export default function DocsPage() {
           <li>Add the webhook URL from the app&apos;s Setup page to RevenueCat (below).</li>
         </ol>
         <p>The Setup page shows when the first event and the first webhook arrive, and how many of your AI users it could match to RevenueCat.</p>
+
+        <h2 id="ai-setup">Set up with an AI assistant</h2>
+        <p>
+          The <a href="/skill.md">FiscaLLM setup skill</a> tells a coding assistant how to find your AI calls, add the SDK, pass the RevenueCat user ID
+          through and leave the keys to you. In Claude Code, install it in your project and ask it to &quot;set up FiscaLLM&quot;:
+        </p>
+        <pre>
+          <code>{SKILL_INSTALL}</code>
+        </pre>
+        <p>In Cursor, Copilot or another assistant, paste:</p>
+        <pre>
+          <code>{SKILL_PROMPT}</code>
+        </pre>
 
         <h2 id="sdk">The SDK</h2>
         <pre>
@@ -135,6 +149,28 @@ return meter.trackSSE(upstream, { userId });`}</code>
           </tbody>
         </table>
         <p>Each request has a two-second timeout and one retry. If FiscaLLM is unreachable, events are dropped and your app is unaffected.</p>
+
+        <h2 id="python">Python</h2>
+        <pre>
+          <code>pip install fiscallm</code>
+        </pre>
+        <p>Same helpers and guarantees as the TypeScript SDK, with no dependencies, on Python 3.9+. Tracking only queues; a background thread sends.</p>
+        <pre>
+          <code>{`import os
+from fiscallm import Meter
+
+meter = Meter(api_key=os.environ["FISCALLM_KEY"])  # one per process
+
+res = client.chat.completions.create(model=model, messages=messages)
+meter.track_openai(res, user_id=user_id, feature="chat")
+# also: track_anthropic, track_gemini, track(...)
+
+# Streams, sync or async: iterate the returned stream
+stream = meter.track_stream(response_stream, user_id=user_id)
+
+# AWS Lambda, Cloud Functions: before returning
+meter.flush()   # or: await meter.aflush()`}</code>
+        </pre>
 
         <h2 id="user-ids">User IDs</h2>
         <p>

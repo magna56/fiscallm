@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CodeTabs, type CodeToken, CountUp, Spotlight } from "@/components/fx";
+import { FlowDemo } from "@/components/flow-demo";
 import { SiteFooter, SiteHeader } from "@/components/site";
 
 const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
@@ -383,7 +384,11 @@ function Audience() {
 function HowItWorks() {
   return (
     <section id="how" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead eyebrow="How it works" title="Set up in ten minutes" body="No proxy, no changes to how you call AI providers, nothing in your app's request path." />
+      <SectionHead eyebrow="How it works" title="Watch one request" body="No proxy and nothing in your app's request path: your backend reports usage on the side, and RevenueCat reports revenue." />
+      <div className="reveal mt-12">
+        <FlowDemo />
+      </div>
+      <h3 className="mt-20 text-center text-2xl font-semibold tracking-tight">Set up in ten minutes</h3>
       <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
         <div className="beam absolute left-0 right-0 top-9 hidden h-px bg-gradient-to-r from-transparent via-black/10 to-transparent md:block" aria-hidden />
         {STEPS.map((s) => (

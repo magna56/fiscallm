@@ -51,6 +51,12 @@ export default function PrivacyPage() {
         </ul>
         <p>We do not sell data, use it for advertising, or share one customer&apos;s data with another.</p>
 
+        <h2>Website analytics</h2>
+        <p>
+          On our public pages we use Vercel Web Analytics to count page views and see which pages and countries visitors come from. It does not use
+          cookies and does not track you across sites. We do not run it on signed-in pages.
+        </p>
+
         <h2>Retention and deletion</h2>
         <ul>
           <li>Raw AI usage events are deleted after 90 days. Daily cost totals per user and subscription events are kept while the app exists.</li>

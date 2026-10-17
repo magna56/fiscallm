@@ -36,6 +36,20 @@
       "when": 1792202946773,
       "tag": "0004_real_infant_terrible",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792206320518,
+      "tag": "0005_light_spacker_dave",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792206382359,
+      "tag": "0006_rare_strong_guy",
+      "breakpoints": true
     }
   ]
 }

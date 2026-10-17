@@ -17,6 +17,7 @@ import {
   setWeeklyEmail,
 } from "../../actions";
 import Link from "next/link";
+import { ImportCard } from "@/components/import-card";
 
 export default function SettingsPage(props: PageProps<"/dashboard/[appId]/settings">) {
   return (
@@ -35,6 +36,7 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
     .where(eq(schema.appPriceOverrides.appId, app.id))
     .orderBy(asc(schema.appPriceOverrides.provider), asc(schema.appPriceOverrides.model));
   const unpriced = (await breakdown(metricsDb(), app.id, lastDays(90))).byModel.filter((m) => m.unpriced > 0);
+  const [importJob] = await getDb().select().from(schema.rcImports).where(eq(schema.rcImports.appId, app.id));
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,6 +79,8 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
           </form>
         </div>
       </Card>
+
+      <ImportCard appId={app.id} job={importJob} />
 
       <Card title="Weekly email">
         <div className="flex flex-col gap-3 text-sm">

@@ -2,6 +2,7 @@ import { schema } from "@fiscallm/shared";
 import { lastDays, overview } from "@fiscallm/shared/metrics";
 import { count, eq, max } from "drizzle-orm";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { Suspense } from "react";
 import { AiSetup } from "@/components/ai-setup";
 import { AutoRefresh } from "@/components/auto-refresh";
@@ -129,7 +130,11 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
           <li>Environment: Production (or both, and turn on test mode in Settings while testing). Save, then press &quot;Send test event&quot;.</li>
         </ol>
         <p className="mt-3 text-sm text-foreground/70">
-          RevenueCat sends only new events. Subscribers who paid before you connect appear at their next renewal.
+          RevenueCat sends only new events. To include subscribers who paid before today,{" "}
+          <Link href={`/dashboard/${app.id}/settings#import`} className="underline">
+            import them from RevenueCat
+          </Link>
+          .
         </p>
       </Card>
     </div>

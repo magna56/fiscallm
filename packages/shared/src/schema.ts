@@ -193,3 +193,26 @@ export const dailyUserCost = pgTable(
     uniqueIndex("daily_user_cost_app_day_user").on(t.appId, t.day, t.userId),
   ],
 ).enableRLS();
+
+// One RevenueCat history import per app; resumable in chunks.
+export const rcImports = pgTable("rc_imports", {
+  appId: uuid("app_id")
+    .primaryKey()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["running", "done", "failed", "cancelled"] }).notNull(),
+  projectId: text("project_id").notNull(),
+  // AES-GCM encrypted v2 secret key; cleared when the import ends.
+  keyCipher: text("key_cipher"),
+  // Last customer id processed (RevenueCat's starting_after).
+  cursor: text("cursor"),
+  // Transactions on or after this time came by webhook; skip them.
+  cutoff: ts("cutoff").notNull(),
+  customersDone: integer("customers_done").notNull().default(0),
+  eventsImported: integer("events_imported").notNull().default(0),
+  error: text("error"),
+  // Set while a chunk runs, so two chunks never process one app at once.
+  lockedUntil: ts("locked_until"),
+  startedAt: ts("started_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+  finishedAt: ts("finished_at"),
+}).enableRLS();

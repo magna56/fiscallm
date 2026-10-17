@@ -1,0 +1,1 @@
+ALTER TABLE "rc_imports" ADD COLUMN "locked_until" timestamp with time zone;

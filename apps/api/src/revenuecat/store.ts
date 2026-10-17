@@ -4,7 +4,7 @@ import type { AnyDb } from "../ingest/db";
 import type { WebhookEvent } from "./payload";
 import { computeSubscriber, netRevenue, type RcEvent } from "./subscriber";
 
-type Tx = Parameters<Parameters<AnyDb["transaction"]>[0]>[0];
+export type Tx = Parameters<Parameters<AnyDb["transaction"]>[0]>[0];
 
 const date = (ms: number | null | undefined) => (ms == null ? null : new Date(ms));
 const dec = (n: number | null | undefined) => (n == null ? null : String(n));
@@ -94,7 +94,7 @@ async function canonicalOf(tx: Tx, appId: string, alias: string) {
   return row?.c;
 }
 
-async function setAlias(tx: Tx, appId: string, aliases: string[], canonical: string) {
+export async function setAlias(tx: Tx, appId: string, aliases: string[], canonical: string) {
   const unique = [...new Set(aliases)];
   if (unique.length === 0) return;
   await tx
@@ -106,7 +106,7 @@ async function setAlias(tx: Tx, appId: string, aliases: string[], canonical: str
     });
 }
 
-async function recompute(tx: Tx, app: { id: string; testMode: boolean }, user: string, now: Date) {
+export async function recompute(tx: Tx, app: { id: string; testMode: boolean }, user: string, now: Date) {
   const aliasRows = await tx
     .select({ alias: schema.userAliases.alias })
     .from(schema.userAliases)

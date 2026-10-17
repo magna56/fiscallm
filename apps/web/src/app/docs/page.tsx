@@ -199,8 +199,10 @@ meter.flush()   # or: await meter.aflush()`}</code>
           Revenue is net: price × (1 − tax − store commission), as RevenueCat reports them. Refunds subtract on the day they happen.
         </p>
         <p>
-          RevenueCat sends only new events, so subscribers who paid before you connected appear at their next renewal. For annual plans that can take a
-          while; importing past subscribers is planned.
+          RevenueCat sends only new events. To bring in subscribers who paid before you connected, use Settings → Import past subscribers: paste
+          your RevenueCat project ID and a v2 secret key with read-only access to customer information, and FiscaLLM imports their purchases,
+          renewals and trials from RevenueCat&apos;s API. Purchases the webhook already delivered are skipped, so nothing counts twice. The key is
+          stored encrypted only while the import runs.
         </p>
 
         <h2 id="prices">Prices</h2>

@@ -2,7 +2,7 @@ import { openSecret, schema } from "@fiscallm/shared";
 import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import type { AnyDb } from "../../ingest/db";
 import { recompute, setAlias } from "../store";
-import { type RcApi, RcApiError } from "./client";
+import { type RcApi, RcApiError, TRANSACTION_STORES } from "./client";
 import { convertCustomer } from "./convert";
 
 export type MakeApi = (projectId: string, secretKey: string, sandbox: boolean) => RcApi;
@@ -53,7 +53,9 @@ export async function runImportChunk(
         const aliases = await api.aliases(customerId);
         const subscriptions = [];
         for (const subscription of await api.subscriptions(customerId)) {
-          subscriptions.push({ subscription, transactions: await api.transactions(subscription.id) });
+          // Only App Store and Play Store have per-transaction history.
+          const transactions = TRANSACTION_STORES.has(subscription.store) ? await api.transactions(subscription.id) : null;
+          subscriptions.push({ subscription, transactions });
         }
         const purchases = await api.purchases(customerId);
         const rows = convertCustomer(appId, { customerId, subscriptions, purchases }, job.cutoff);

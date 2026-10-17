@@ -8,7 +8,8 @@ export type RcEventRow = typeof schema.rcEvents.$inferInsert;
 
 export interface CustomerHistory {
   customerId: string;
-  subscriptions: { subscription: RcSubscription; transactions: RcTransaction[] }[];
+  /** transactions is null for stores without per-transaction history. */
+  subscriptions: { subscription: RcSubscription; transactions: RcTransaction[] | null }[];
   purchases: RcPurchase[];
 }
 
@@ -47,9 +48,35 @@ export function convertCustomer(appId: string, h: CustomerHistory, cutoff: Date)
   });
 
   for (const { subscription: s, transactions } of h.subscriptions) {
-    const txs = [...transactions].sort((a, b) => a.purchased_at - b.purchased_at);
     const env = ENV[s.environment] ?? s.environment?.toUpperCase() ?? null;
     const store = s.store?.toUpperCase() ?? null;
+
+    if (transactions === null) {
+      // Stripe, Web Billing, Test Store and others: RevenueCat gives only the
+      // subscription's totals, so its revenue is dated at the start.
+      if (s.starts_at >= cutoff.getTime()) continue;
+      const total = s.total_revenue_in_usd ?? null;
+      const trial = s.status === "trialing" && (total?.gross ?? 0) === 0;
+      rows.push(
+        base(`${s.id}:summary`, "INITIAL_PURCHASE", s.starts_at, {
+          productId: s.product_id,
+          periodType: trial ? "TRIAL" : "NORMAL",
+          store,
+          environment: env,
+          ...money(total),
+          purchasedAt: date(s.starts_at),
+          expirationAt: date(s.current_period_ends_at),
+        }),
+      );
+      if (s.status === "expired" && s.ends_at != null && s.ends_at < cutoff.getTime()) {
+        rows.push(base(`${s.id}:expired`, "EXPIRATION", s.ends_at, { productId: s.product_id, store, environment: env, expirationAt: date(s.ends_at) }));
+      } else if (s.gives_access && s.auto_renewal_status === "will_not_renew") {
+        rows.push(base(`${s.id}:cancelled`, "CANCELLATION", s.starts_at + 1, { productId: s.product_id, store, environment: env, priceUsd: "0", netUsd: "0" }));
+      }
+      continue;
+    }
+
+    const txs = [...transactions].sort((a, b) => a.purchased_at - b.purchased_at);
     // A free first period is a trial; the period after it is the conversion.
     const firstIsTrial = txs.length > 0 && (txs[0]!.revenue_in_usd?.gross ?? 0) === 0;
 

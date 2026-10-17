@@ -81,6 +81,16 @@ describe("convertCustomer", () => {
     expect(rows.map((r) => r.type)).toEqual(["INITIAL_PURCHASE", "EXPIRATION", "INITIAL_PURCHASE", "CANCELLATION"]);
   });
 
+  it("uses subscription totals for stores without transaction history", () => {
+    const s = sub("st", { store: "test_store", starts_at: NOW - 20 * DAY, current_period_ends_at: NOW + 10 * DAY, total_revenue_in_usd: money(79.99) });
+    const rows = convertCustomer("app", { customerId: "c", subscriptions: [{ subscription: s, transactions: null }] , purchases: [] }, new Date(NOW));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: "import:st:summary", type: "INITIAL_PURCHASE", periodType: "NORMAL", store: "TEST_STORE", priceUsd: "79.99" });
+    expect(Number(rows[0]!.netUsd)).toBeCloseTo(59.9925);
+    const trial = convertCustomer("app", { customerId: "c", subscriptions: [{ subscription: { ...s, status: "trialing", total_revenue_in_usd: money(0) }, transactions: null }], purchases: [] }, new Date(NOW));
+    expect(trial[0]!.periodType).toBe("TRIAL");
+  });
+
   it("imports one-time purchases and refunds", () => {
     const p: RcPurchase = { id: "p1", product_id: "lifetime", purchased_at: NOW - 3 * DAY, revenue_in_usd: money(99.99), store: "play_store", environment: "production", status: "refunded" };
     const rows = convertCustomer("app", { customerId: "c", subscriptions: [], purchases: [p] }, new Date(NOW));
@@ -109,7 +119,12 @@ function fakeApi(customers: Record<string, Customer>, pageSize = 2, fail?: RcApi
     },
     aliases: async (id: string) => customers[id]!.aliases,
     subscriptions: async (id: string) => customers[id]!.subs.map((x) => x.s),
-    transactions: async (sid: string) => Object.values(customers).flatMap((c) => c.subs).find((x) => x.s.id === sid)!.txs,
+    transactions: async (sid: string) => {
+      const found = Object.values(customers).flatMap((c) => c.subs).find((x) => x.s.id === sid)!;
+      // Like RevenueCat: only App Store and Play Store have transactions.
+      if (!["app_store", "play_store"].includes(found.s.store)) throw new RcApiError(400, "not supported");
+      return found.txs;
+    },
     purchases: async (id: string) => customers[id]!.purchases,
   };
   return api;
@@ -150,6 +165,7 @@ const now = () => new Date(NOW);
 const CUSTOMERS: Record<string, Customer> = {
   a: { aliases: ["a", "$RCAnonymousID:1"], subs: [{ s: sub("sa"), txs: [tx("t1", 47, 0, 7), tx("t2", 40, 9.99), tx("t3", 10, 9.99)] }], purchases: [] },
   b: { aliases: ["b"], subs: [{ s: sub("sb", { status: "expired", gives_access: false, ends_at: NOW - 5 * DAY }), txs: [tx("t4", 35, 9.99)] }], purchases: [] },
+  d: { aliases: ["d"], subs: [{ s: sub("sd", { store: "stripe", starts_at: NOW - 15 * DAY, total_revenue_in_usd: money(20) }), txs: [] }], purchases: [] },
   c: { aliases: ["c"], subs: [], purchases: [{ id: "p1", product_id: "lifetime", purchased_at: NOW - 3 * DAY, revenue_in_usd: money(50), store: "app_store", environment: "production", status: "owned" }] },
 };
 
@@ -160,7 +176,8 @@ describe("runImportChunk", () => {
     expect(await runImportChunk(db, appId, () => api, SECRET, 60_000, now)).toBe("done");
 
     const j = await job();
-    expect(j).toMatchObject({ status: "done", customersDone: 3, eventsImported: 6, keyCipher: null, error: null });
+    expect(j).toMatchObject({ status: "done", customersDone: 4, eventsImported: 7, keyCipher: null, error: null });
+    expect(Number((await subscriber("d"))!.netRevenueUsd)).toBeCloseTo(15);
     expect(await subscriber("a")).toMatchObject({ state: "paid", productId: "pro_monthly" });
     expect(Number((await subscriber("a"))!.netRevenueUsd)).toBeCloseTo(14.985);
     expect((await subscriber("a"))!.convertedAt).not.toBeNull();
@@ -178,7 +195,7 @@ describe("runImportChunk", () => {
     expect(await job()).toMatchObject({ status: "running", customersDone: 1, cursor: "a" });
     expect(await runImportChunk(db, appId, () => api, SECRET, -1, now)).toBe("more");
     expect(await runImportChunk(db, appId, () => api, SECRET, 60_000, now)).toBe("done");
-    expect((await job()).customersDone).toBe(3);
+    expect((await job()).customersDone).toBe(4);
   });
 
   it("re-running adds nothing twice", async () => {

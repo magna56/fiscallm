@@ -22,7 +22,11 @@ export interface RcSubscription {
   status: string;
   environment: string;
   store: string;
+  total_revenue_in_usd?: Money | null;
 }
+
+/** Stores RevenueCat returns per-transaction history for. */
+export const TRANSACTION_STORES = new Set(["app_store", "play_store"]);
 
 export interface RcTransaction {
   id: string;

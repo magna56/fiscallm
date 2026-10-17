@@ -22,6 +22,9 @@ export function SiteHeader() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
+          <Link href="/#problem" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+            Problem
+          </Link>
           <Link href="/#how" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             How it works
           </Link>

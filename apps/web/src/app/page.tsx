@@ -41,8 +41,8 @@ export default function Home() {
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />
-        <InShort />
         <Problem />
+        <Solution />
         <HowItWorks />
         <Actions />
         <Runtimes />
@@ -179,47 +179,65 @@ function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNo
   );
 }
 
-function InShort() {
-  const parts: [string, string, string][] = [
-    ["The problem", "Users pay a flat price. AI costs you per message.", "Nothing tells you who costs more than they pay."],
-    ["What it does", "Joins AI cost and revenue, per user.", "One line in your backend, one RevenueCat webhook."],
-    ["What you get", "Real margin per user, plan and trial.", "Plus alerts before anyone gets expensive."],
+function Problem() {
+  const points: [string, string][] = [
+    ["Flat price, variable cost", "Everyone pays $9.99. One user costs you $0.20 in AI, another $25."],
+    ["Two bills that never meet", "Your AI bill shows tokens. RevenueCat shows payments. Neither shows the user."],
+    ["You find out too late", "All you see is one big AI bill at the end of the month."],
   ];
   return (
-    <section className="mx-auto mt-28 w-full max-w-6xl px-6">
-      <SectionHead eyebrow="In short" title="What FiscaLLM is" />
-      <Spotlight className="mt-10 grid gap-4 md:grid-cols-3">
-        {parts.map(([label, lead, body], i) => (
-          <div key={label} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-            <div className="flex items-center gap-2 text-sm font-medium text-accent">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-[#6d5dfc]/10 text-xs">{i + 1}</span>
-              {label}
-            </div>
-            <p className="mt-3 text-lg font-semibold leading-snug">{lead}</p>
-            <p className="mt-2 text-sm text-muted">{body}</p>
-          </div>
-        ))}
-      </Spotlight>
-    </section>
-  );
-}
-
-function Problem() {
-  return (
-    <section className="mx-auto mt-28 w-full max-w-6xl px-6">
+    <section id="problem" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
       <SectionHead
-        eyebrow="Example"
+        eyebrow="The problem"
         title={
           <>
-            Two users pay the same. <span className="text-gradient">One of them loses you money.</span>
+            AI apps lose money on <span className="text-gradient">users they can&apos;t see</span>
           </>
         }
       />
+      <ol className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
+        {points.map(([t, b], i) => (
+          <li key={t} className="reveal rounded-2xl border border-red-500/10 bg-gradient-to-b from-red-50/60 to-white p-6">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-red-500/10 text-sm font-semibold text-red-600">{i + 1}</span>
+            <h3 className="mt-3 font-semibold">{t}</h3>
+            <p className="mt-1.5 text-sm text-muted">{b}</p>
+          </li>
+        ))}
+      </ol>
       <div className="reveal mx-auto mt-10 grid max-w-4xl gap-4 md:grid-cols-2">
         <UserCompare name="Light user" plan="$9.99 / month" pays={7.49} cost={0.2} />
         <UserCompare name="Heavy user" plan="$9.99 / month" pays={7.49} cost={25} />
       </div>
-      <p className="mt-3 text-center text-xs text-muted">Without FiscaLLM, both look the same.</p>
+      <p className="mt-3 text-center text-sm text-muted">Same plan, same price. Without FiscaLLM, both look the same.</p>
+    </section>
+  );
+}
+
+function Solution() {
+  const points: [string, string][] = [
+    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. One RevenueCat webhook reports payments."],
+    ["Shows your real margin", "Per user, per plan, per free trial, and which model or feature drives the bill."],
+    ["Warns you early", "Alerts and a webhook when a user or the app goes over your budget."],
+  ];
+  return (
+    <section className="mx-auto mt-28 w-full max-w-6xl px-6">
+      <SectionHead
+        eyebrow="The solution"
+        title={
+          <>
+            FiscaLLM <span className="text-gradient">joins them, per user</span>
+          </>
+        }
+      />
+      <Spotlight className="mt-10 grid gap-4 md:grid-cols-3">
+        {points.map(([t, b], i) => (
+          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[#6d5dfc]/10 text-sm font-semibold text-accent">{i + 1}</span>
+            <h3 className="mt-3 font-semibold">{t}</h3>
+            <p className="mt-1.5 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </Spotlight>
     </section>
   );
 }

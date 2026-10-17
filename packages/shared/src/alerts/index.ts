@@ -183,7 +183,7 @@ export async function deliverAlerts(db: MetricsDb, app: AlertApp, alerts: Alert[
         method: "POST",
         headers: { authorization: `Bearer ${config.resendApiKey}`, "content-type": "application/json" },
         body: JSON.stringify({
-          from: "FiscaLLM <alerts@fiscallm.com>",
+          from: process.env.EMAIL_FROM_ALERTS ?? "FiscaLLM <alerts@fiscallm.com>",
           to: [to],
           subject: subject.slice(0, 200),
           text: `${lines.join("\n")}\n\nDashboard: ${url}\nChange alerts: ${url}/settings#alerts`,

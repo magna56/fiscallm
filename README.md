@@ -2,7 +2,9 @@
 
 **See the AI cost of every single user.** FiscaLLM matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial, and which model or feature drives the bill.
 
-[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works)
+**Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
+
+[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [Self-hosting](SELF-HOSTING.md) · [Roadmap](ROADMAP.md) · [Contributing](CONTRIBUTING.md)
 
 ## The problem
 
@@ -69,6 +71,10 @@ Copy `.env.example` to `apps/web/.env.local` and `packages/shared/.env` and fill
 pnpm db:generate
 pnpm db:migrate
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md).
 
 ## License
 

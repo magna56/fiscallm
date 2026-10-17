@@ -315,7 +315,7 @@ export async function sendTestAlert(appId: string, ruleId: string) {
       method: "POST",
       headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, "content-type": "application/json" },
       body: JSON.stringify({
-        from: "FiscaLLM <alerts@fiscallm.com>",
+        from: process.env.EMAIL_FROM_ALERTS ?? "FiscaLLM <alerts@fiscallm.com>",
         to: [user.email],
         subject: `[Test] ${app.name}: ${describeAlert(sample)}`,
         text: `This is a test of your FiscaLLM alert.\n\n${describeAlert(sample)}`,

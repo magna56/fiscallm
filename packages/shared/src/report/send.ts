@@ -3,7 +3,7 @@ import type { MetricsDb } from "../metrics";
 import { buildWeeklyReport, renderWeeklyReport } from "./index";
 import { unsubscribeToken } from "./sign";
 
-export const REPORT_FROM = "FiscaLLM <reports@fiscallm.com>";
+export const REPORT_FROM = process.env.EMAIL_FROM_REPORTS ?? "FiscaLLM <reports@fiscallm.com>";
 
 export interface ReportApp {
   id: string;

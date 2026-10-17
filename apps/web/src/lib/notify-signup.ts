@@ -35,7 +35,7 @@ export async function notifyNewSignup(s: NewSignup): Promise<void> {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
       body: JSON.stringify({
-        from: "FiscaLLM <alerts@fiscallm.com>",
+        from: process.env.EMAIL_FROM_ALERTS ?? "FiscaLLM <alerts@fiscallm.com>",
         to: [to],
         ...(s.email ? { reply_to: s.email } : {}),
         subject: `New signup: ${s.company} (${s.fullName})`,

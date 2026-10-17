@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { type CodeToken, CountUp, Spotlight, Typewriter } from "@/components/fx";
+import { CodeTabs, type CodeToken, CountUp, Spotlight } from "@/components/fx";
 import { SiteFooter, SiteHeader } from "@/components/site";
 
-const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Deno", "Bun", "RevenueCat"];
+const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
 
 const STEPS = [
   {
@@ -28,7 +28,7 @@ const STEPS = [
 
 const FAQ: [string, string][] = [
   ["What exactly does FiscaLLM store?", "User IDs, token counts, model names and RevenueCat subscription events. Never prompts or responses: those stay on your backend."],
-  ["Which apps is it for?", "Subscription apps that call AI models from their own backend, such as a Cloudflare Worker, a Supabase or Firebase function, or a Node server, and that use RevenueCat."],
+  ["Which apps is it for?", "Subscription apps that call AI models from their own backend, in TypeScript or Python (a Cloudflare Worker, a Supabase or Firebase function, a Node, FastAPI or Django server), and that use RevenueCat. Other languages can use the HTTP API."],
   ["How is the cost calculated?", "From each provider's list price on the day of the call, including cached tokens, cache writes and long-prompt pricing. If you have a negotiated rate, add it in Settings."],
   ["What if FiscaLLM is down?", "Your app is unaffected. The SDK sends in the background with a two-second timeout and one retry, then drops the event."],
   ["What does it cost?", "Nothing during the beta. We will tell you well before any paid plan applies to you."],
@@ -73,7 +73,7 @@ function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          Free during the beta · SDK on npm
+          Free during the beta · SDKs for TypeScript &amp; Python
           <span aria-hidden>→</span>
         </Link>
 
@@ -334,6 +334,13 @@ const CODE: CodeToken[] = [
   ["// that's it", C], ["\nmeter."], ["trackOpenAI", F], ["(res, { userId, feature: "], ['"chat"', S], [" });"],
 ];
 
+const PY_CODE: CodeToken[] = [
+  ["from", K], [" fiscallm "], ["import", K], [" Meter\n\n"],
+  ["meter = "], ["Meter", F], ["(api_key=os.environ["], ['"FISCALLM_KEY"', S], ["])\n\n"],
+  ["res = client.chat.completions."], ["create", F], ["(\n    model=model, messages=messages,\n)\n\n"],
+  ["# that's it", C], ["\nmeter."], ["track_openai", F], ["(res, user_id=user_id, feature="], ['"chat"', S], [")"],
+];
+
 function CodeSection() {
   return (
     <section className="mx-auto mt-32 grid w-full max-w-6xl items-center gap-10 px-6 md:grid-cols-2">
@@ -341,7 +348,7 @@ function CodeSection() {
         <p className="shimmer text-sm font-medium">For developers</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">One line per AI call</h2>
         <p className="mt-4 text-lg text-muted">
-          A zero-dependency TypeScript SDK with helpers for OpenAI, Anthropic and Gemini, streaming support, and a plain HTTP API for everything else.
+          Zero-dependency SDKs for TypeScript and Python with helpers for OpenAI, Anthropic and Gemini, streaming support, and a plain HTTP API for everything else.
         </p>
         <ul className="mt-6 space-y-2 text-sm">
           {[
@@ -362,15 +369,12 @@ function CodeSection() {
       </div>
       <div className="reveal relative">
         <div className="glow" aria-hidden />
-        <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#0f0f1a] shadow-2xl">
-          <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3 text-xs text-white/50">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="ml-2">worker.ts</span>
-          </div>
-          <Typewriter tokens={CODE} />
-        </div>
+        <CodeTabs
+          tabs={[
+            { label: "TypeScript", file: "worker.ts", tokens: CODE },
+            { label: "Python", file: "app.py", tokens: PY_CODE },
+          ]}
+        />
       </div>
     </section>
   );

@@ -107,3 +107,34 @@ export function Typewriter({ tokens, speed = 14 }: { tokens: CodeToken[]; speed?
     </pre>
   );
 }
+
+/** A code card with language tabs; each tab types itself out. */
+export function CodeTabs({ tabs }: { tabs: { label: string; file: string; tokens: CodeToken[] }[] }) {
+  const [active, setActive] = useState(0);
+  const tab = tabs[active]!;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#0f0f1a] shadow-2xl">
+      <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5 text-xs text-white/50">
+        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+        <div className="ml-3 flex gap-1" role="tablist">
+          {tabs.map((t, i) => (
+            <button
+              key={t.label}
+              role="tab"
+              aria-selected={i === active}
+              onClick={() => setActive(i)}
+              className={`rounded-md px-2.5 py-1 transition ${i === active ? "bg-white/10 text-white" : "hover:text-white/80"}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <span className="ml-auto">{tab.file}</span>
+      </div>
+      {/* key: a fresh typewriter per tab */}
+      <Typewriter key={tab.label} tokens={tab.tokens} />
+    </div>
+  );
+}

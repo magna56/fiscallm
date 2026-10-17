@@ -27,6 +27,7 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
   const base = await origin();
   const webhookUrl = `${base}/api/webhooks/rc/${app.id}`;
   const snippet = sdkSnippet(newKey ?? "fsk_your_key", base);
+  const pySnippet = pythonSnippet(newKey ?? "fsk_your_key", base);
 
   const db = getDb();
   const [ai] = await db
@@ -87,12 +88,21 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
           </div>
         )}
         <p className="mb-2 text-sm">
-          Install <Code>npm install fiscallm</Code>, then after each AI call:
+          <strong>TypeScript:</strong> <Code>npm install fiscallm</Code>, then after each AI call:
         </p>
         <div className="relative">
           <pre className="overflow-x-auto rounded bg-foreground/5 p-3 font-mono text-xs leading-relaxed">{snippet}</pre>
           <div className="absolute right-2 top-2">
             <CopyButton value={snippet} />
+          </div>
+        </div>
+        <p className="mb-2 mt-4 text-sm">
+          <strong>Python:</strong> <Code>pip install fiscallm</Code>, then:
+        </p>
+        <div className="relative">
+          <pre className="overflow-x-auto rounded bg-foreground/5 p-3 font-mono text-xs leading-relaxed">{pySnippet}</pre>
+          <div className="absolute right-2 top-2">
+            <CopyButton value={pySnippet} />
           </div>
         </div>
         <p className="mt-3 text-sm text-foreground/70">
@@ -144,6 +154,20 @@ function ago(d: Date | string) {
   if (s < 3600) return `${Math.round(s / 60)} min ago`;
   if (s < 86400) return `${Math.round(s / 3600)} h ago`;
   return `${Math.round(s / 86400)} days ago`;
+}
+
+function pythonSnippet(key: string, base: string) {
+  const endpoint = base === "https://fiscallm.com" ? "" : `, endpoint="${base}/api/v1/events"`;
+  return `import os
+from fiscallm import Meter
+
+# FISCALLM_KEY=${key}
+meter = Meter(api_key=os.environ["FISCALLM_KEY"]${endpoint})  # one per process
+
+res = client.chat.completions.create(model=model, messages=messages)
+meter.track_openai(res, user_id=user_id, feature="chat")
+# also: track_anthropic, track_gemini, track_stream, track
+# AWS Lambda / Cloud Functions: meter.flush() before returning`;
 }
 
 function sdkSnippet(key: string, base: string) {

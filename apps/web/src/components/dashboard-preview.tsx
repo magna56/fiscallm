@@ -80,7 +80,7 @@ export function DashboardPreview() {
                       <span className="tabular-nums">{usd(r.costUsd)}</span>
                     </div>
                     <div className="mt-1 h-1.5 rounded bg-black/[0.05]">
-                      <div className="h-1.5 rounded bg-black/40" style={{ width: `${(r.costUsd / Math.max(...all.map((x) => x.costUsd))) * 100}%` }} />
+                      <div className="h-1.5 rounded bg-black/40" style={{ width: `${(r.costUsd / all.reduce((t, x) => t + x.costUsd, 0)) * 100}%` }} />
                     </div>
                   </li>
                 ))}

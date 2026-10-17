@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/ai-margin-per-user-revenuecat",
+    title: "How to calculate AI margin per user in a RevenueCat app",
+    body: "Use the right user ID, net revenue after store fees and tax, and handle trials, annual plans and refunds.",
+  },
+  {
     href: "/guides/track-anthropic-claude-cost-per-user",
     title: "How to track Anthropic Claude cost per user",
     body: "Claude's usage fields, cache reads and writes priced correctly, streaming, and comparing cost with revenue.",

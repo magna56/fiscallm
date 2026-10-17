@@ -16,11 +16,15 @@ export function retentionRoute(getDb: () => AnyDb) {
     if (secret && c.req.header("authorization") !== `Bearer ${secret}`) {
       return c.json({ error: "unauthorized" }, 401);
     }
-    const cutoff = new Date(Date.now() - RAW_RETENTION_DAYS * 86_400_000);
-    const deleted = await getDb()
-      .delete(schema.aiEvents)
-      .where(lt(schema.aiEvents.ts, cutoff))
-      .returning({ id: schema.aiEvents.id });
-    return c.json({ deleted: deleted.length, before: cutoff.toISOString() });
+    return c.json(await deleteOldRawEvents(getDb()));
   });
+}
+
+export async function deleteOldRawEvents(db: AnyDb) {
+  const cutoff = new Date(Date.now() - RAW_RETENTION_DAYS * 86_400_000);
+  const deleted = await db
+    .delete(schema.aiEvents)
+    .where(lt(schema.aiEvents.ts, cutoff))
+    .returning({ id: schema.aiEvents.id });
+  return { deleted: deleted.length, before: cutoff.toISOString() };
 }

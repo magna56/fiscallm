@@ -1,4 +1,7 @@
 import { hashKey, schema } from "@fiscallm/shared";
+import { checkUserBudgets, deliverAlerts } from "@fiscallm/shared/alerts";
+import type { MetricsDb } from "@fiscallm/shared/metrics";
+import { waitUntil } from "@vercel/functions";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AnyDb } from "./db";
@@ -41,6 +44,24 @@ export function eventsRoute(getDb: () => AnyDb) {
     const prices = await loadPrices(db);
     const overrides = await loadOverrides(db, app.id);
     const rows = priceEvents(app.id, parsed.data.events, prices, overrides);
-    return c.json(await storeEvents(db, rows), 202);
+    const result = await storeEvents(db, rows);
+    if (result.accepted > 0) {
+      // Budgets are checked after the response, so ingest stays fast.
+      const userIds = [...new Set(parsed.data.events.map((e) => e.userId))];
+      waitUntil(checkBudgets(db, app.id, userIds).catch((e) => console.error("alert check failed", e)));
+    }
+    return c.json(result, 202);
   });
+}
+
+async function checkBudgets(db: AnyDb, appId: string, userIds: string[]) {
+  const mdb = db as unknown as MetricsDb;
+  const alerts = await checkUserBudgets(mdb, appId, userIds);
+  if (alerts.length === 0) return;
+  const [app] = await db
+    .select({ id: schema.apps.id, name: schema.apps.name, ownerId: schema.apps.ownerId, alertSecret: schema.apps.alertSecret })
+    .from(schema.apps)
+    .where(eq(schema.apps.id, appId));
+  if (!app) return;
+  await deliverAlerts(mdb, app, alerts, { resendApiKey: process.env.RESEND_API_KEY, baseUrl: process.env.PUBLIC_URL ?? "https://fiscallm.com" });
 }

@@ -10,7 +10,8 @@
     "./metrics": "./src/metrics/index.ts",
     "./report": "./src/report/index.ts",
     "./report/send": "./src/report/send.ts",
-    "./rc-import": "./src/rc-import.ts"
+    "./rc-import": "./src/rc-import.ts",
+    "./alerts": "./src/alerts/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

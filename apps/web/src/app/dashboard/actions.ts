@@ -2,6 +2,8 @@
 
 import { generateIngestKey, generateWebhookSecret, hashKey, schema, sealSecret } from "@fiscallm/shared";
 import { importCutoff } from "@fiscallm/shared/rc-import";
+import { ALERT_KINDS, type AlertKind } from "@fiscallm/shared/schema";
+import { describeAlert, signWebhook, webhookPayload } from "@fiscallm/shared/alerts";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
@@ -242,4 +244,94 @@ export async function cancelImport(appId: string) {
     .set({ status: "cancelled", keyCipher: null, finishedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(schema.rcImports.appId, app.id), eq(schema.rcImports.status, "running")));
   revalidatePath(`/dashboard/${app.id}/settings`);
+}
+
+const USD_KINDS = new Set(["user_daily_cost", "user_30d_cost", "user_losing", "app_daily_cost"]);
+
+export async function addAlertRule(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const settings = `/dashboard/${app.id}/settings`;
+  const fail = (msg: string): never => redirect(`${settings}?error=${encodeURIComponent(msg)}#alerts`);
+
+  const kind = String(formData.get("kind") ?? "") as AlertKind;
+  if (!ALERT_KINDS.includes(kind)) fail("Choose an alert type");
+  const raw = String(formData.get("threshold") ?? "").trim();
+  let threshold: string | null = null;
+  if (kind !== "unpriced_model") {
+    const n = Number(raw);
+    if (!raw || !Number.isFinite(n) || n <= 0) fail(USD_KINDS.has(kind) ? "Enter an amount in USD above 0" : "Enter a percentage above 0");
+    threshold = String(kind === "app_cost_share" ? n / 100 : n);
+  }
+  const email = formData.get("email") === "on";
+  const webhookUrl = String(formData.get("webhookUrl") ?? "").trim() || null;
+  if (webhookUrl && !/^https:\/\/[^\s]+$/.test(webhookUrl)) fail("The webhook URL must start with https://");
+  if (!email && !webhookUrl) fail("Choose email, a webhook, or both");
+
+  const db = getDb();
+  if (webhookUrl && !app.alertSecret) {
+    await db.update(schema.apps).set({ alertSecret: generateWebhookSecret() }).where(eq(schema.apps.id, app.id));
+  }
+  await db.insert(schema.alertRules).values({ appId: app.id, kind, threshold, email, webhookUrl });
+  redirect(`${settings}#alerts`);
+}
+
+export async function setAlertRuleEnabled(appId: string, ruleId: string, enabled: boolean) {
+  const app = await requireApp(appId);
+  await getDb()
+    .update(schema.alertRules)
+    .set({ enabled })
+    .where(and(eq(schema.alertRules.id, ruleId), eq(schema.alertRules.appId, app.id)));
+  revalidatePath(`/dashboard/${app.id}/settings`);
+}
+
+export async function deleteAlertRule(appId: string, ruleId: string) {
+  const app = await requireApp(appId);
+  await getDb()
+    .delete(schema.alertRules)
+    .where(and(eq(schema.alertRules.id, ruleId), eq(schema.alertRules.appId, app.id)));
+  revalidatePath(`/dashboard/${app.id}/settings`);
+}
+
+/** Sends a sample alert through a rule's channels, outside the once-a-day limit. */
+export async function sendTestAlert(appId: string, ruleId: string) {
+  const app = await requireApp(appId);
+  const user = await requireUser();
+  const settings = `/dashboard/${app.id}/settings`;
+  const [rule] = await getDb()
+    .select()
+    .from(schema.alertRules)
+    .where(and(eq(schema.alertRules.id, ruleId), eq(schema.alertRules.appId, app.id)));
+  if (!rule) redirect(`${settings}#alerts`);
+  const sample = {
+    rule: rule!,
+    subject: rule!.kind.startsWith("user") ? "test-user" : rule!.kind === "unpriced_model" ? "example/model" : "app",
+    period: new Date().toISOString().slice(0, 10),
+    value: rule!.kind === "app_cost_share" ? Number(rule!.threshold) * 1.2 : rule!.kind === "user_losing" ? -Number(rule!.threshold) * 1.5 : Number(rule!.threshold ?? 1) * 1.5,
+    threshold: rule!.threshold === null ? null : Number(rule!.threshold),
+  };
+  const results: string[] = [];
+  if (rule!.email && process.env.RESEND_API_KEY && user.email) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        from: "FiscaLLM <alerts@fiscallm.com>",
+        to: [user.email],
+        subject: `[Test] ${app.name}: ${describeAlert(sample)}`,
+        text: `This is a test of your FiscaLLM alert.\n\n${describeAlert(sample)}`,
+      }),
+    }).catch(() => null);
+    results.push(res?.ok ? `email sent to ${user.email}` : "email failed");
+  }
+  if (rule!.webhookUrl && app.alertSecret) {
+    const body = JSON.stringify({ ...webhookPayload(app, sample), test: true });
+    const res = await fetch(rule!.webhookUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-fiscallm-signature": await signWebhook(app.alertSecret, body) },
+      body,
+      signal: AbortSignal.timeout(5_000),
+    }).catch(() => null);
+    results.push(res ? `webhook answered ${res.status}` : "webhook unreachable");
+  }
+  redirect(`${settings}?done=${encodeURIComponent(`Test alert: ${results.join(", ") || "nothing to send"}`)}#alerts`);
 }

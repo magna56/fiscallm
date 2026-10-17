@@ -50,6 +50,13 @@
       "when": 1792206382359,
       "tag": "0006_rare_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792207640991,
+      "tag": "0007_careless_mentallo",
+      "breakpoints": true
     }
   ]
 }

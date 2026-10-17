@@ -1,6 +1,6 @@
 import { schema } from "@fiscallm/shared";
 import { breakdown, lastDays } from "@fiscallm/shared/metrics";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { Suspense } from "react";
 import { Button, Card, Code, Input, Notice } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
@@ -18,6 +18,7 @@ import {
 } from "../../actions";
 import Link from "next/link";
 import { ImportCard } from "@/components/import-card";
+import { AlertsCard } from "@/components/alerts-card";
 
 export default function SettingsPage(props: PageProps<"/dashboard/[appId]/settings">) {
   return (
@@ -37,6 +38,13 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
     .orderBy(asc(schema.appPriceOverrides.provider), asc(schema.appPriceOverrides.model));
   const unpriced = (await breakdown(metricsDb(), app.id, lastDays(90))).byModel.filter((m) => m.unpriced > 0);
   const [importJob] = await getDb().select().from(schema.rcImports).where(eq(schema.rcImports.appId, app.id));
+  const alertRules = await getDb().select().from(schema.alertRules).where(eq(schema.alertRules.appId, app.id)).orderBy(asc(schema.alertRules.createdAt));
+  const alertEvents = await getDb()
+    .select()
+    .from(schema.alertEvents)
+    .where(eq(schema.alertEvents.appId, app.id))
+    .orderBy(desc(schema.alertEvents.sentAt))
+    .limit(10);
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,6 +87,8 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
           </form>
         </div>
       </Card>
+
+      <AlertsCard appId={app.id} rules={alertRules} events={alertEvents} alertSecret={app.alertSecret} />
 
       <ImportCard appId={app.id} job={importJob} />
 

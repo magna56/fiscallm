@@ -214,6 +214,50 @@ meter.flush()   # or: await meter.aflush()`}</code>
           → Your AI prices. Models without a price are listed there too; their cost counts as zero until you add one or send <code>costUsd</code>.
         </p>
 
+        <h2 id="alerts">Budgets and alerts</h2>
+        <p>
+          In Settings → Budgets and alerts, get an email or a webhook when a user&apos;s AI cost passes a budget (today or over 30 days), a paying
+          user loses you more than a set amount, AI cost passes a share of revenue, the app&apos;s daily spend passes a limit, or a model without
+          a price appears. Per-user budgets are checked within seconds of usage arriving; the others once a day. Each alert fires at most once
+          per user (or app) per day.
+        </p>
+        <p>Webhooks are a signed JSON POST your backend can act on, for example to slow down or pause a user over budget:</p>
+        <pre>
+          <code>{`POST <your URL>
+X-FiscaLLM-Signature: t=1792200000,v1=5f2c…
+
+{
+  "type": "alert.user_daily_cost",
+  "appId": "…", "ruleId": "…",
+  "userId": "rc-app-user-id",
+  "value": 6.12, "threshold": 5,
+  "period": "2026-10-17",
+  "message": "User rc-app-user-id spent $6.12 on AI today (budget $5.00)."
+}`}</code>
+        </pre>
+        <p>
+          Verify it with the signing secret shown in Settings: <code>v1</code> is the hex HMAC-SHA256 of <code>{"`${t}.${rawBody}`"}</code>.
+        </p>
+        <pre>
+          <code>{`// TypeScript (Node)
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verify(rawBody: string, header: string, secret: string) {
+  const { t, v1 } = Object.fromEntries(header.split(",").map((p) => p.split("=")));
+  const expected = createHmac("sha256", secret).update(\`\${t}.\${rawBody}\`).digest("hex");
+  const fresh = Math.abs(Date.now() / 1000 - Number(t)) < 300;
+  return fresh && timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
+}
+
+# Python
+import hmac, hashlib, time
+
+def verify(raw_body: bytes, header: str, secret: str) -> bool:
+    parts = dict(p.split("=", 1) for p in header.split(","))
+    expected = hmac.new(secret.encode(), f"{parts['t']}.".encode() + raw_body, hashlib.sha256).hexdigest()
+    return abs(time.time() - int(parts["t"])) < 300 and hmac.compare_digest(expected, parts["v1"])`}</code>
+        </pre>
+
         <h2 id="api">Ingest API</h2>
         <p>For backends not written in TypeScript, send events directly:</p>
         <pre>

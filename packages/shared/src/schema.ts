@@ -30,6 +30,8 @@ export const apps = pgTable("apps", {
   testMode: boolean("test_mode").notNull().default(false),
   // Monday summary email to the owner.
   weeklyEmail: boolean("weekly_email").notNull().default(true),
+  // Signs alert webhooks (X-FiscaLLM-Signature); created with the first one.
+  alertSecret: text("alert_secret"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }).enableRLS();
 
@@ -216,3 +218,55 @@ export const rcImports = pgTable("rc_imports", {
   updatedAt: ts("updated_at").notNull().defaultNow(),
   finishedAt: ts("finished_at"),
 }).enableRLS();
+
+export const ALERT_KINDS = [
+  "user_daily_cost",
+  "user_30d_cost",
+  "user_losing",
+  "app_cost_share",
+  "app_daily_cost",
+  "unpriced_model",
+] as const;
+export type AlertKind = (typeof ALERT_KINDS)[number];
+
+export const alertRules = pgTable(
+  "alert_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: ALERT_KINDS }).notNull(),
+    // USD, or a fraction for app_cost_share; unused for unpriced_model.
+    threshold: numeric("threshold", { precision: 18, scale: 8 }),
+    email: boolean("email").notNull().default(true),
+    webhookUrl: text("webhook_url"),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("alert_rules_app").on(t.appId)],
+).enableRLS();
+
+// Sent alerts. The unique key makes each rule fire once per subject per day.
+export const alertEvents = pgTable(
+  "alert_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ruleId: uuid("rule_id")
+      .notNull()
+      .references(() => alertRules.id, { onDelete: "cascade" }),
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    // A user id, "app", or a model for unpriced_model.
+    subject: text("subject").notNull(),
+    period: date("period").notNull(),
+    payload: jsonb("payload").notNull(),
+    delivery: jsonb("delivery"),
+    sentAt: ts("sent_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("alert_events_once").on(t.ruleId, t.subject, t.period),
+    index("alert_events_app_sent").on(t.appId, t.sentAt),
+  ],
+).enableRLS();

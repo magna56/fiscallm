@@ -4,6 +4,7 @@ import { eventsRoute } from "./ingest/route";
 import { revenueCatRoute } from "./revenuecat/route";
 import { retentionRoute } from "./cron/retention";
 import { weeklyReportRoute } from "./cron/weekly-report";
+import { dailyRoute } from "./cron/daily";
 import { unsubscribeRoute } from "./unsubscribe";
 import { importRoute } from "./revenuecat/import/route";
 
@@ -15,6 +16,7 @@ app.route("/v1/events", eventsRoute(getDb));
 app.route("/webhooks/rc", revenueCatRoute(getDb));
 app.route("/cron/retention", retentionRoute(getDb));
 app.route("/cron/weekly-report", weeklyReportRoute(getDb));
+app.route("/cron/daily", dailyRoute(getDb));
 app.route("/unsubscribe", unsubscribeRoute(getDb));
 app.route("/import/rc", importRoute(getDb));
 

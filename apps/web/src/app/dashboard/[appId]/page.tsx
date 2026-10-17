@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import { CostChart } from "@/components/cost-chart";
 import { RangePicker } from "@/components/range-picker";
 import { Stat } from "@/components/stat";
-import { Card, Notice, pct, usd } from "@/components/ui";
+import { Card, Notice, PageHeader, pct, usd } from "@/components/ui";
+import { SetupChecklist } from "@/components/setup-checklist";
+import { setupState } from "@/lib/setup-state";
 import { requireApp } from "@/lib/auth";
 import { metricsDb } from "@/lib/db";
 import { rangeFrom } from "@/lib/range";
@@ -25,19 +27,19 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
   const b = await breakdown(db, app.id, range);
   const base = `/dashboard/${app.id}`;
 
-  if (o.usersWithCost === 0 && o.revenueUsd === 0) {
-    return (
-      <Notice>
-        No data in the last {days} days yet. <Link href={`${base}/setup`} className="underline">Finish setup</Link> to start seeing costs.
-      </Notice>
-    );
-  }
+  const state = await setupState(app.id);
+  const empty = o.usersWithCost === 0 && o.revenueUsd === 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-end">
-        <RangePicker base={base} days={days} />
-      </div>
+      <PageHeader title={app.name} subtitle={`Last ${days} days`} action={<RangePicker base={base} days={days} />} />
+      {!state.complete && <SetupChecklist appId={app.id} state={state} compact />}
+      {empty ? (
+        <Notice>
+          Nothing in the last {days} days yet. Data shows here within seconds of your first event. <Link href={`${base}/setup`} className="underline">Open setup</Link>
+        </Notice>
+      ) : (
+      <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="AI cost" value={usd(o.costUsd)} hint={`${o.requests.toLocaleString()} requests`} />
         <Stat label="Net revenue" value={usd(o.revenueUsd)} hint="after store fees and tax" />
@@ -70,6 +72,8 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
       {b.range.from !== range.from ? (
         <p className="text-xs text-foreground/50">Model and feature breakdowns cover the last 90 days at most.</p>
       ) : null}
+      </>
+      )}
     </div>
   );
 }

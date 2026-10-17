@@ -2,7 +2,7 @@ import { plans, type PlanRow } from "@fiscallm/shared/metrics";
 import { Suspense } from "react";
 import { RangePicker } from "@/components/range-picker";
 import { Money, Table } from "@/components/table";
-import { Card, pct } from "@/components/ui";
+import { Card, pct, PageHeader } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
 import { metricsDb } from "@/lib/db";
 import { rangeFrom } from "@/lib/range";
@@ -22,6 +22,7 @@ async function Plans({ params, searchParams }: PageProps<"/dashboard/[appId]/pla
 
   return (
     <div className="flex flex-col gap-4">
+      <PageHeader title="Plans" subtitle="Revenue, AI cost and margin per product." />
       <div className="flex justify-end">
         <RangePicker base={`/dashboard/${app.id}/plans`} days={days} />
       </div>

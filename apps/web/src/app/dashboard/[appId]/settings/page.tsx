@@ -2,7 +2,7 @@ import { schema } from "@fiscallm/shared";
 import { breakdown, lastDays } from "@fiscallm/shared/metrics";
 import { asc, desc, eq } from "drizzle-orm";
 import { Suspense } from "react";
-import { Button, Card, Code, Input, Notice } from "@/components/ui";
+import { Button, Card, Code, Input, Notice, PageHeader } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
 import { getDb, metricsDb } from "@/lib/db";
 import {
@@ -48,6 +48,7 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
 
   return (
     <div className="flex flex-col gap-6">
+      <PageHeader title="Settings" subtitle="Keys, alerts, prices and data." />
       {typeof error === "string" && <Notice tone="error">{error}</Notice>}
       {typeof done === "string" && <Notice tone="ok">{done}</Notice>}
 

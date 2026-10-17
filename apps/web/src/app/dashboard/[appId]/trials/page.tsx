@@ -1,7 +1,7 @@
 import { trialCohorts, type TrialCohort } from "@fiscallm/shared/metrics";
 import { Suspense } from "react";
 import { Table } from "@/components/table";
-import { Card, pct, usd } from "@/components/ui";
+import { Card, pct, usd, PageHeader } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
 import { metricsDb } from "@/lib/db";
 
@@ -18,6 +18,8 @@ async function Trials({ params }: Pick<PageProps<"/dashboard/[appId]/trials">, "
   const rows = await trialCohorts(metricsDb(), app.id, { weeks: 12 });
 
   return (
+    <>
+    <PageHeader title="Trials" subtitle="What free trials cost you, by start week." />
     <Card title="Trial cohorts by start week (last 12 weeks)">
       <Table<TrialCohort>
         rows={rows}
@@ -44,5 +46,6 @@ async function Trials({ params }: Pick<PageProps<"/dashboard/[appId]/trials">, "
         Cost counts only days inside the trial. &quot;In progress&quot; cohorts still have trials running, so their conversion is not final.
       </p>
     </Card>
+    </>
   );
 }

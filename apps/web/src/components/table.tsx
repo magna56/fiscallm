@@ -13,9 +13,9 @@ export function Table<T>({ rows, columns, rowKey, empty }: { rows: T[]; columns:
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-foreground/60">
+          <tr className="text-left text-xs font-medium uppercase tracking-wide text-black/45">
             {columns.map((c) => (
-              <th key={c.label} className={`px-2 py-2 font-normal ${c.align === "right" ? "text-right" : ""}`}>
+              <th key={c.label} className={`px-3 py-2.5 font-medium ${c.align === "right" ? "text-right" : ""}`}>
                 {c.label}
               </th>
             ))}
@@ -23,9 +23,9 @@ export function Table<T>({ rows, columns, rowKey, empty }: { rows: T[]; columns:
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={rowKey(r)} className="border-t border-foreground/10">
+            <tr key={rowKey(r)} className="border-t border-black/[0.05] transition-colors hover:bg-[#6d5dfc]/[0.03]">
               {columns.map((c) => (
-                <td key={c.label} className={`px-2 py-2 ${c.align === "right" ? "text-right tabular-nums" : ""}`}>
+                <td key={c.label} className={`px-3 py-2.5 ${c.align === "right" ? "text-right tabular-nums" : ""}`}>
                   {c.cell(r)}
                 </td>
               ))}

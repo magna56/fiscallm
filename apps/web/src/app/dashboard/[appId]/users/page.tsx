@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { RangePicker } from "@/components/range-picker";
 import { Money, Table } from "@/components/table";
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
 import { metricsDb } from "@/lib/db";
 import { rangeFrom } from "@/lib/range";
@@ -31,12 +31,13 @@ async function Users({ params, searchParams }: PageProps<"/dashboard/[appId]/use
 
   return (
     <div className="flex flex-col gap-4">
+      <PageHeader title="Users" subtitle="Worst margin first." />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded border border-foreground/15 text-sm">
-          <Link href={`${base}?days=${days}`} className={`px-3 py-1 ${!losing ? "bg-foreground text-background" : "text-foreground/70"}`}>
+        <div className="inline-flex rounded-full border border-black/[0.08] bg-white p-0.5 text-sm shadow-sm">
+          <Link href={`${base}?days=${days}`} className={`rounded-full px-3 py-1 ${!losing ? "bg-foreground text-white" : "text-black/60"}`}>
             All users
           </Link>
-          <Link href={`${base}?days=${days}&losing=1`} className={`px-3 py-1 ${losing ? "bg-foreground text-background" : "text-foreground/70"}`}>
+          <Link href={`${base}?days=${days}&losing=1`} className={`rounded-full px-3 py-1 ${losing ? "bg-foreground text-white" : "text-black/60"}`}>
             Paying and losing money
           </Link>
         </div>

@@ -1,15 +1,15 @@
-import { schema } from "@fiscallm/shared";
 import { lastDays, overview } from "@fiscallm/shared/metrics";
-import { count, eq, max } from "drizzle-orm";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AiSetup } from "@/components/ai-setup";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { CopyButton, CopyField } from "@/components/copy-button";
-import { Button, Card, Code, Notice, pct } from "@/components/ui";
+import { Button, Card, Code, Notice, PageHeader, pct } from "@/components/ui";
+import { SetupChecklist } from "@/components/setup-checklist";
+import { setupState } from "@/lib/setup-state";
 import { requireApp } from "@/lib/auth";
-import { getDb, metricsDb } from "@/lib/db";
+import { metricsDb } from "@/lib/db";
 import { keyCookie } from "@/lib/key-cookie";
 import { origin } from "@/lib/origin";
 import { dismissKey, rotateKey } from "../../actions";
@@ -30,43 +30,29 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
   const snippet = sdkSnippet(newKey ?? "fsk_your_key", base);
   const pySnippet = pythonSnippet(newKey ?? "fsk_your_key", base);
 
-  const db = getDb();
-  const [ai] = await db
-    .select({ n: count(), last: max(schema.aiEvents.ts) })
-    .from(schema.aiEvents)
-    .where(eq(schema.aiEvents.appId, app.id));
-  const [rc] = await db
-    .select({ n: count(), last: max(schema.rcEvents.eventTs) })
-    .from(schema.rcEvents)
-    .where(eq(schema.rcEvents.appId, app.id));
-  const o = ai!.n > 0 ? await overview(metricsDb(), app.id, lastDays(30)) : null;
-  const done = ai!.n > 0 && rc!.n > 0;
+  const state = await setupState(app.id);
+  const o = state.complete ? await overview(metricsDb(), app.id, lastDays(30)) : null;
+  const done = state.complete;
 
   return (
     <div className="flex flex-col gap-6">
       {!done && <AutoRefresh />}
 
-      <Card title="Status">
-        <ul className="flex flex-col gap-2 text-sm">
-          <Check ok={ai!.n > 0} label="First AI event received" detail={ai!.last ? `${ai!.n} events, last ${ago(ai!.last)}` : "Waiting for your backend…"} />
-          <Check ok={rc!.n > 0} label="First RevenueCat webhook received" detail={rc!.n > 0 ? `${rc!.n} events, latest dated ${ago(rc!.last!)}` : "Waiting for RevenueCat…"} />
-          <Check
-            ok={(o?.matchRate ?? 0) > 0}
-            label="AI users matched to RevenueCat"
-            detail={
-              o?.matchRate == null
-                ? "Shown once both are connected"
-                : `${pct(o.matchRate)} of ${o.usersWithCost} users with AI cost in the last 30 days. Free users never appear in RevenueCat, so 100% is not expected.`
-            }
-          />
-        </ul>
-      </Card>
+      <PageHeader title={`Set up ${app.name}`} subtitle="Three steps. This page updates by itself as data arrives." />
+      <SetupChecklist appId={app.id} state={state} />
+
+      {o && o.matchRate !== null && (
+        <Notice>
+          {pct(o.matchRate)} of {o.usersWithCost} users with AI cost are matched to revenue. Free users never pay, so 100% is not expected; a
+          very low number usually means the user IDs differ.
+        </Notice>
+      )}
 
       <Card title="Set up with AI (fastest)">
         <AiSetup />
       </Card>
 
-      <Card title="1. Send AI usage from your backend">
+      <Card title={<span id="usage" className="scroll-mt-24">1. Send AI usage from your backend</span>}>
         {newKey ? (
           <div className="mb-4 flex flex-col gap-2">
             <Notice tone="ok">Your ingest key. It is shown only now; store it as FISCALLM_KEY on your backend.</Notice>
@@ -112,7 +98,7 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
         </p>
       </Card>
 
-      <Card title="2. Connect RevenueCat (or send revenue yourself)">
+      <Card title={<span id="revenue" className="scroll-mt-24">2. Connect revenue: RevenueCat, or send it yourself</span>}>
         <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
           <li>In RevenueCat, open your project → Integrations → Webhooks → Add new configuration.</li>
           <li>
@@ -148,25 +134,7 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
   );
 }
 
-function Check({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
-  return (
-    <li className="flex gap-2">
-      <span className={ok ? "text-green-600" : "text-foreground/30"}>{ok ? "✓" : "○"}</span>
-      <span>
-        <span className="font-medium">{label}</span>
-        <span className="block text-foreground/60">{detail}</span>
-      </span>
-    </li>
-  );
-}
 
-function ago(d: Date | string) {
-  const s = Math.round((Date.now() - new Date(d).getTime()) / 1000);
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.round(s / 60)} min ago`;
-  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
-  return `${Math.round(s / 86400)} days ago`;
-}
 
 function pythonSnippet(key: string, base: string) {
   const endpoint = base === "https://fiscallm.com" ? "" : `, endpoint="${base}/api/v1/events"`;

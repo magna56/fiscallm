@@ -36,9 +36,38 @@ const FAQ: [string, string][] = [
   ["What does it cost?", "Nothing during the beta."],
 ];
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fiscallm.com/#org",
+      name: "FiscaLLM",
+      url: "https://fiscallm.com",
+      logo: "https://fiscallm.com/icon.svg",
+      email: CONTACT,
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "FiscaLLM",
+      url: "https://fiscallm.com",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Web",
+      description: "Matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@id": "https://fiscallm.com/#org" },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+    },
+  ],
+};
+
 export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-clip">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />

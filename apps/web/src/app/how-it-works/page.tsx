@@ -4,6 +4,7 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
   title: "How FiscaLLM works · FiscaLLM",
+  alternates: { canonical: "/how-it-works" },
   description: "The architecture behind FiscaLLM: what the SDK sends, how cost is priced, how revenue is joined to it, and what happens when something fails.",
 };
 

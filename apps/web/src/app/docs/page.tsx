@@ -4,6 +4,7 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
   title: "Docs · FiscaLLM",
+  alternates: { canonical: "/docs" },
   description: "Set up FiscaLLM: the SDK, RevenueCat, user IDs, prices and the ingest API.",
 };
 

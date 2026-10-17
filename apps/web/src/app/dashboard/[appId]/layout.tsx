@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppShell } from "@/components/app-shell";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default function AppLayout({ children, params }: LayoutProps<"/dashboard/[appId]">) {
   return (

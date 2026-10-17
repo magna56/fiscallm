@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { schema } from "@fiscallm/shared";
 import { lastDays, overview } from "@fiscallm/shared/metrics";
 import { desc, eq } from "drizzle-orm";
@@ -9,6 +10,8 @@ import { Button, Card, Input, Notice, PageHeader, usd } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getDb, metricsDb } from "@/lib/db";
 import { createApp } from "./actions";
+
+export const metadata: Metadata = { title: "Your apps · FiscaLLM", robots: { index: false, follow: false } };
 
 export default function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   return (

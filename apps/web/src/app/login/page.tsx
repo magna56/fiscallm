@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { Button, Input, Notice } from "@/components/ui";
 import { sendLoginLink } from "./actions";
+
+export const metadata: Metadata = { title: "Sign in · FiscaLLM", robots: { index: false, follow: true } };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (

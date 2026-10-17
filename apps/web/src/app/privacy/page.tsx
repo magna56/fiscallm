@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CONTACT, Prose, SiteFooter, SiteHeader } from "@/components/site";
 
-export const metadata: Metadata = { title: "Privacy · FiscaLLM" };
+export const metadata: Metadata = { description: "What FiscaLLM stores, what it never reads, how long data is kept, and how to delete it.", alternates: { canonical: "/privacy" }, title: "Privacy · FiscaLLM" };
 
 export default function PrivacyPage() {
   return (

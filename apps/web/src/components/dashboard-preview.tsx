@@ -2,7 +2,7 @@ import { CostChart } from "./cost-chart";
 import { LogoMark } from "./logo-mark";
 import data from "./demo-dashboard-data.json";
 import { Stat } from "./stat";
-import { Card, PageHeader, usd } from "./ui";
+import { Card, usd } from "./ui";
 
 // The landing page's product shot: the real dashboard layout (sidebar,
 // Overview page) built from the same components, with the Demo app's
@@ -42,10 +42,11 @@ export function DashboardPreview() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-5">
-        <PageHeader
-          title="Demo"
-          subtitle="Last 30 days"
-          action={
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-lg font-semibold tracking-tight">Demo</p>
+            <p className="mt-0.5 text-xs text-black/50">Last 30 days</p>
+          </div>
             <div className="hidden rounded-full border border-black/[0.08] bg-white p-0.5 text-xs shadow-sm sm:inline-flex">
               {["7 days", "30 days", "90 days"].map((d) => (
                 <span key={d} className={`rounded-full px-2.5 py-1 ${d === "30 days" ? "bg-foreground text-white" : "text-black/60"}`}>
@@ -53,8 +54,7 @@ export function DashboardPreview() {
                 </span>
               ))}
             </div>
-          }
-        />
+        </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           <Stat label="AI cost" value={usd(data.costUsd)} hint={`${data.requests.toLocaleString()} requests`} />
           <Stat label="Net revenue" value={usd(data.revenueUsd)} hint="after store fees and tax" />

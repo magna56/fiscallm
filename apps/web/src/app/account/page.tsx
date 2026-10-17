@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { schema } from "@fiscallm/shared";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
@@ -8,6 +9,8 @@ import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { updateProfile } from "../welcome/actions";
 import { ProfileForm } from "../welcome/profile-form";
+
+export const metadata: Metadata = { title: "Account · FiscaLLM", robots: { index: false, follow: false } };
 
 export default function AccountPage(props: PageProps<"/account">) {
   return (

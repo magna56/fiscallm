@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CONTACT, Prose, SiteFooter, SiteHeader } from "@/components/site";
 
-export const metadata: Metadata = { title: "Terms · FiscaLLM" };
+export const metadata: Metadata = { description: "The terms for using FiscaLLM during the free beta.", alternates: { canonical: "/terms" }, title: "Terms · FiscaLLM" };
 
 export default function TermsPage() {
   return (

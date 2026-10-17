@@ -5,6 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
   title: "Live demo · FiscaLLM",
+  alternates: { canonical: "/demo" },
   description: "Click around a FiscaLLM dashboard on sample data. No sign-up needed.",
 };
 

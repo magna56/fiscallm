@@ -53,6 +53,10 @@ export const aiEvents = pgTable(
     // separately because they are priced differently.
     cachedTokens: bigint("cached_tokens", { mode: "number" }),
     cacheWriteTokens: bigint("cache_write_tokens", { mode: "number" }),
+    // Non-token usage: e.g. 12.5 minutes, or 8 seconds of "1080p" video.
+    units: numeric("units", { precision: 18, scale: 6 }),
+    unit: text("unit"),
+    variant: text("variant"),
     // Null when the model is not in the price table yet.
     costUsd: usd("cost_usd"),
     costSource: text("cost_source", {
@@ -84,6 +88,8 @@ export const modelPrices = pgTable(
     longOutputPerMtok: usd("long_output_per_mtok"),
     longCachedPerMtok: usd("long_cached_per_mtok"),
     longCacheWritePerMtok: usd("long_cache_write_per_mtok"),
+    // USD per unit, keyed "minute" or "second:1080p".
+    unitPrices: jsonb("unit_prices").$type<Record<string, number>>(),
   },
   (t) => [primaryKey({ columns: [t.provider, t.model, t.effectiveFrom] })],
 ).enableRLS();

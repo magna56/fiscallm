@@ -21,13 +21,22 @@ export const eventSchema = z.object({
   outputTokens: tokens,
   cachedTokens: tokens,
   cacheWriteTokens: tokens,
-  // For calls not priced per token (images, voice); wins over the table.
+  // Non-token usage, priced per unit: images, seconds of video, minutes of
+  // audio, characters of speech. `variant` picks e.g. a resolution.
+  units: z.number().positive().max(1e9).optional(),
+  unit: z.enum(["image", "second", "minute", "character"]).optional(),
+  variant: z.string().min(1).max(32).optional(),
+  // An exact cost; wins over the price table.
   costUsd: z.number().nonnegative().max(1000).optional(),
   feature: z.string().min(1).max(64).optional(),
 });
 
+const withUnit = eventSchema.refine((e) => (e.units === undefined) === (e.unit === undefined), {
+  message: "units and unit go together",
+});
+
 export const batchSchema = z.object({
-  events: z.array(eventSchema).min(1).max(MAX_EVENTS),
+  events: z.array(withUnit).min(1).max(MAX_EVENTS),
 });
 
 export type IngestEvent = z.output<typeof eventSchema>;

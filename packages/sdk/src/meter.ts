@@ -15,7 +15,15 @@ export interface TrackEvent {
   outputTokens?: number;
   cachedTokens?: number;
   cacheWriteTokens?: number;
-  /** Exact cost in USD, for calls not priced per token (images, voice). */
+  /**
+   * Non-token usage, priced per unit by FiscaLLM: images, seconds of video,
+   * minutes of audio, characters of speech. Use with `unit`.
+   */
+  units?: number;
+  unit?: "image" | "second" | "minute" | "character";
+  /** Picks a price variant, e.g. a resolution: "1080p", "4k", "2k". */
+  variant?: string;
+  /** Exact cost in USD; wins over FiscaLLM's prices. */
   costUsd?: number;
   /** Your own label, e.g. "chat" or "summary", to break cost down by. */
   feature?: string;
@@ -81,6 +89,9 @@ interface WireEvent {
   outputTokens: number;
   cachedTokens: number;
   cacheWriteTokens: number;
+  units?: number;
+  unit?: string;
+  variant?: string;
   costUsd?: number;
   feature?: string;
 }
@@ -299,6 +310,8 @@ export function createMeter(options: MeterOptions): Meter {
           outputTokens: count(event.outputTokens),
           cachedTokens: count(event.cachedTokens),
           cacheWriteTokens: count(event.cacheWriteTokens),
+          ...(typeof event.units === "number" && event.units > 0 && event.unit ? { units: event.units, unit: event.unit } : {}),
+          ...(event.variant && event.units ? { variant: String(event.variant) } : {}),
           ...(typeof event.costUsd === "number" && event.costUsd >= 0 ? { costUsd: event.costUsd } : {}),
           ...(event.feature ? { feature: event.feature } : {}),
         });

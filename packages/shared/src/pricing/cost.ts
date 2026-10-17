@@ -1,4 +1,5 @@
-// Prices are USD per million tokens. Dates are YYYY-MM-DD, compared in UTC.
+// Token prices are USD per million tokens; unit prices are USD per unit.
+// Dates are YYYY-MM-DD, compared in UTC.
 
 export type Provider = "openai" | "anthropic" | "google" | (string & {});
 
@@ -10,12 +11,18 @@ export interface Rates {
   cacheWrite?: number;
 }
 
+/** How non-token usage is counted: images, seconds of video, minutes of audio, characters of speech. */
+export const UNITS = ["image", "second", "minute", "character"] as const;
+export type Unit = (typeof UNITS)[number];
+
 export interface ModelPrice extends Rates {
   provider: Provider;
   model: string;
   effectiveFrom: string;
   // Prompts over `threshold` tokens are billed at these rates instead.
   long?: Rates & { threshold: number };
+  // USD per unit, keyed "minute" or "second:1080p" for a variant.
+  units?: Record<string, number>;
 }
 
 export interface PriceOverride {
@@ -38,6 +45,10 @@ export interface Usage {
   outputTokens: number;
   cachedTokens?: number;
   cacheWriteTokens?: number;
+  // Non-token usage, e.g. 12.5 minutes of audio, or 8 seconds at "1080p".
+  units?: number;
+  unit?: string;
+  variant?: string;
 }
 
 export interface Cost {
@@ -102,6 +113,17 @@ function charge(u: Usage, r: Rates): number {
   return Math.round(micro * 100) / 1e8;
 }
 
+/** USD for the usage's units, or undefined when the price has none for that unit. */
+function unitCharge(u: Usage, price: ModelPrice | undefined, factor = 1): number | undefined {
+  if (!u.units || !u.unit) return 0;
+  const unit = u.unit.toLowerCase();
+  const variant = u.variant?.trim().toLowerCase();
+  const each = (variant ? price?.units?.[`${unit}:${variant}`] : undefined) ?? price?.units?.[unit];
+  return each === undefined ? undefined : u.units * each * factor;
+}
+
+const round = (usd: number) => Math.round(usd * 1e8) / 1e8;
+
 function scale(r: Rates, factor: number): Rates {
   return {
     input: r.input * factor,
@@ -125,17 +147,24 @@ export function cost(
   const day = usage.at.toISOString().slice(0, 10);
 
   const override = findOverride(overrides, provider, ids, day);
-  if (override?.rates) return { costUsd: charge(usage, override.rates), source: "override" };
-
   const price = findPrice(prices, provider, ids, day);
+  const hasTokens = usage.inputTokens + usage.outputTokens + (usage.cachedTokens ?? 0) + (usage.cacheWriteTokens ?? 0) > 0;
+
+  if (override?.rates) {
+    // Flat override rates cover tokens; units still use the list price.
+    const units = unitCharge(usage, price);
+    if (units === undefined && !hasTokens) return null;
+    return { costUsd: round(charge(usage, override.rates) + (units ?? 0)), source: "override" };
+  }
   if (!price) return null;
 
   const prompt = usage.inputTokens + (usage.cachedTokens ?? 0) + (usage.cacheWriteTokens ?? 0);
   let rates: Rates = price.long && prompt > price.long.threshold ? price.long : price;
+  const factor = override?.discountPct !== undefined ? 1 - override.discountPct / 100 : 1;
+  if (factor !== 1) rates = scale(rates, factor);
 
-  if (override?.discountPct !== undefined) {
-    rates = scale(rates, 1 - override.discountPct / 100);
-    return { costUsd: charge(usage, rates), source: "override" };
-  }
-  return { costUsd: charge(usage, rates), source: "table" };
+  const units = unitCharge(usage, price, factor);
+  // Units the model has no price for: unpriced, unless tokens were billed too.
+  if (units === undefined && !hasTokens) return null;
+  return { costUsd: round(charge(usage, rates) + (units ?? 0)), source: factor !== 1 ? "override" : "table" };
 }

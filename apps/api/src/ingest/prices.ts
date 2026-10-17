@@ -32,6 +32,7 @@ export async function loadPrices(db: AnyDb): Promise<ModelPrice[]> {
       cached: num(r.cachedPerMtok),
       cacheWrite: num(r.cacheWritePerMtok),
       long,
+      units: r.unitPrices ?? undefined,
     };
   });
   cached = { at: Date.now(), prices };

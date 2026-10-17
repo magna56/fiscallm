@@ -108,6 +108,17 @@ ANTHROPIC_STREAM = [
 ]
 
 
+class UnitsTest(unittest.TestCase):
+    def test_units_unit_and_variant(self):
+        rec = Recorder()
+        m = meter(rec)
+        m.track(user_id="u", provider="google", model="veo-3.1-fast-generate-preview", units=8, unit="second", variant="1080p")
+        m.track(user_id="u", provider="openai", model="whisper-1", unit="minute")
+        m.flush()
+        self.assertEqual((rec.events[0]["units"], rec.events[0]["unit"], rec.events[0]["variant"]), (8.0, "second", "1080p"))
+        self.assertNotIn("unit", rec.events[1])
+
+
 class StreamTest(unittest.TestCase):
     def test_sync_stream_passes_chunks_and_reads_cumulative_usage(self):
         rec = Recorder()

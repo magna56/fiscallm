@@ -91,12 +91,18 @@ class Meter:
         output_tokens: Union[int, float, None] = 0,
         cached_tokens: Union[int, float, None] = 0,
         cache_write_tokens: Union[int, float, None] = 0,
+        units: Optional[float] = None,
+        unit: Optional[str] = None,
+        variant: Optional[str] = None,
         cost_usd: Optional[float] = None,
         feature: Optional[str] = None,
         ts: Optional[datetime] = None,
     ) -> None:
         """Queues one event. ``input_tokens`` excludes cache reads and writes.
-        Pass ``cost_usd`` for calls not priced per token (images, voice)."""
+
+        For usage priced per unit, pass ``units`` with ``unit`` ("image",
+        "second", "minute" or "character") and optionally a ``variant`` such
+        as "1080p". Pass ``cost_usd`` to give the exact cost instead."""
         try:
             if not self._api_key:
                 return
@@ -117,6 +123,11 @@ class Meter:
                 "cachedTokens": _count(cached_tokens),
                 "cacheWriteTokens": _count(cache_write_tokens),
             }
+            if isinstance(units, (int, float)) and units > 0 and unit:
+                event["units"] = float(units)
+                event["unit"] = unit
+                if variant:
+                    event["variant"] = str(variant)
             if isinstance(cost_usd, (int, float)) and cost_usd >= 0:
                 event["costUsd"] = float(cost_usd)
             if feature:
@@ -261,7 +272,7 @@ class Meter:
 
     def _send(self, batch: List[Dict[str, Any]]) -> None:
         body = json.dumps({"events": batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.1.0"}
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.2.0"}
         for attempt in range(2):
             try:
                 status = self._post(self._endpoint, headers, body)

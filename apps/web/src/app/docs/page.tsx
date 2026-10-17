@@ -91,14 +91,23 @@ meter.trackOpenAI(res, { userId, feature: "chat" });`}</code>
           &quot;summary&quot;) to break cost down by. For OpenAI-compatible APIs such as Groq, OpenRouter or DeepSeek, use{" "}
           <code>trackOpenAI(res, {`{ userId, provider: "groq" }`})</code>.
         </p>
+        <h3 id="units">Images, audio and video</h3>
+        <p>
+          Image and speech models that report tokens (<code>gpt-image-*</code>, <code>gpt-4o-mini-tts</code>, realtime voice, Gemini image, TTS
+          and Live models) work with the helpers above and are priced at their media rates. For usage billed per unit, pass{" "}
+          <code>units</code> and a <code>unit</code> of <code>minute</code>, <code>second</code>, <code>character</code> or <code>image</code>; add a{" "}
+          <code>variant</code> where the price depends on resolution or size. FiscaLLM prices Whisper and other transcription per minute,{" "}
+          <code>tts-1</code> per character, Veo video per second and Gemini images per image.
+        </p>
         <pre>
-          <code>{`meter.track({
-  userId,
-  provider: "fal",
-  model: "flux-pro",
-  costUsd: 0.05,      // for calls not priced per token
-  feature: "avatar",
-});`}</code>
+          <code>{`meter.track({ userId, provider: "openai", model: "whisper-1", units: 12.5, unit: "minute" });
+meter.track({ userId, provider: "openai", model: "tts-1", units: text.length, unit: "character" });
+meter.track({ userId, provider: "google", model: "veo-3.1-fast-generate-preview",
+              units: 8, unit: "second", variant: "1080p" });
+meter.track({ userId, provider: "google", model: "gemini-3-pro-image", units: 1, unit: "image", variant: "4k" });
+
+// Anything else: the exact cost, which wins over FiscaLLM's prices
+meter.track({ userId, provider: "fal", model: "flux-pro", costUsd: 0.05, feature: "avatar" });`}</code>
         </pre>
 
         <h3>Streaming</h3>
@@ -276,6 +285,7 @@ Content-Type: application/json
     "outputTokens": 300,
     "cachedTokens": 0,
     "cacheWriteTokens": 0,
+    "units": 12.5,             // optional, with "unit": "minute" | "second" | "character" | "image"
     "costUsd": 0.0012,         // optional: overrides our price
     "feature": "chat"          // optional
   }]

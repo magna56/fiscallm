@@ -63,7 +63,12 @@ meter.trackGemini(result, { userId, feature: "chat" });
 // OpenAI-compatible APIs
 meter.trackOpenAI(res, { userId, provider: "groq" });
 
-// Not priced per token: pass the exact cost
+// Priced per unit: minutes of audio, characters of speech, seconds of video, images
+meter.track({ userId, provider: "openai", model: "whisper-1", units: durationSeconds / 60, unit: "minute" });
+meter.track({ userId, provider: "openai", model: "tts-1", units: input.length, unit: "character" });
+meter.track({ userId, provider: "google", model: "veo-3.1-fast-generate-preview", units: seconds, unit: "second", variant: "1080p" });
+
+// Other providers not priced per token: pass the exact cost
 meter.track({ userId, provider: "fal", model: "flux-pro", costUsd: 0.05, feature: "image" });
 ```
 
@@ -112,7 +117,8 @@ meter = Meter(api_key=os.environ["FISCALLM_KEY"])  # one per process
 
 res = client.chat.completions.create(model=model, messages=messages)
 meter.track_openai(res, user_id=user_id, feature="chat")
-# also: meter.track_anthropic, meter.track_gemini, meter.track(...)
+# also: meter.track_anthropic, meter.track_gemini,
+# meter.track(user_id=..., provider="openai", model="whisper-1", units=minutes, unit="minute")
 ```
 
 Serverless (Lambda, Cloud Functions): call `meter.flush()` before returning. Streams: `meter.track_stream(stream, user_id=user_id)` returns a stream to iterate instead.

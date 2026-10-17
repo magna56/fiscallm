@@ -29,6 +29,9 @@ export function priceEvents(
       outputTokens: e.outputTokens,
       cachedTokens: e.cachedTokens,
       cacheWriteTokens: e.cacheWriteTokens,
+      units: e.units === undefined ? null : String(e.units),
+      unit: e.unit ?? null,
+      variant: e.variant ?? null,
       feature: e.feature ?? null,
     };
     if (e.costUsd !== undefined) {

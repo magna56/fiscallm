@@ -136,10 +136,42 @@ describe("MODEL_PRICES", () => {
   it("has lower-case ids and sane prices", () => {
     for (const p of MODEL_PRICES) {
       expect(p.model).toBe(p.model.toLowerCase());
-      expect(p.input).toBeGreaterThan(0);
+      // Unit-priced and image models may have no input token price.
+      if (!p.units && p.output < 30) expect(p.input).toBeGreaterThan(0);
       expect(p.output).toBeGreaterThanOrEqual(p.input);
       if (p.cached !== undefined) expect(p.cached).toBeLessThanOrEqual(p.input);
+      for (const [k, v] of Object.entries(p.units ?? {})) {
+        expect(k).toMatch(/^(image|second|minute|character)(:[a-z0-9.]+)?$/);
+        expect(v).toBeGreaterThan(0);
+      }
     }
+  });
+
+  it("prices units, variants and a mix of units and tokens", () => {
+    const at = new Date("2026-10-17T12:00:00Z");
+    const c = (u: Partial<Parameters<typeof cost>[0]>) =>
+      cost({ provider: "openai", model: "x", at, inputTokens: 0, outputTokens: 0, ...u } as Parameters<typeof cost>[0], MODEL_PRICES);
+    expect(c({ model: "whisper-1", units: 10, unit: "minute" })?.costUsd).toBeCloseTo(0.06);
+    expect(c({ model: "tts-1", units: 1_000_000, unit: "character" })?.costUsd).toBeCloseTo(15);
+    expect(c({ provider: "google", model: "veo-3.1-fast-generate-preview", units: 8, unit: "second", variant: "1080p" })?.costUsd).toBeCloseTo(0.96);
+    // Unknown variant falls back to the default unit price.
+    expect(c({ provider: "google", model: "veo-3.1-fast-generate-preview", units: 8, unit: "second", variant: "8k" })?.costUsd).toBeCloseTo(0.8);
+    expect(c({ provider: "google", model: "gemini-3-pro-image", units: 2, unit: "image", variant: "4K" })?.costUsd).toBeCloseTo(0.48);
+    // Image tokens from the response, at the image output rate.
+    expect(c({ model: "gpt-image-2", inputTokens: 100, outputTokens: 4000 })?.costUsd).toBeCloseTo(0.1205);
+    // A unit the model has no price for, and no tokens: unpriced.
+    expect(c({ model: "whisper-1", units: 3, unit: "image" })).toBeNull();
+    // Tokens still count when the unit has no price.
+    expect(c({ model: "gpt-4o", inputTokens: 1_000_000, units: 2, unit: "image" })?.costUsd).toBeCloseTo(2.5);
+  });
+
+  it("applies discounts to unit prices too", () => {
+    const c = cost(
+      { provider: "openai", model: "whisper-1", at: new Date(), inputTokens: 0, outputTokens: 0, units: 100, unit: "minute" },
+      MODEL_PRICES,
+      [{ provider: "openai", model: "*", effectiveFrom: "2024-01-01", discountPct: 50 }],
+    );
+    expect(c).toEqual({ costUsd: 0.3, source: "override" });
   });
 
   it("prices a real model end to end", () => {

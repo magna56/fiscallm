@@ -159,4 +159,74 @@ const google = [
   ),
 ];
 
-export const MODEL_PRICES: readonly ModelPrice[] = [...openai, ...anthropic, ...google];
+// ---- Image, audio and video ----
+// Token-priced media models use their media rates: image output for image
+// models, audio for speech models. Text tokens in the same call are counted
+// at those rates too, a slight overestimate for prompts.
+// Unit-priced models have no token price (0) and a price per unit; pass
+// `units` and `unit` (and a `variant` such as "1080p") when tracking.
+
+const media = (
+  provider: string,
+  model: string,
+  input: number,
+  output: number,
+  units?: Record<string, number>,
+  effectiveFrom = LISTED,
+): ModelPrice => ({ provider, model, effectiveFrom, input, output, ...(units ? { units } : {}) });
+
+const openaiMedia: ModelPrice[] = [
+  // Images: text prompt in, image tokens out.
+  media("openai", "gpt-image-2.5-sunburst", 5, 30),
+  media("openai", "gpt-image-2.5-flare", 5, 30),
+  media("openai", "gpt-image-2", 5, 30),
+  media("openai", "gpt-image-1.5", 5, 32),
+  media("openai", "gpt-image-1-mini", 2, 8),
+  media("openai", "gpt-image-1", 5, 40),
+  media("openai", "chatgpt-image-latest", 5, 32),
+  // Speech out: text in, audio tokens out.
+  media("openai", "gpt-4o-mini-tts", 0.6, 12),
+  media("openai", "tts-1", 0, 0, { character: 15 / 1e6 }),
+  media("openai", "tts-1-hd", 0, 0, { character: 30 / 1e6 }),
+  // Speech in.
+  media("openai", "whisper-1", 0, 0, { minute: 0.006 }),
+  media("openai", "gpt-transcribe", 0, 0, { minute: 0.0045 }),
+  media("openai", "gpt-4o-transcribe", 2.5, 10, { minute: 0.006 }),
+  media("openai", "gpt-4o-transcribe-diarize", 2.5, 10, { minute: 0.006 }),
+  media("openai", "gpt-4o-mini-transcribe", 1.25, 5, { minute: 0.003 }),
+  media("openai", "gpt-live-transcribe", 0, 0, { minute: 0.017 }),
+  media("openai", "gpt-realtime-whisper", 0, 0, { minute: 0.017 }),
+  media("openai", "gpt-realtime-translate", 0, 0, { minute: 0.034 }),
+  // Realtime voice: audio tokens both ways.
+  ...["gpt-realtime-2.1", "gpt-realtime-2", "gpt-realtime-1.5", "gpt-realtime", "gpt-audio-1.5", "gpt-audio"].map((m) => media("openai", m, 32, 64)),
+  ...["gpt-realtime-2.1-mini", "gpt-realtime-mini", "gpt-audio-mini"].map((m) => media("openai", m, 10, 20)),
+  media("openai", "gpt-live-1", 0, 0, { minute: 0.05 }),
+];
+
+// Gemini image models: per image by output size ("1k" by default), or by
+// image output tokens when tracked from the response. Prompt tokens are not
+// listed separately, so they count as zero.
+const googleMedia: ModelPrice[] = [
+  media("google", "gemini-3.1-flash-image", 0, 60, { image: 0.067, "image:0.5k": 0.045, "image:1k": 0.067, "image:2k": 0.101, "image:4k": 0.151 }),
+  media("google", "gemini-3.1-flash-lite-image", 0, 30, { image: 0.0336, "image:1k": 0.0336 }),
+  media("google", "gemini-nano-banana-2.1", 0, 30, { image: 0.0336, "image:1k": 0.0336, "image:2k": 0.0504, "image:4k": 0.113 }),
+  media("google", "gemini-3-pro-image", 0, 120, { image: 0.134, "image:1k": 0.134, "image:2k": 0.134, "image:4k": 0.24 }),
+  media("google", "gemini-2.5-flash-image", 0, 30, { image: 0.039 }),
+  // Video per second, by resolution ("720p" by default).
+  media("google", "veo-3.1-generate-preview", 0, 0, { second: 0.4, "second:720p": 0.4, "second:1080p": 0.4, "second:4k": 0.6 }),
+  media("google", "veo-3.1-fast-generate-preview", 0, 0, { second: 0.1, "second:720p": 0.1, "second:1080p": 0.12, "second:4k": 0.3 }),
+  media("google", "veo-3.1-lite-generate-preview", 0, 0, { second: 0.05, "second:720p": 0.05, "second:1080p": 0.08 }),
+  // Speech out: text in, audio tokens out (25 tokens per second).
+  media("google", "gemini-3.8-flash-tts", 0.5, 9),
+  media("google", "gemini-3.8-flash-tts", 1, 18, undefined, "2027-01-01"),
+  media("google", "gemini-3.8-flash-lite-tts", 0.5, 6),
+  media("google", "gemini-3.8-flash-lite-tts", 1, 12, undefined, "2027-01-01"),
+  media("google", "gemini-3.1-flash-tts-preview", 1, 20),
+  media("google", "gemini-2.5-flash-preview-tts", 0.5, 10),
+  media("google", "gemini-2.5-pro-preview-tts", 1, 20),
+  // Live voice: audio tokens both ways.
+  ...["gemini-3.8-live", "gemini-3.8-live-extended-thinking", "gemini-3.1-flash-live-preview"].map((m) => media("google", m, 3, 12)),
+  media("google", "gemini-2.5-flash-native-audio-preview-12-2025", 3, 12),
+];
+
+export const MODEL_PRICES: readonly ModelPrice[] = [...openai, ...anthropic, ...google, ...openaiMedia, ...googleMedia];

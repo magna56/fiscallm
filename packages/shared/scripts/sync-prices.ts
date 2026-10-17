@@ -23,6 +23,7 @@ const rows = MODEL_PRICES.map((p) => ({
   longOutputPerMtok: num(p.long?.output),
   longCachedPerMtok: num(p.long?.cached),
   longCacheWritePerMtok: num(p.long?.cacheWrite),
+  unitPrices: p.units ?? null,
 }));
 
 const client = postgres(process.env.DATABASE_URL!, { max: 1 });
@@ -44,6 +45,7 @@ await db
       longOutputPerMtok: excluded("long_output_per_mtok"),
       longCachedPerMtok: excluded("long_cached_per_mtok"),
       longCacheWritePerMtok: excluded("long_cache_write_per_mtok"),
+      unitPrices: excluded("unit_prices"),
     },
   });
 

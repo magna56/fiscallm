@@ -57,6 +57,13 @@
       "when": 1792207640991,
       "tag": "0007_careless_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792208089402,
+      "tag": "0008_far_felicia_hardy",
+      "breakpoints": true
     }
   ]
 }

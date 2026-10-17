@@ -145,6 +145,16 @@ describe("createMeter", () => {
     expect(Number.isNaN(Date.parse(batch[0].ts))).toBe(false);
   });
 
+  it("sends units with their unit and variant, and drops a unit without units", async () => {
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    meter.track({ userId: "u", provider: "google", model: "veo-3.1-fast-generate-preview", units: 8, unit: "second", variant: "1080p" });
+    meter.track({ userId: "u", provider: "openai", model: "whisper-1", unit: "minute" });
+    await meter.flush();
+    const [batch] = bodies();
+    expect(batch[0]).toMatchObject({ units: 8, unit: "second", variant: "1080p" });
+    expect(batch[1].unit).toBeUndefined();
+  });
+
   it("survives a waitUntil that throws", async () => {
     const meter = createMeter({
       apiKey: "k",

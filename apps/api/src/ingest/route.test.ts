@@ -120,6 +120,16 @@ describe("POST /v1/events", () => {
     expect(Number(row!.costUsd)).toBe(0.04);
   });
 
+  it("prices units such as minutes of audio", async () => {
+    await db.insert(schema.modelPrices).values({ provider: "openai", model: "whisper-1", effectiveFrom: "2024-01-01", inputPerMtok: "0", outputPerMtok: "0", unitPrices: { minute: 0.006 } });
+    const res = await post({ events: [event({ model: "whisper-1", inputTokens: 0, outputTokens: 0, units: 12.5, unit: "minute" })] });
+    expect(await res.json()).toEqual({ accepted: 1, duplicates: 0, unpriced: 0 });
+    const [row] = await db.select().from(schema.aiEvents);
+    expect(Number(row!.costUsd)).toBeCloseTo(0.075);
+    expect(row).toMatchObject({ unit: "minute", units: "12.500000" });
+    expect((await post({ events: [event({ units: 3 })] })).status).toBe(400);
+  });
+
   it("applies the app's price override", async () => {
     await db.insert(schema.appPriceOverrides).values({
       appId,

@@ -34,7 +34,11 @@ const stream = meter.trackStream(
 // Raw provider fetch streamed straight to the app (e.g. a Worker proxy):
 return meter.trackSSE(await fetch(providerUrl, init), { userId });
 
-// Anything not priced per token:
+// Priced per unit (FiscaLLM knows the price): minutes, seconds, characters, images
+meter.track({ userId, provider: "openai", model: "whisper-1", units: 12.5, unit: "minute" });
+meter.track({ userId, provider: "google", model: "veo-3.1-fast-generate-preview", units: 8, unit: "second", variant: "1080p" });
+
+// Anything else: the exact cost
 meter.track({ userId, provider: "fal", model: "flux", costUsd: 0.04 });
 
 // Serverless without waitUntil (e.g. Firebase): before returning

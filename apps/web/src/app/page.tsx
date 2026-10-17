@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { type CodeToken, CountUp, Spotlight, Typewriter } from "@/components/fx";
 import { SiteFooter, SiteHeader } from "@/components/site";
 
 const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Deno", "Bun", "RevenueCat"];
@@ -40,6 +41,7 @@ export default function Home() {
       <main className="flex flex-col">
         <Hero />
         <Runtimes />
+        <Stats />
         <Problem />
         <HowItWorks />
         <Features />
@@ -75,8 +77,9 @@ function Hero() {
           <span aria-hidden>→</span>
         </Link>
 
-        <h1 className="fade-up delay-1 mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          Know which users cost you <span className="text-gradient">more in AI</span> than they pay.
+        <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
+          <Words text="Know which users cost you" start={0} /> <Words text="more in AI" start={5} gradient />{" "}
+          <Words text="than they pay." start={8} />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
           FiscaLLM puts every user&apos;s AI spend next to their subscription revenue, so you see your real margin per user, plan and free
@@ -85,7 +88,7 @@ function Hero() {
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="/login"
-            className="rounded-full bg-foreground px-6 py-3 font-medium text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:shadow-xl"
+            className="btn-glow rounded-full bg-foreground px-6 py-3 font-medium text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:shadow-xl"
           >
             Start free
           </Link>
@@ -136,6 +139,21 @@ function Hero() {
   );
 }
 
+function Words({ text, start, gradient = false }: { text: string; start: number; gradient?: boolean }) {
+  return (
+    <>
+      {text.split(" ").map((w, i) => (
+        <span key={i}>
+          {i > 0 && " "}
+          <span className={`word ${gradient ? "text-gradient" : ""}`} style={{ ["--i" as string]: start + i }}>
+            {w}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 function FloatCard({ className, children }: { className: string; children: ReactNode }) {
   return <div className={`glass absolute z-20 rounded-xl border border-black/5 p-4 text-left shadow-xl shadow-black/10 ${className}`}>{children}</div>;
 }
@@ -158,10 +176,31 @@ function Runtimes() {
   );
 }
 
+function Stats() {
+  const stats: [ReactNode, string][] = [
+    [<CountUp key="a" to={10} suffix=" min" />, "to set up"],
+    [<CountUp key="b" to={0} />, "prompts stored, ever"],
+    [<CountUp key="c" to={3} />, "providers with built-in helpers"],
+    [<CountUp key="d" to={2} prefix="<" suffix="s" />, "SDK timeout, never blocks"],
+  ];
+  return (
+    <section className="mx-auto mt-20 w-full max-w-5xl px-6">
+      <div className="reveal grid grid-cols-2 gap-y-8 rounded-2xl border border-black/5 bg-white/70 p-8 md:grid-cols-4">
+        {stats.map(([n, label], i) => (
+          <div key={i} className="text-center">
+            <div className="stat-num text-4xl font-semibold tracking-tight">{n}</div>
+            <div className="mt-1 text-sm text-muted">{label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNode; body?: string }) {
   return (
     <div className="reveal mx-auto max-w-2xl text-center">
-      <p className="text-sm font-medium text-accent">{eyebrow}</p>
+      <p className="shimmer text-sm font-medium">{eyebrow}</p>
       <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
       {body && <p className="mt-4 text-lg text-muted">{body}</p>}
     </div>
@@ -185,14 +224,14 @@ function Problem() {
         }
         body="Subscription pricing assumed software costs nothing per user. With AI, every message has a price."
       />
-      <div className="mt-12 grid gap-4 md:grid-cols-3">
+      <Spotlight className="mt-12 grid gap-4 md:grid-cols-3">
         {items.map(([t, b]) => (
-          <div key={t} className="reveal card-glow rounded-2xl border border-black/5 bg-white p-6">
+          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
             <h3 className="font-semibold">{t}</h3>
             <p className="mt-2 text-sm text-muted">{b}</p>
           </div>
         ))}
-      </div>
+      </Spotlight>
     </section>
   );
 }
@@ -202,9 +241,9 @@ function HowItWorks() {
     <section id="how" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
       <SectionHead eyebrow="How it works" title="Set up in ten minutes" body="No proxy, no changes to how you call AI providers, nothing in your app's request path." />
       <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
-        <div className="absolute left-0 right-0 top-9 hidden h-px bg-gradient-to-r from-transparent via-black/10 to-transparent md:block" aria-hidden />
+        <div className="beam absolute left-0 right-0 top-9 hidden h-px bg-gradient-to-r from-transparent via-black/10 to-transparent md:block" aria-hidden />
         {STEPS.map((s) => (
-          <li key={s.n} className="reveal card-glow relative rounded-2xl border border-black/5 bg-white p-6">
+          <li key={s.n} className="reveal card-glow spot relative rounded-2xl border border-black/5 bg-white p-6">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#6d5dfc] to-[#a855f7] text-sm font-semibold text-white shadow-md shadow-indigo-500/30">
               {s.n}
             </span>
@@ -221,8 +260,23 @@ function HowItWorks() {
 function Features() {
   return (
     <section id="features" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead eyebrow="What you get" title="Every number that decides your margin" />
-      <div className="mt-12 grid auto-rows-[minmax(180px,auto)] gap-4 md:grid-cols-6">
+      <SectionHead
+        eyebrow="What you get"
+        title={
+          <>
+            Your real margin per{" "}
+            {/* Solid colour: Chrome draws gradient-clipped text through opacity animations. */}
+            <span className="rotator text-[#8b5cf6]">
+              {["user", "plan", "trial", "model"].map((w, i) => (
+                <span key={w} style={{ ["--i" as string]: i }}>
+                  {w}
+                </span>
+              ))}
+            </span>
+          </>
+        }
+      />
+      <Spotlight className="mt-12 grid auto-rows-[minmax(170px,auto)] gap-4 md:grid-cols-6">
         <Tile className="md:col-span-4" title="Margin per user" body="Revenue minus AI cost for every subscriber, worst first. Filter to paying users who cost more than they pay.">
           <div className="mt-5 space-y-2 font-mono text-xs">
             {[
@@ -254,14 +308,14 @@ function Features() {
         <Tile className="md:col-span-2" title="Monday email" body="Last week's margin and the users and plans that lost money, in your inbox." />
         <Tile className="md:col-span-3" title="Accurate prices, your prices" body="List prices kept current, including cached tokens and long-prompt rates. Add negotiated discounts per provider or model." />
         <Tile className="md:col-span-3" title="Built for mobile subscriptions" body="Trials, renewals, refunds, upgrades and anonymous-to-logged-in users from RevenueCat, all handled." />
-      </div>
+      </Spotlight>
     </section>
   );
 }
 
 function Tile({ className = "", title, body, children }: { className?: string; title: string; body: string; children?: ReactNode }) {
   return (
-    <div className={`reveal card-glow flex flex-col rounded-2xl border border-black/5 bg-gradient-to-b from-white to-[#fafafc] p-6 ${className}`}>
+    <div className={`reveal card-glow spot flex flex-col rounded-2xl border border-black/5 bg-gradient-to-b from-white to-[#fafafc] p-6 ${className}`}>
       <h3 className="font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted">{body}</p>
       {children}
@@ -269,11 +323,22 @@ function Tile({ className = "", title, body, children }: { className?: string; t
   );
 }
 
+const K = "#c792ea";
+const F = "#82aaff";
+const S = "#c3e88d";
+const C = "rgba(255,255,255,0.4)";
+const CODE: CodeToken[] = [
+  ["import", K], [" { createMeter } "], ["from", K], [" "], ['"fiscallm"', S], [";\n\n"],
+  ["const", K], [" meter = "], ["createMeter", F], ["({\n  apiKey: env.FISCALLM_KEY,\n  waitUntil: ctx.waitUntil."], ["bind", F], ["(ctx),\n});\n\n"],
+  ["const", K], [" res = "], ["await", K], [" openai.chat.completions\n  ."], ["create", F], ["({ model, messages });\n\n"],
+  ["// that's it", C], ["\nmeter."], ["trackOpenAI", F], ["(res, { userId, feature: "], ['"chat"', S], [" });"],
+];
+
 function CodeSection() {
   return (
     <section className="mx-auto mt-32 grid w-full max-w-6xl items-center gap-10 px-6 md:grid-cols-2">
       <div className="reveal">
-        <p className="text-sm font-medium text-accent">For developers</p>
+        <p className="shimmer text-sm font-medium">For developers</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">One line per AI call</h2>
         <p className="mt-4 text-lg text-muted">
           A zero-dependency TypeScript SDK with helpers for OpenAI, Anthropic and Gemini, streaming support, and a plain HTTP API for everything else.
@@ -299,21 +364,7 @@ function CodeSection() {
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
             <span className="ml-2">worker.ts</span>
           </div>
-          <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-white/90">
-            <code>
-              <span className="text-[#c792ea]">import</span> {"{ createMeter }"} <span className="text-[#c792ea]">from</span>{" "}
-              <span className="text-[#c3e88d]">&quot;fiscallm&quot;</span>;{"\n\n"}
-              <span className="text-[#c792ea]">const</span> meter = <span className="text-[#82aaff]">createMeter</span>({"{"}
-              {"\n"}  apiKey: env.FISCALLM_KEY,{"\n"}  waitUntil: ctx.waitUntil.<span className="text-[#82aaff]">bind</span>(ctx),{"\n"}
-              {"}"});{"\n\n"}
-              <span className="text-[#c792ea]">const</span> res = <span className="text-[#c792ea]">await</span> openai.chat.completions
-              {"\n"}  .<span className="text-[#82aaff]">create</span>({"{ model, messages }"});{"\n\n"}
-              <span className="text-white/40">{"// that's it"}</span>
-              {"\n"}meter.<span className="text-[#82aaff]">trackOpenAI</span>(res, {"{ userId, feature: "}
-              <span className="text-[#c3e88d]">&quot;chat&quot;</span>
-              {" }"});
-            </code>
-          </pre>
+          <Typewriter tokens={CODE} />
         </div>
       </div>
     </section>
@@ -326,7 +377,7 @@ function Privacy() {
       <div className="reveal relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f3ff] via-white to-[#fdf2f8] p-10 md:p-14">
         <div className="grid gap-10 md:grid-cols-2">
           <div>
-            <p className="text-sm font-medium text-accent">Privacy by design</p>
+            <p className="shimmer text-sm font-medium">Privacy by design</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight">Your users&apos; conversations never reach us</h2>
             <p className="mt-4 text-muted">
               The SDK sends counts, not content. No prompts, no responses, no names or emails: just an ID, a model and the number of tokens.

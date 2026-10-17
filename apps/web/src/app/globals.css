@@ -176,10 +176,132 @@ details > summary { list-style: none; cursor: pointer; }
 details > summary::-webkit-details-marker { display: none; }
 details[open] .chev { transform: rotate(45deg); }
 
+
+/* ---------- Text and motion effects ---------- */
+
+/* Headline words arrive one by one, from blurred to sharp. */
+.word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(12px);
+  animation: word-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: calc(var(--i) * 70ms + 100ms);
+}
+@keyframes word-in {
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+
+/* A word that cycles through a list, sliding up. */
+.rotator {
+  display: inline-grid;
+  height: 1.15em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.rotator > span {
+  grid-area: 1 / 1;
+  animation: rotate-word 10s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+  animation-delay: calc(var(--i) * 2.5s - 2.5s);
+  opacity: 0;
+}
+@keyframes rotate-word {
+  0% { transform: translateY(100%); opacity: 0; }
+  5%, 22% { transform: translateY(0); opacity: 1; }
+  27%, 100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Gradient border that spins around the primary button. */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.btn-glow {
+  position: relative;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--foreground), var(--foreground)) padding-box,
+    conic-gradient(from var(--angle), var(--accent), var(--accent-2), var(--accent-3), #38bdf8, var(--accent)) border-box;
+  animation: spin-angle 4s linear infinite;
+}
+/* Soft coloured glow behind the button. */
+.btn-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), var(--accent), var(--accent-2), var(--accent-3), #38bdf8, var(--accent));
+  filter: blur(16px);
+  opacity: 0.4;
+  animation: spin-angle 4s linear infinite;
+  z-index: -1;
+}
+@keyframes spin-angle { to { --angle: 360deg; } }
+
+/* Shimmer across small labels. */
+.shimmer {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 40%, #c4b5fd 50%, var(--accent) 60%, var(--accent) 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 3.5s ease-in-out infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+/* Glow under the mouse on cards inside <Spotlight>. */
+.spot { position: relative; overflow: hidden; }
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(360px circle at var(--x, -999px) var(--y, -999px), rgba(109, 93, 252, 0.12), transparent 60%);
+  transition: opacity 0.3s;
+}
+
+/* A light running along a line. */
+.beam { position: relative; overflow: hidden; }
+.beam::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+  animation: beam 3.2s ease-in-out infinite;
+}
+@keyframes beam { to { left: 100%; } }
+
+/* Blinking caret for the typewriter. */
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: #a78bfa;
+}
+.caret-idle { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Numbers in the stats band, in gradient. */
+.stat-num {
+  background: linear-gradient(180deg, var(--foreground) 30%, #6b6b80);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
     transition: none !important;
   }
   .product-frame { transform: none; }
+  .word { opacity: 1; filter: none; transform: none; }
+  .rotator > span:not(:first-child) { display: none; }
+  .rotator > span:first-child { opacity: 1; transform: none; }
 }

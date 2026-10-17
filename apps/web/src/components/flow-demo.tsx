@@ -9,12 +9,20 @@ import { LogoMark } from "./logo-mark";
 
 type Pt = { x: number; y: number };
 const NODES = {
-  phone: { x: 9, y: 30 },
-  backend: { x: 40, y: 30 },
-  ai: { x: 71, y: 12 },
-  rc: { x: 9, y: 82 },
-  fiscallm: { x: 71, y: 64 },
+  phone: { x: 10.5, y: 47 },
+  backend: { x: 41, y: 46 },
+  ai: { x: 77, y: 17 },
+  rc: { x: 40, y: 86 },
+  fiscallm: { x: 77, y: 66 },
 } satisfies Record<string, Pt>;
+
+// `at` is where along the line (0 to 1) the label sits, chosen to stay clear of the cards.
+const EDGES: { a: Pt; b: Pt; label: string; at: number }[] = [
+  { a: NODES.phone, b: NODES.backend, label: "request", at: 0.5 },
+  { a: NODES.backend, b: NODES.ai, label: "prompt and answer", at: 0.55 },
+  { a: NODES.backend, b: NODES.fiscallm, label: "usage", at: 0.5 },
+  { a: NODES.rc, b: NODES.fiscallm, label: "payments", at: 0.43 },
+];
 
 interface Step {
   caption: string;
@@ -32,7 +40,7 @@ const STEPS: Step[] = [
   { caption: "Cost passes the user's budget, so you get an alert…" },
   { caption: "…and a webhook your backend can act on.", packet: { from: NODES.fiscallm, to: NODES.backend, label: "slow down user_k3x9", color: "#dc2626" } },
 ];
-const STEP_MS = 1700;
+const STEP_MS = 1900;
 const REDUCED = "(prefers-reduced-motion: reduce)";
 
 function subscribeReducedMotion(onChange: () => void) {
@@ -79,34 +87,62 @@ export function FlowDemo() {
   const margin = revenue - cost;
   const alert = step >= 7;
   const current = STEPS[step]!;
+  const pk = current.packet;
+  const edgeOn = (e: { a: Pt; b: Pt }) => Boolean(pk && ((pk.from === e.a && pk.to === e.b) || (pk.from === e.b && pk.to === e.a)));
+  const barMax = Math.max(cost, revenue || 7.49);
 
   return (
-    <div ref={ref} className="flex flex-col gap-4">
+    <div ref={ref} className="flex flex-col gap-5">
       <MobileFlow step={step} cost={cost} margin={revenue === 0 ? null : margin} />
-      <div className="relative hidden w-full overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-[#fafaff] via-white to-[#fdf7fb] sm:block" style={{ aspectRatio: "16 / 8.2", containerType: "inline-size" }}>
-        <div className="dot-grid opacity-60" aria-hidden />
+      <div
+        className="relative hidden w-full overflow-hidden rounded-[28px] border border-black/[0.06] bg-gradient-to-br from-[#f6f5ff] via-white to-[#fff3fa] shadow-[0_30px_80px_-40px_rgba(109,93,252,0.45)] sm:block"
+        style={{ aspectRatio: "16 / 8.6", containerType: "inline-size" }}
+      >
+        <div className="dot-grid opacity-70" aria-hidden />
+        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#6d5dfc]/15 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-28 right-0 h-80 w-80 rounded-full bg-[#ec4899]/15 blur-3xl" aria-hidden />
 
-        {/* connection lines */}
+        {/* connections */}
         <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-          {[
-            [NODES.phone, NODES.backend],
-            [NODES.backend, NODES.ai],
-            [NODES.backend, NODES.fiscallm],
-            [NODES.rc, NODES.fiscallm],
-          ].map(([a, b], i) => (
-            <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="rgba(11,11,20,0.12)" strokeWidth="0.25" strokeDasharray="0.8 0.8" vectorEffect="non-scaling-stroke" />
+          {EDGES.map((e, i) => (
+            <line key={i} x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke="rgba(109,93,252,0.18)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
           ))}
+          {EDGES.map((e, i) =>
+            edgeOn(e) && pk ? (
+              <g key={`on${i}`}>
+                <line x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke={pk.color} strokeOpacity="0.18" strokeWidth="9" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                <line className="flow-line" x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke={pk.color} strokeWidth="2.5" strokeDasharray="7 7" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              </g>
+            ) : null,
+          )}
         </svg>
+
+        {/* edge labels */}
+        {EDGES.map((e) => (
+          <div
+            key={e.label}
+            className={`absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-full border px-2.5 py-0.5 text-[clamp(9px,1.05cqw,12px)] font-medium transition-colors duration-500 ${
+              edgeOn(e) ? "border-[#6d5dfc]/30 bg-white text-[#4c3fd1] shadow-sm" : "border-black/5 bg-white/70 text-black/40"
+            }`}
+            style={{ left: `${e.a.x + (e.b.x - e.a.x) * e.at}%`, top: `${e.a.y + (e.b.y - e.a.y) * e.at}%` }}
+          >
+            {e.label}
+          </div>
+        ))}
 
         {/* phone */}
         <Node at={NODES.phone} glow={step <= 1}>
-          <div className="w-[13.5cqw] min-w-[96px] rounded-[18px] border-2 border-black/80 bg-white p-2 shadow-lg">
-            <div className="mx-auto mb-2 h-1 w-6 rounded-full bg-black/20" />
-            <div className="space-y-1.5 text-[clamp(8px,1.05cqw,12px)]">
-              <div className="ml-auto w-fit rounded-xl rounded-br-sm bg-[#6d5dfc] px-2 py-1 text-white">
+          <div className="w-[16cqw] min-w-[120px] rounded-[26px] border-[3px] border-[#14141f] bg-white p-3 shadow-xl">
+            <div className="mx-auto mb-2.5 h-1.5 w-10 rounded-full bg-black/15" />
+            <div className="mb-2 flex items-center gap-1.5 text-[clamp(9px,1.1cqw,13px)] font-semibold">
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-[#6d5dfc] to-[#ec4899] text-[9px] text-white">AI</span>
+              Writing helper
+            </div>
+            <div className="space-y-2 text-[clamp(9px,1.15cqw,13px)]">
+              <div className="ml-auto w-fit max-w-full rounded-2xl rounded-br-md bg-[#6d5dfc] px-2.5 py-1.5 text-white">
                 <Typed text="Rewrite my essay" run={step >= 0} key={`${loop}-q`} />
               </div>
-              <div className={`w-fit rounded-xl rounded-bl-sm bg-black/[0.06] px-2 py-1 transition-opacity duration-500 ${step >= 4 ? "opacity-100" : "opacity-0"}`}>
+              <div className={`w-fit rounded-2xl rounded-bl-md bg-black/[0.06] px-2.5 py-1.5 transition-all duration-500 ${step >= 4 ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}>
                 Here&apos;s a sharper version…
               </div>
             </div>
@@ -116,9 +152,16 @@ export function FlowDemo() {
 
         {/* backend */}
         <Node at={NODES.backend} glow={[1, 2, 3, 4, 8].includes(step)}>
-          <Box title="Your backend">
-            <code className="block whitespace-nowrap text-[clamp(7px,0.95cqw,11px)] text-black/60">meter.trackOpenAI(res, {"{ userId }"})</code>
-            <div className={`mt-1.5 rounded-md px-2 py-1 text-[clamp(7px,0.95cqw,11px)] font-medium transition-all duration-500 ${step === 8 ? "bg-red-50 text-red-600" : "bg-transparent text-transparent"}`}>
+          <Box title="Your backend" wide>
+            <div className="space-y-1 whitespace-nowrap rounded-xl bg-[#0f0f1a] p-2.5 font-mono text-[clamp(7px,0.88cqw,11px)] leading-relaxed text-white/60">
+              <div className={`transition-colors duration-500 ${step === 2 || step === 3 ? "text-white" : ""}`}>
+                <span className="text-[#c792ea]">const</span> res = <span className="text-[#c792ea]">await</span> ai.<span className="text-[#82aaff]">create</span>(…)
+              </div>
+              <div className={`rounded px-1 transition-all duration-500 ${step === 4 ? "bg-[#6d5dfc]/40 text-white" : ""}`}>
+                meter.<span className="text-[#82aaff]">trackOpenAI</span>(res, {"{ userId }"})
+              </div>
+            </div>
+            <div className={`mt-2 rounded-lg px-2.5 py-1 text-[clamp(8px,1cqw,12px)] font-medium transition-all duration-500 ${step === 8 ? "scale-100 bg-red-50 text-red-600 opacity-100" : "scale-95 bg-transparent text-transparent opacity-0"}`}>
               ⚡ user_k3x9 slowed down
             </div>
           </Box>
@@ -127,12 +170,18 @@ export function FlowDemo() {
         {/* AI providers */}
         <Node at={NODES.ai} glow={step === 2 || step === 3}>
           <Box title="AI provider">
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {["OpenAI", "Anthropic", "Gemini"].map((p) => (
-                <span key={p} className="rounded-full bg-black/[0.05] px-1.5 py-0.5 text-[clamp(7px,0.9cqw,10px)]">
+                <span key={p} className="rounded-full bg-black/[0.05] px-2 py-0.5 text-[clamp(8px,1cqw,12px)]">
                   {p}
                 </span>
               ))}
+            </div>
+            <div className={`mt-2 flex items-center gap-1 text-[clamp(8px,1cqw,12px)] text-[#a855f7] transition-opacity duration-300 ${step === 2 ? "opacity-100" : "opacity-0"}`}>
+              <span className="dot-bounce" />
+              <span className="dot-bounce [animation-delay:150ms]" />
+              <span className="dot-bounce [animation-delay:300ms]" />
+              <span className="ml-1">thinking</span>
             </div>
           </Box>
         </Node>
@@ -140,34 +189,61 @@ export function FlowDemo() {
         {/* RevenueCat */}
         <Node at={NODES.rc} glow={step === 6}>
           <Box title="RevenueCat">
-            <div className="text-[clamp(7px,0.95cqw,11px)] text-black/60">user_k3x9 · Pro monthly</div>
+            <div className="flex items-center justify-between gap-3 text-[clamp(8px,1.05cqw,12px)] text-black/60">
+              <span>user_k3x9 · Pro monthly</span>
+              <span className={`font-semibold text-green-600 transition-opacity duration-500 ${step >= 6 ? "opacity-100" : "opacity-0"}`}>+$7.49 ✓</span>
+            </div>
           </Box>
         </Node>
 
         {/* FiscaLLM */}
         <Node at={NODES.fiscallm} glow={step >= 5}>
-          <div className="w-[25cqw] min-w-[180px] rounded-2xl bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] p-[1.5px] shadow-xl shadow-indigo-500/20">
-            <div className="rounded-[15px] bg-white p-3">
-              <div className="flex items-center gap-1.5 text-[clamp(8px,1.05cqw,12px)] font-semibold">
-                <LogoMark className="h-4 w-4" />
-                FiscaLLM
+          <div className="w-[31cqw] min-w-[230px] rounded-3xl bg-gradient-to-br from-[#6d5dfc] via-[#a855f7] to-[#ec4899] p-[2px] shadow-2xl shadow-indigo-500/25">
+            <div className="rounded-[22px] bg-white p-4">
+              <div className="flex items-center justify-between text-[clamp(10px,1.3cqw,15px)] font-semibold">
+                <span className="flex items-center gap-2">
+                  <LogoMark className="h-5 w-5" />
+                  FiscaLLM
+                </span>
+                <span className="flex items-center gap-1.5 text-[clamp(8px,0.95cqw,11px)] font-medium text-green-600">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                  </span>
+                  live
+                </span>
               </div>
-              <div className="mt-2 grid grid-cols-3 gap-1 text-[clamp(7px,0.9cqw,10px)] text-black/50">
+              <div className="mt-3 grid grid-cols-3 gap-1 text-[clamp(8px,1cqw,11px)] uppercase tracking-wide text-black/40">
                 <span>user</span>
                 <span className="text-right">AI cost</span>
                 <span className="text-right">margin</span>
               </div>
-              <div className={`mt-0.5 grid grid-cols-3 gap-1 rounded-md px-1 py-0.5 font-mono text-[clamp(7px,0.95cqw,11px)] transition-colors duration-500 ${step === 5 ? "bg-[#6d5dfc]/10" : ""}`}>
+              <div className={`mt-1 grid grid-cols-3 gap-1 rounded-lg px-1.5 py-1 font-mono text-[clamp(9px,1.15cqw,13px)] transition-colors duration-500 ${step === 5 ? "bg-[#6d5dfc]/10" : ""}`}>
                 <span>user_k3x9</span>
                 <span className="text-right tabular-nums">${cost.toFixed(2)}</span>
-                <span className={`text-right tabular-nums transition-colors ${revenue === 0 ? "text-black/40" : margin < 0 ? "text-red-600" : "text-green-600"}`}>
+                <span className={`text-right font-semibold tabular-nums transition-colors ${revenue === 0 ? "text-black/40" : margin < 0 ? "text-red-600" : "text-green-600"}`}>
                   {revenue === 0 ? "—" : `${margin < 0 ? "−" : "+"}$${Math.abs(margin).toFixed(2)}`}
                 </span>
+              </div>
+              {/* cost against revenue */}
+              <div className="mt-3 space-y-1.5 text-[clamp(8px,1cqw,11px)] text-black/50">
+                <div className="flex items-center gap-2">
+                  <span className="w-12">Revenue</span>
+                  <div className="h-2 flex-1 rounded-full bg-black/[0.05]">
+                    <div className="h-2 rounded-full bg-green-500 transition-all duration-700" style={{ width: `${(revenue / barMax) * 100}%` }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-12">AI cost</span>
+                  <div className="h-2 flex-1 rounded-full bg-black/[0.05]">
+                    <div className={`h-2 rounded-full transition-all duration-700 ${margin < 0 && revenue > 0 ? "bg-red-500" : "bg-[#a855f7]"}`} style={{ width: `${(cost / barMax) * 100}%` }} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           <div
-            className={`absolute left-1/2 top-full mt-2 w-max -translate-x-1/2 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[clamp(7px,0.95cqw,11px)] text-red-600 shadow-lg transition-all duration-500 ${
+            className={`absolute left-1/2 top-full mt-3 w-max -translate-x-1/2 rounded-xl border border-red-200 bg-white px-3 py-2 text-[clamp(9px,1.1cqw,13px)] font-medium text-red-600 shadow-xl transition-all duration-500 ${
               alert ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
             }`}
           >
@@ -176,7 +252,12 @@ export function FlowDemo() {
         </Node>
 
         {/* the moving packet */}
-        {current.packet && !reduced && <Packet key={`${loop}-${step}`} {...current.packet} />}
+        {pk && !reduced && <Packet key={`${loop}-${step}`} {...pk} />}
+
+        {/* step counter */}
+        <div className="absolute bottom-3 left-4 z-10 rounded-full bg-white/80 px-3 py-1 text-[clamp(9px,1cqw,12px)] font-medium text-black/50 shadow-sm backdrop-blur">
+          Step {step + 1} of {STEPS.length}
+        </div>
       </div>
 
       {/* captions */}
@@ -197,22 +278,22 @@ export function FlowDemo() {
 function Node({ at, glow, children }: { at: Pt; glow: boolean; children: React.ReactNode }) {
   return (
     <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: `${at.x}%`, top: `${at.y}%` }}>
-      <div className={`relative flex flex-col items-center transition-transform duration-500 ${glow ? "scale-[1.04]" : "scale-100"}`}>{children}</div>
+      <div className={`relative flex flex-col items-center transition-transform duration-500 ${glow ? "scale-[1.05]" : "scale-100"}`}>{children}</div>
     </div>
   );
 }
 
-function Box({ title, children }: { title: string; children: React.ReactNode }) {
+function Box({ title, wide, children }: { title: string; wide?: boolean; children: React.ReactNode }) {
   return (
-    <div className="min-w-[120px] rounded-2xl border border-black/10 bg-white/90 p-3 shadow-md backdrop-blur">
-      <div className="mb-1.5 text-[clamp(8px,1.05cqw,12px)] font-semibold">{title}</div>
+    <div className={`rounded-2xl border border-black/[0.08] bg-white/95 p-3.5 shadow-lg backdrop-blur ${wide ? "w-[25cqw] min-w-[215px]" : "min-w-[150px]"}`}>
+      <div className="mb-2 text-[clamp(10px,1.25cqw,14px)] font-semibold">{title}</div>
       {children}
     </div>
   );
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div className="mt-1.5 text-[clamp(8px,1cqw,11px)] font-medium text-black/50">{children}</div>;
+  return <div className="mt-2 text-[clamp(9px,1.05cqw,12px)] font-medium text-black/50">{children}</div>;
 }
 
 /** A glowing dot with a label that travels from one node to another. */
@@ -225,13 +306,16 @@ function Packet({ from, to, label, color }: { from: Pt; to: Pt; label: string; c
   return (
     <div
       className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2 transition-[left,top] ease-in-out"
-      style={{ left: `${pos.x}%`, top: `${pos.y}%`, transitionDuration: "1100ms" }}
+      style={{ left: `${pos.x}%`, top: `${pos.y}%`, transitionDuration: "1300ms" }}
       aria-hidden
     >
-      <div className="flex items-center gap-1.5 rounded-full border bg-white px-2 py-1 text-[clamp(8px,1cqw,12px)] font-medium shadow-lg" style={{ borderColor: color, color }}>
-        <span className="relative flex h-2 w-2">
+      <div
+        className="flex items-center gap-2 rounded-full border-2 bg-white px-3 py-1.5 text-[clamp(9px,1.15cqw,13px)] font-semibold shadow-xl"
+        style={{ borderColor: color, color, boxShadow: `0 10px 30px -8px ${color}88` }}
+      >
+        <span className="relative flex h-2.5 w-2.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: color }} />
-          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: color }} />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ background: color }} />
         </span>
         <span className="whitespace-nowrap">{label}</span>
       </div>

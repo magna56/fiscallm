@@ -5,14 +5,16 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./db": "./src/db.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "test": "vitest run",
-    "db:sync-prices": "tsx scripts/sync-prices.ts"
+    "db:sync-prices": "tsx scripts/sync-prices.ts",
+    "create-app": "tsx scripts/create-app.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

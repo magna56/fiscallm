@@ -106,7 +106,7 @@ The `userId` must be the user's RevenueCat app user ID, or costs cannot be match
 
 ## 4b. No RevenueCat?
 
-If the app bills through something else (Stripe, its own App Store or Play server notifications), find where payments are confirmed (webhook handlers for invoice paid, refunds, subscription changes) and report each one, using the same userId as the AI calls:
+If the app bills through Stripe, tell the user to connect Stripe from the app's Setup page (a webhook, no code) and set `metadata.user_id` on Stripe subscriptions to the same user ID the backend sends. For other billing systems (its own App Store or Play server notifications), find where payments are confirmed (webhook handlers for invoice paid, refunds, subscription changes) and report each one, using the same userId as the AI calls:
 
 ```ts
 meter.trackRevenue({ id: invoice.id, userId, type: "renewal", productId, amountUsd: invoice.amount_paid / 100, feePct: 0.03, periodEnd });

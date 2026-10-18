@@ -335,3 +335,30 @@ export async function sendTestAlert(appId: string, ruleId: string) {
   }
   redirect(`${settings}?done=${encodeURIComponent(`Test alert: ${results.join(", ") || "nothing to send"}`)}#alerts`);
 }
+
+/** Saves the Stripe webhook signing secret (sealed), which turns the Stripe connection on. */
+export async function connectStripe(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#stripe`);
+  const server = process.env.CRON_SECRET;
+  if (!server) fail("Stripe is not configured on this server yet");
+  const secret = String(formData.get("signingSecret") ?? "").trim();
+  if (!/^whsec_[A-Za-z0-9_+/=-]{16,}$/.test(secret)) {
+    fail("Paste the signing secret of the Stripe webhook endpoint; it starts with whsec_");
+  }
+  await getDb()
+    .update(schema.apps)
+    .set({ stripeWebhookSecretCipher: await sealSecret(server!, secret) })
+    .where(eq(schema.apps.id, app.id));
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent("Stripe connected. Send a test event from Stripe to check it.")}#stripe`);
+}
+
+export async function disconnectStripe(appId: string) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  await getDb().update(schema.apps).set({ stripeWebhookSecretCipher: null }).where(eq(schema.apps.id, app.id));
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent("Stripe disconnected. Existing data is kept.")}#stripe`);
+}

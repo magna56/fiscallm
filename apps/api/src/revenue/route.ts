@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AnyDb } from "../ingest/db";
 import { recompute, setAlias } from "../revenuecat/store";
-import { revenueBatchSchema, toRcEvent } from "./convert";
+import { revenueBatchSchema, type RevenueEvent, type RowSource, toRcEvent } from "./convert";
 
 /** POST /api/v1/revenue: purchases from any billing system, by ingest key. */
 export function revenueRoute(getDb: () => AnyDb) {
@@ -24,22 +24,36 @@ export function revenueRoute(getDb: () => AnyDb) {
       return c.json({ error: "invalid events", issues }, 400);
     }
 
-    const rows = parsed.data.events.map((e) => toRcEvent(app.id, e));
-    const result = await db.transaction(async (tx) => {
-      const inserted = await tx.insert(schema.rcEvents).values(rows).onConflictDoNothing().returning({ id: schema.rcEvents.id });
-      // Users may already be known under a RevenueCat alias; keep that canonical id.
-      const users = [...new Set(parsed.data.events.map((e) => e.userId))];
-      for (const user of users) {
-        const [known] = await tx
-          .select({ c: schema.userAliases.canonicalUserId })
-          .from(schema.userAliases)
-          .where(and(eq(schema.userAliases.appId, app.id), eq(schema.userAliases.alias, user)));
-        const canonical = known?.c ?? user;
-        await setAlias(tx, app.id, [user], canonical);
-        await recompute(tx, app, canonical, new Date());
-      }
-      return { accepted: inserted.length, duplicates: rows.length - inserted.length };
-    });
+    const result = await storeRevenueEvents(db, app, parsed.data.events);
     return c.json(result, 202);
+  });
+}
+
+/**
+ * Stores revenue events as the same rows RevenueCat webhooks produce and
+ * recomputes each user's subscription state. Events already stored (same id)
+ * are skipped, so retries are safe.
+ */
+export async function storeRevenueEvents(
+  db: AnyDb,
+  app: { id: string; testMode: boolean },
+  events: RevenueEvent[],
+  src?: RowSource | ((e: RevenueEvent) => RowSource),
+): Promise<{ accepted: number; duplicates: number }> {
+  const rows = events.map((e) => toRcEvent(app.id, e, typeof src === "function" ? src(e) : src));
+  return db.transaction(async (tx) => {
+    const inserted = await tx.insert(schema.rcEvents).values(rows).onConflictDoNothing().returning({ id: schema.rcEvents.id });
+    // Users may already be known under a RevenueCat alias; keep that canonical id.
+    const users = [...new Set(events.map((e) => e.userId))];
+    for (const user of users) {
+      const [known] = await tx
+        .select({ c: schema.userAliases.canonicalUserId })
+        .from(schema.userAliases)
+        .where(and(eq(schema.userAliases.appId, app.id), eq(schema.userAliases.alias, user)));
+      const canonical = known?.c ?? user;
+      await setAlias(tx, app.id, [user], canonical);
+      await recompute(tx, app, canonical, new Date());
+    }
+    return { accepted: inserted.length, duplicates: rows.length - inserted.length };
   });
 }

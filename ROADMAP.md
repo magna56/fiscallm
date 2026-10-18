@@ -13,13 +13,13 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - CSV export of Users, Plans and Trials
 - "What FiscaLLM covers and what it doesn't" page
 - Optional monthly event cap per app
+- **Stripe connector (beta)**: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world reports welcome
 - Runnable examples: a sample-data script, Next.js and FastAPI starting points, and a deploy-to-Vercel button
 - Public roadmap and changelog pages
 
 ## Next (in progress, in this order)
-1. **Stripe connector**, so apps that bill through Stripe can use FiscaLLM as easily as RevenueCat apps
-2. **Accuracy report**: computed cost compared with real provider usage pages, published with the method
-3. **Docker Compose** for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button covers hosting meanwhile)
+1. **Accuracy report**: computed cost compared with real provider usage pages, published with the method
+2. **Docker Compose** for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button covers hosting meanwhile)
 
 ## Later, only if there is demand
 | Stage | What we do | Only when |

@@ -234,6 +234,32 @@ meter.flush()   # or: await meter.aflush()`}</code>
           stored encrypted only while the import runs.
         </p>
 
+        <h2 id="stripe">Stripe (beta)</h2>
+        <p>
+          If you bill through Stripe, connect it from your app&apos;s Setup page: add a Stripe webhook endpoint with the URL shown there, choose{" "}
+          <code>invoice.paid</code>, <code>customer.subscription.created</code>, <code>customer.subscription.updated</code>,{" "}
+          <code>customer.subscription.deleted</code> and <code>charge.refunded</code>, then paste the endpoint&apos;s signing secret. Requests are
+          verified with Stripe&apos;s signature, and the secret is stored encrypted.
+        </p>
+        <ul>
+          <li>
+            <strong>Matching users.</strong> Set <code>metadata.user_id</code> (or <code>fiscallm_user_id</code>) on the Stripe subscription or customer to
+            the same user ID your backend sends with each AI call. Without it, the Stripe customer ID (<code>cus_…</code>) is used, so send that as the{" "}
+            <code>userId</code> instead.
+          </li>
+          <li>
+            <strong>What it counts.</strong> Paid invoices as purchases and renewals, trials and the first payment after one as a conversion, auto-renew
+            switched off as a cancellation, the end of a subscription, and refunds (only the new part of each partial refund).
+          </li>
+          <li>
+            <strong>What you keep</strong> is the payment minus tax minus an estimate of Stripe&apos;s fee (2.9% + $0.30), not the exact fee.
+          </li>
+          <li>
+            <strong>Limits.</strong> USD only. Zero-amount invoices and other event types are ignored. It is a beta, tested against sample payloads;
+            please check the first week against your Stripe dashboard and <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
+          </li>
+        </ul>
+
         <h2 id="revenue-api">Revenue without RevenueCat</h2>
         <p>
           If your app does not use RevenueCat, or some payments go through another system (Stripe on the web, your own App Store server

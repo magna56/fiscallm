@@ -98,11 +98,16 @@ export default function CoveragePage() {
             aliases. Revenue is counted net of store fees and tax. Past subscribers can be imported once.
           </li>
           <li>
-            <strong>Any other billing system</strong> (Stripe, your own App Store or Play server notifications) through the revenue API, one call per
-            payment, refund or cancellation.
+            <strong>Stripe (beta)</strong> through a webhook: paid invoices, trials, auto-renew switched off, ended subscriptions and refunds. USD only,
+            and what you keep is estimated with Stripe&apos;s standard fee, not read from Stripe. Tested against sample payloads, not yet against many real
+            accounts.
           </li>
           <li>
-            <strong>Not built yet:</strong> a one-click Stripe connector, and direct App Store and Google Play connections.
+            <strong>Any other billing system</strong> (your own App Store or Play server notifications, Paddle and so on) through the revenue API, one call
+            per payment, refund or cancellation.
+          </li>
+          <li>
+            <strong>Not built yet:</strong> direct App Store and Google Play connections, and non-USD currencies.
           </li>
           <li>
             <strong>Annual plans</strong> are counted when the payment arrives, so a user can look very profitable in the month they paid and the opposite

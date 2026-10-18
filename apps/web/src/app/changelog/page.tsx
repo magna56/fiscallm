@@ -12,6 +12,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
     date: "2026-10-18",
     items: [
       "Kill switch in both SDKs (0.3.2): set FISCALLM_DISABLED=1, or pass disabled: true / disabled=True, and the SDK does nothing at all.",
+      "Stripe connector (beta): connect Stripe from the Setup page to count paid invoices, trials, cancellations and refunds. USD only; what you keep is estimated with Stripe's standard fee.",
       "Examples: a sample-data script that fills the dashboard without any AI key, Next.js and FastAPI starting points, and a Deploy-with-Vercel button.",
       "A public roadmap page, and this changelog page.",
       "CSV export of the Users, Plans and Trials tables.",

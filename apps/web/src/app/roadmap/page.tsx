@@ -35,6 +35,10 @@ export default function RoadmapPage() {
           <li>
             A page on <Link href="/coverage">what FiscaLLM covers and what it doesn&apos;t</Link>
           </li>
+          <li>
+            <strong>Stripe connector (beta)</strong>: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world
+            reports welcome
+          </li>
           <li>Optional monthly event cap per app</li>
           <li>Runnable examples (sample-data script, Next.js and FastAPI starting points) and a deploy-to-Vercel button</li>
           <li>Public roadmap and changelog pages</li>
@@ -42,9 +46,6 @@ export default function RoadmapPage() {
 
         <h2>Next, in this order</h2>
         <ol>
-          <li>
-            <strong>Stripe connector</strong>, so apps that bill through Stripe can use FiscaLLM as easily as RevenueCat apps
-          </li>
           <li>
             <strong>Accuracy report</strong>: computed cost compared with real provider usage pages, published with the method
           </li>

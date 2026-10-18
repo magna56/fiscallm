@@ -1,39 +1,52 @@
 import { eventsThisMonth, monthlyEventCap, nextMonthStart } from "@fiscallm/shared/limits";
+import { schema } from "@fiscallm/shared";
 import { lastDays, overview } from "@fiscallm/shared/metrics";
+import { and, desc, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AiSetup } from "@/components/ai-setup";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { CopyButton, CopyField } from "@/components/copy-button";
-import { Button, Card, Code, Notice, PageHeader, pct } from "@/components/ui";
+import { Button, Card, Code, Input, Notice, PageHeader, pct } from "@/components/ui";
 import { SetupChecklist } from "@/components/setup-checklist";
 import { setupState } from "@/lib/setup-state";
 import { requireApp } from "@/lib/auth";
-import { metricsDb } from "@/lib/db";
+import { getDb, metricsDb } from "@/lib/db";
 import { keyCookie } from "@/lib/key-cookie";
 import { origin } from "@/lib/origin";
-import { dismissKey, rotateKey } from "../../actions";
+import { connectStripe, disconnectStripe, dismissKey, rotateKey } from "../../actions";
 
-export default function SetupPage({ params }: PageProps<"/dashboard/[appId]/setup">) {
+export default function SetupPage({ params, searchParams }: PageProps<"/dashboard/[appId]/setup">) {
   return (
     <Suspense fallback={<p className="text-foreground/60">Loading…</p>}>
-      <Setup params={params} />
+      <Setup params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "params">) {
+async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId]/setup">, "params" | "searchParams">) {
   const app = await requireApp((await params).appId);
+  const { error, done: doneMessage } = await searchParams;
   const newKey = (await cookies()).get(keyCookie(app.id))?.value;
   const base = await origin();
   const webhookUrl = `${base}/api/webhooks/rc/${app.id}`;
+  const stripeUrl = `${base}/api/webhooks/stripe/${app.id}`;
   const snippet = sdkSnippet(newKey ?? "fsk_your_key", base);
   const pySnippet = pythonSnippet(newKey ?? "fsk_your_key", base);
 
   const state = await setupState(app.id);
   const o = state.complete ? await overview(metricsDb(), app.id, lastDays(30)) : null;
   const done = state.complete;
+  const stripeConnected = Boolean(app.stripeWebhookSecretCipher);
+  const [lastStripe] = stripeConnected
+    ? await getDb()
+        .select({ at: schema.rcEvents.eventTs })
+        .from(schema.rcEvents)
+        .where(and(eq(schema.rcEvents.appId, app.id), eq(schema.rcEvents.store, "STRIPE")))
+        .orderBy(desc(schema.rcEvents.eventTs))
+        .limit(1)
+    : [];
   const cap = monthlyEventCap();
   const used = cap === null ? 0 : await eventsThisMonth(metricsDb(), app.id);
 
@@ -43,6 +56,9 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
 
       <PageHeader title={`Set up ${app.name}`} subtitle="Three steps. This page updates by itself as data arrives." />
       <SetupChecklist appId={app.id} state={state} />
+
+      {typeof error === "string" && <Notice tone="error">{error}</Notice>}
+      {typeof doneMessage === "string" && <Notice tone="ok">{doneMessage}</Notice>}
 
       {cap !== null && used >= cap && (
         <Notice tone="error">
@@ -144,6 +160,47 @@ async function Setup({ params }: Pick<PageProps<"/dashboard/[appId]/setup">, "pa
             import them from RevenueCat
           </Link>
           .
+        </p>
+      </Card>
+
+      <Card title={<span id="stripe" className="scroll-mt-24">Optional: connect Stripe</span>}>
+        <p className="text-sm text-foreground/70">
+          If you bill through Stripe, FiscaLLM can read your payments, refunds and trials from a Stripe webhook. This is a beta: it is tested against sample
+          payloads, so check the first week of numbers against your Stripe dashboard. USD only for now.
+        </p>
+        <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5 text-sm">
+          <li>
+            In Stripe, open Developers → Webhooks → Add endpoint, and use this URL:
+            <div className="mt-1">
+              <CopyField value={stripeUrl} />
+            </div>
+          </li>
+          <li>
+            Choose these events: <Code>invoice.paid</Code>, <Code>customer.subscription.created</Code>, <Code>customer.subscription.updated</Code>,{" "}
+            <Code>customer.subscription.deleted</Code> and <Code>charge.refunded</Code>.
+          </li>
+          <li>Copy the endpoint&apos;s signing secret (it starts with whsec_) and paste it here:</li>
+        </ol>
+        <form action={connectStripe.bind(null, app.id)} className="mt-2 flex flex-wrap items-center gap-2">
+          <Input name="signingSecret" type="password" autoComplete="off" placeholder="whsec_…" className="min-w-[16rem] flex-1" />
+          <Button type="submit">{stripeConnected ? "Replace secret" : "Connect Stripe"}</Button>
+        </form>
+        {stripeConnected && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-green-700">
+              Connected{lastStripe ? `. Last event ${lastStripe.at.toISOString().slice(0, 16).replace("T", " ")} UTC` : ". No events yet; send a test event from Stripe."}
+            </span>
+            <form action={disconnectStripe.bind(null, app.id)}>
+              <Button variant="secondary" type="submit">
+                Disconnect
+              </Button>
+            </form>
+          </div>
+        )}
+        <p className="mt-4 text-sm text-foreground/70">
+          <strong>Matching payments to your users.</strong> Set <Code>metadata.user_id</Code> on the Stripe subscription (or customer) to the same user ID you
+          send from your backend. Without it, FiscaLLM uses the Stripe customer ID (<Code>cus_…</Code>), so then report that as the <Code>userId</Code> in your
+          SDK calls. What you keep is estimated as the payment minus tax minus Stripe&apos;s standard fee (2.9% + $0.30).
         </p>
       </Card>
     </div>

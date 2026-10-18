@@ -1,0 +1,1 @@
+ALTER TABLE "apps" ADD COLUMN "stripe_webhook_secret_cipher" text;

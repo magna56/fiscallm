@@ -47,7 +47,17 @@ type RcEventRow = typeof schema.rcEvents.$inferInsert;
 
 const dec = (n: number | undefined) => (n === undefined ? null : String(Math.round(n * 1e8) / 1e8));
 
-export function toRcEvent(appId: string, e: RevenueEvent): RcEventRow {
+/** Where a revenue event came from; sets the row id prefix, the store and extra raw fields. */
+export interface RowSource {
+  store: string;
+  idPrefix: string;
+  rawSource: string;
+  extra?: Record<string, unknown>;
+}
+
+const API_SOURCE: RowSource = { store: "API", idPrefix: "api", rawSource: "revenue-api" };
+
+export function toRcEvent(appId: string, e: RevenueEvent, src: RowSource = API_SOURCE): RcEventRow {
   const gross = e.amountUsd ?? 0;
   const tax = e.taxPct ?? 0;
   const fee = e.feePct ?? 0;
@@ -66,13 +76,13 @@ export function toRcEvent(appId: string, e: RevenueEvent): RcEventRow {
 
   return {
     appId,
-    id: `api:${e.id}`,
+    id: `${src.idPrefix}:${e.id}`,
     type,
     appUserId: e.userId,
     originalAppUserId: e.userId,
     productId: e.productId ?? null,
     periodType: e.type === "trial_started" ? "TRIAL" : "NORMAL",
-    store: "API",
+    store: src.store,
     environment: e.environment === "sandbox" ? "SANDBOX" : "PRODUCTION",
     priceUsd: money ? dec(sign * gross) : e.type === "trial_started" || e.type === "cancellation" ? "0" : null,
     taxPct: money ? dec(tax) : null,
@@ -82,6 +92,6 @@ export function toRcEvent(appId: string, e: RevenueEvent): RcEventRow {
     purchasedAt: e.type === "expiration" || e.type === "cancellation" ? null : e.ts,
     expirationAt: e.type === "expiration" ? e.ts : (e.periodEnd ?? null),
     eventTs: e.ts,
-    raw: { source: "revenue-api", ...e },
+    raw: { source: src.rawSource, ...e, ...src.extra },
   };
 }

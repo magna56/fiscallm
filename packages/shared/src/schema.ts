@@ -32,6 +32,9 @@ export const apps = pgTable("apps", {
   weeklyEmail: boolean("weekly_email").notNull().default(true),
   // Signs alert webhooks (X-FiscaLLM-Signature); created with the first one.
   alertSecret: text("alert_secret"),
+  // Stripe webhook signing secret (whsec_...), stored sealed. Set when the
+  // owner connects Stripe; null means no Stripe connection.
+  stripeWebhookSecretCipher: text("stripe_webhook_secret_cipher"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }).enableRLS();
 

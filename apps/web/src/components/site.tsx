@@ -55,7 +55,16 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-black/5">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted">
-        <Logo />
+        <div className="flex flex-col gap-1">
+          <Logo />
+          <span className="text-xs">
+            Built by{" "}
+            <a href="https://www.linkedin.com/in/mayur-agnani/" rel="noopener" className="underline hover:text-foreground">
+              Mayur
+            </a>
+            , open source (MIT)
+          </span>
+        </div>
         <nav className="flex flex-wrap gap-5">
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>

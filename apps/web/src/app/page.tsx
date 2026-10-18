@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CodeTabs, type CodeToken, Spotlight } from "@/components/fx";
 import { DashboardPreview } from "@/components/dashboard-preview";
+import { LogoMark } from "@/components/logo-mark";
 import { FlowDemo } from "@/components/flow-demo";
 import { CONTACT, SiteFooter, SiteHeader } from "@/components/site";
 
@@ -46,7 +47,7 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       logo: "https://fiscallm.com/icon.svg",
       email: CONTACT,
-      sameAs: ["https://github.com/magna56/fiscallm"],
+      sameAs: ["https://github.com/magna56/fiscallm", "https://www.linkedin.com/in/mayur-agnani/"],
     },
     {
       "@type": "SoftwareApplication",
@@ -82,6 +83,7 @@ export default function Home() {
         <CodeSection />
         <Privacy />
         <Faq />
+        <BuiltBy />
         <FinalCta />
       </main>
       <SiteFooter />
@@ -460,6 +462,32 @@ function Faq() {
             <p className="mt-3 text-sm text-muted">{a}</p>
           </details>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function BuiltBy() {
+  return (
+    <section className="mx-auto mt-24 w-full max-w-3xl px-6">
+      <div className="reveal flex flex-col items-center gap-4 rounded-3xl border border-black/5 bg-white p-8 text-center sm:flex-row sm:text-left">
+        <LogoMark className="h-14 w-14 shrink-0" />
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Built by{" "}
+            <a href="https://www.linkedin.com/in/mayur-agnani/" rel="noopener" className="text-accent hover:underline">
+              Mayur
+            </a>
+          </h2>
+          <p className="mt-1.5 text-sm text-muted">
+            FiscaLLM is an independent, open-source side project, written and maintained by one person. The code is MIT licensed and public, so you can read
+            exactly what runs in your backend, or host it yourself. Questions, bugs and ideas are welcome:{" "}
+            <a href={`mailto:${CONTACT}`} className="text-accent underline">
+              {CONTACT}
+            </a>{" "}
+            or <a href="https://github.com/magna56/fiscallm/issues" className="text-accent underline">GitHub issues</a>.
+          </p>
+        </div>
       </div>
     </section>
   );

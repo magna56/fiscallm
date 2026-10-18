@@ -103,6 +103,10 @@ pnpm db:migrate
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md).
 
+## Built by
+
+Built and maintained by [Mayur](https://www.linkedin.com/in/mayur-agnani/) as an independent, open-source side project. Questions, bugs and ideas: [open an issue](https://github.com/magna56/fiscallm/issues) or email theaicommit@gmail.com.
+
 ## Contributors
 
 Thank you to everyone who helps. [Contribute](CONTRIBUTING.md): a good place to start is an issue labelled `good first issue`.

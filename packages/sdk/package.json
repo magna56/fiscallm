@@ -22,7 +22,7 @@
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "prepublishOnly": "pnpm test && pnpm build"
+    "prepublishOnly": "npm test && npm run build"
   },
   "devDependencies": {
     "typescript": "^5",

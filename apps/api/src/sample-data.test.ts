@@ -7,7 +7,7 @@ import { Hono } from "hono";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 // @ts-expect-error plain JavaScript example script, no type declarations
-import { buildSample } from "../../../examples/send-sample-data.mjs";
+import { buildSample, parseOptions } from "../../../examples/send-sample-data.mjs";
 import type { AnyDb } from "./ingest/db";
 import { clearPriceCache } from "./ingest/prices";
 import { eventsRoute } from "./ingest/route";
@@ -52,6 +52,39 @@ const post = (path: string, events: unknown[]) =>
   api().request(path, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${key}` }, body: JSON.stringify({ events }) });
 
 describe("examples/send-sample-data.mjs", () => {
+  it("parses defaults, options in either form, and help", () => {
+    expect(parseOptions([])).toEqual({ help: false, dryRun: false, users: 6, days: 14, seed: 1 });
+    expect(parseOptions(["--help", "--dry-run", "--users", "8", "--days=3", "--seed", "42"])).toEqual({
+      help: true,
+      dryRun: true,
+      users: 8,
+      days: 3,
+      seed: 42,
+    });
+  });
+
+  it.each([["--users", "0"], ["--users", "1.5"], ["--days", "91"], ["--days", "-1"], ["--seed", "x"]])(
+    "rejects invalid %s value %s",
+    (option, value) => {
+      expect(() => parseOptions([option, value])).toThrow();
+    },
+  );
+
+  it("builds the requested number of users and days with repeatable seeded values", () => {
+    const now = 1_800_000_000_000;
+    const first = buildSample(now, 42, { users: 8, days: 3 }) as {
+      events: { userId: string; model: string; inputTokens: number; ts: string }[];
+      revenue: { userId: string }[];
+    };
+    const second = buildSample(now, 42, { users: 8, days: 3 }) as typeof first;
+    expect(new Set(first.events.map((event) => event.userId)).size).toBe(8);
+    expect(first.revenue.every((item) => first.events.some((event) => event.userId === item.userId))).toBe(true);
+    expect(first.events.map(({ userId, model, inputTokens, ts }) => [userId, model, inputTokens, ts])).toEqual(
+      second.events.map(({ userId, model, inputTokens, ts }) => [userId, model, inputTokens, ts]),
+    );
+    expect(first.events.every((event) => Date.parse(event.ts) >= now - 3 * 86_400_000 && Date.parse(event.ts) <= now)).toBe(true);
+  });
+
   it("is accepted by the real API and shows one heavy user losing money", async () => {
     const { events, revenue } = buildSample() as { events: unknown[]; revenue: unknown[] };
     for (let i = 0; i < events.length; i += 100) {
@@ -81,4 +114,13 @@ describe("examples/send-sample-data.mjs", () => {
     const b = buildSample(1_800_000_000_000, 7) as typeof a;
     expect(a.events.map((e) => [e.userId, e.model, e.inputTokens])).toEqual(b.events.map((e) => [e.userId, e.model, e.inputTokens]));
   });
+
+  it("sends custom user and history options through the real API", async () => {
+    const { events } = buildSample(Date.now(), 42, { users: 8, days: 3 }) as { events: unknown[] };
+    expect(events.length).toBeGreaterThan(0);
+    for (let i = 0; i < events.length; i += 100) {
+      const res = await post("/v1/events", events.slice(i, i + 100));
+      expect(res.status).toBe(202);
+    }
+  }, 60_000);
 });

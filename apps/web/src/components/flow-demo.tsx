@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LogoMark } from "./logo-mark";
 
 // An animated walk-through of one request: app → backend → AI provider,
-// usage → FiscaLLM, revenue from RevenueCat, then a budget alert back to
+// usage → FiscaLLM, revenue from RevenueCat or Stripe, then a budget alert back to
 // the backend. Positions are percentages of a fixed-ratio canvas.
 
 type Pt = { x: number; y: number };
@@ -36,7 +36,7 @@ const STEPS: Step[] = [
   { caption: "The answer comes back with its token count.", packet: { from: NODES.ai, to: NODES.backend, label: "1,842 tokens", color: "#a855f7" } },
   { caption: "One line of SDK reports the usage. Never the prompt, never the answer.", packet: { from: NODES.backend, to: NODES.fiscallm, label: "user_k3x9 · 1,842 tokens", color: "#a855f7" } },
   { caption: "FiscaLLM prices it and adds it to that user's cost." },
-  { caption: "RevenueCat reports what the same user paid.", packet: { from: NODES.rc, to: NODES.fiscallm, label: "renewal +$7.49", color: "#16a34a" } },
+  { caption: "Your billing, RevenueCat or Stripe, reports what the same user paid.", packet: { from: NODES.rc, to: NODES.fiscallm, label: "renewal +$7.49", color: "#16a34a" } },
   { caption: "Cost passes the user's budget, so you get an alert…" },
   { caption: "…and a webhook your backend can act on.", packet: { from: NODES.fiscallm, to: NODES.backend, label: "slow down user_k3x9", color: "#dc2626" } },
 ];
@@ -186,9 +186,16 @@ export function FlowDemo() {
           </Box>
         </Node>
 
-        {/* RevenueCat */}
+        {/* Billing: RevenueCat or Stripe */}
         <Node at={NODES.rc} glow={step === 6}>
-          <Box title="RevenueCat">
+          <Box title="Your billing">
+            <div className="mb-1.5 flex flex-wrap gap-1.5">
+              {["RevenueCat", "Stripe"].map((p) => (
+                <span key={p} className="rounded-full bg-black/[0.05] px-2 py-0.5 text-[clamp(8px,1cqw,12px)]">
+                  {p}
+                </span>
+              ))}
+            </div>
             <div className="flex items-center justify-between gap-3 text-[clamp(8px,1.05cqw,12px)] text-black/60">
               <span>user_k3x9 · Pro monthly</span>
               <span className={`font-semibold text-green-600 transition-opacity duration-500 ${step >= 6 ? "opacity-100" : "opacity-0"}`}>+$7.49 ✓</span>
@@ -340,7 +347,7 @@ const MOBILE_ROWS: { key: keyof typeof NODES; name: string; detail: string }[] =
   { key: "backend", name: "Your backend", detail: "meter.trackOpenAI(res, { userId })" },
   { key: "ai", name: "AI provider", detail: "OpenAI · Anthropic · Gemini" },
   { key: "fiscallm", name: "FiscaLLM", detail: "cost, revenue and margin per user" },
-  { key: "rc", name: "RevenueCat", detail: "purchases and renewals" },
+  { key: "rc", name: "RevenueCat or Stripe", detail: "purchases and renewals" },
 ];
 
 function MobileFlow({ step, cost, margin }: { step: number; cost: number; margin: number | null }) {

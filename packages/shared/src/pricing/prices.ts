@@ -1,7 +1,7 @@
 import type { ModelPrice, Rates } from "./cost";
 
 // List prices, USD per million tokens, standard tier, text tokens.
-// Sources, checked 2026-10-16:
+// Sources, checked 2026-10-18 (see ACCURACY.md at the repo root for the audit):
 //   https://developers.openai.com/api/docs/pricing
 //   https://platform.claude.com/docs/en/about-claude/pricing
 //   https://ai.google.dev/gemini-api/docs/pricing
@@ -71,6 +71,15 @@ const openai = withLong(
     ["gpt-4o", 2.5, 1.25, 10],
     ["gpt-4o-2024-05-13", 5, null, 15],
     ["gpt-4o-mini", 0.15, 0.075, 0.6],
+    // Legacy models, still used by many apps.
+    ["gpt-4-turbo-2024-04-09", 10, null, 30],
+    ["gpt-4-0613", 30, null, 60],
+    ["gpt-3.5-turbo", 0.5, null, 1.5],
+    ["gpt-3.5-turbo-0125", 0.5, null, 1.5],
+    ["gpt-3.5-turbo-1106", 1, null, 2],
+    ["gpt-3.5-turbo-instruct", 1.5, null, 2],
+    ["davinci-002", 2, null, 2],
+    ["babbage-002", 0.4, null, 0.4],
     ["o1", 15, 7.5, 60],
     ["o1-pro", 150, null, 600],
     ["o3", 2, 0.5, 8],

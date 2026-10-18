@@ -36,6 +36,10 @@ export default function RoadmapPage() {
             A page on <Link href="/coverage">what FiscaLLM covers and what it doesn&apos;t</Link>
           </li>
           <li>
+            <strong>Price audit</strong> against the OpenAI, Anthropic and Google pricing pages (all matched; eight legacy OpenAI models added), plus a per-model
+            CSV so you can check your own numbers
+          </li>
+          <li>
             <strong>Stripe connector (beta)</strong>: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world
             reports welcome
           </li>
@@ -47,7 +51,8 @@ export default function RoadmapPage() {
         <h2>Next, in this order</h2>
         <ol>
           <li>
-            <strong>Accuracy report</strong>: computed cost compared with real provider usage pages, published with the method
+            <strong>Accuracy against real invoices</strong>: the price audit is done; a multi-week comparison with a real app&apos;s provider invoices still
+            needs real usage
           </li>
           <li>
             <strong>Docker Compose</strong> for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button

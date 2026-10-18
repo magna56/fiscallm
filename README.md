@@ -1,10 +1,31 @@
 # FiscaLLM
 
-**See the AI cost of every single user.** FiscaLLM matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial, and which model or feature drives the bill.
+**See the AI cost of every single user.** FiscaLLM adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
 
 **Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
 
-[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [Self-hosting](SELF-HOSTING.md) · [Roadmap](ROADMAP.md) · [Contributing](CONTRIBUTING.md)
+[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
+
+![FiscaLLM dashboard on sample data: AI cost, net revenue, margin per user, daily cost and cost by model](docs/dashboard.png)
+
+*Sample data from the demo, not a real customer.*
+
+## Get started in three steps
+
+1. **Create an app** at [fiscallm.com](https://fiscallm.com) (or your own copy) and copy the ingest key.
+2. **Add one line after each AI call** (it reads only the model name and token counts, never prompts or answers):
+
+   ```ts
+   import { createMeter } from "fiscallm"; // npm install fiscallm   (Python: pip install fiscallm)
+   const meter = createMeter({ apiKey: process.env.FISCALLM_KEY, waitUntil });
+
+   const res = await openai.chat.completions.create({ model, messages });
+   meter.trackOpenAI(res, { userId, feature: "chat" });
+   ```
+
+3. **Connect revenue**: paste a RevenueCat or Stripe webhook URL, or send payments yourself with the revenue API.
+
+No AI key handy? `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills a test app with sample users so you can see it working.
 
 ## The problem
 
@@ -54,11 +75,11 @@ Stack: TypeScript, Next.js, Hono, Postgres (Supabase) with Drizzle, hosted on Ve
 ## Limits
 
 - It needs a backend between your app and the AI provider. Apps that call a provider straight from the phone are not covered yet.
-- Revenue comes from RevenueCat or the revenue API. Direct App Store and Google Play connections are not built yet.
+- Revenue comes from RevenueCat, Stripe (beta, USD only) or the revenue API. Direct App Store and Google Play connections are not built yet.
 
 ## Try it in ten minutes
 
-- No AI key needed: create an app, then `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills the dashboard with sample users (one heavy user who loses money).
+- No AI key needed: `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills the dashboard with sample users (one heavy user who loses money).
 - Copy-paste starting points for [Next.js](examples/nextjs) and [FastAPI](examples/fastapi), see [examples](examples).
 - Run your own copy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm&project-name=fiscallm&repository-name=fiscallm&env=DATABASE_URL,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,CRON_SECRET,PUBLIC_URL&envDescription=Supabase%20connection%20details%2C%20a%20random%20CRON_SECRET%20and%20your%20public%20URL&envLink=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm%2Fblob%2Fmain%2FSELF-HOSTING.md) (create a Supabase project first, see [SELF-HOSTING.md](SELF-HOSTING.md)).
 
@@ -81,6 +102,12 @@ pnpm db:migrate
 ## Contributing
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md).
+
+## Contributors
+
+Thank you to everyone who helps. [Contribute](CONTRIBUTING.md): a good place to start is an issue labelled `good first issue`.
+
+<a href="https://github.com/magna56/fiscallm/graphs/contributors"><img src="https://contrib.rocks/image?repo=magna56/fiscallm" alt="Contributors" /></a>
 
 ## License
 

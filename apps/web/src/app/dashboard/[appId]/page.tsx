@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { CostChart } from "@/components/cost-chart";
 import { RangePicker } from "@/components/range-picker";
 import { Stat } from "@/components/stat";
+import { DownloadCsv } from "@/components/download-csv";
 import { Card, Notice, PageHeader, pct, usd } from "@/components/ui";
 import { SetupChecklist } from "@/components/setup-checklist";
 import { setupState } from "@/lib/setup-state";
@@ -62,7 +63,7 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card title="Cost by model">
+        <Card title="Cost by model" action={<DownloadCsv href={`/dashboard/${app.id}/export/models?days=${days}`} />}>
           <Shares rows={b.byModel.map((m) => ({ key: m.key, cost: m.costUsd, note: m.unpriced ? `${m.unpriced} unpriced` : "" }))} />
         </Card>
         <Card title="Cost by feature">

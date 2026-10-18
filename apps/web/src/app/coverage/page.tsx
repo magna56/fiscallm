@@ -86,8 +86,15 @@ export default function CoveragePage() {
             discounts, regional pricing, free credits and taxes. Set a discount in Settings if you have one.
           </li>
           <li>
-            We have not yet published a comparison of computed cost against real provider invoices. It is on the <Link href="/docs">roadmap</Link>, and
-            until then please check the first week of numbers against your provider&apos;s own usage page.
+            <strong>Not applied:</strong> batch and fast-tier prices, regional or US-only uplifts (about +10%), Anthropic 1-hour cache writes (priced as 5-minute
+            writes) and promotional prices.
+          </li>
+          <li>
+            On 18 October 2026 we checked the built-in prices against the providers&apos; pricing pages (OpenAI, Anthropic, Google text models): they matched,
+            and eight legacy OpenAI models were added. Details and how to check your own numbers:{" "}
+            <a href="https://github.com/magna56/fiscallm/blob/main/ACCURACY.md">ACCURACY.md</a>. A comparison against real invoices over several weeks is
+            not published yet, so please check the first week of numbers against your provider&apos;s usage page. Overview has a &quot;Download CSV&quot; on cost by
+            model for that.
           </li>
         </ul>
 

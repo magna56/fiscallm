@@ -15,6 +15,11 @@ pnpm test
 ```
 See [SELF-HOSTING.md](SELF-HOSTING.md) to run the apps locally.
 
+## How we work
+- This is a small project run in spare time. We aim to reply to issues and pull requests within a few days, and say so when it will take longer.
+- Issues labelled `good first issue` are small and well described; see [docs/GOOD-FIRST-ISSUES.md](docs/GOOD-FIRST-ISSUES.md) for ideas.
+- Contributors are credited in the README and in the changelog entry for their change.
+
 ## Pull requests
 - Add or update tests for behaviour changes (database tests use PGlite, no setup needed).
 - Match the surrounding code's style and comment density.

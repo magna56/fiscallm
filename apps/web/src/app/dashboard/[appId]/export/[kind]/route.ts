@@ -1,5 +1,5 @@
 import { toCsv } from "@fiscallm/shared/csv";
-import { plans, trialCohorts, users } from "@fiscallm/shared/metrics";
+import { breakdown, plans, trialCohorts, users } from "@fiscallm/shared/metrics";
 import { notFound } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { requireApp } from "@/lib/auth";
@@ -28,6 +28,13 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/dashboard/[a
     csv = toCsv(
       ["plan", "users", "net_revenue_usd", "ai_cost_usd", "margin_usd", "ai_cost_share_of_revenue"],
       rows.map((r) => [r.productId, r.users, r.revenueUsd, r.costUsd, r.marginUsd, r.costShare]),
+    );
+  } else if (kind === "models") {
+    // For checking our cost against your provider's usage page. Raw events are kept 90 days.
+    const b = await breakdown(db, app.id, range);
+    csv = toCsv(
+      ["provider", "model", "requests", "unpriced_requests", "ai_cost_usd", "from", "to_exclusive"],
+      b.byModel.map((m) => [m.provider, m.model, m.requests, m.unpriced, m.costUsd, b.range.from, b.range.to]),
     );
   } else if (kind === "trials") {
     const rows = await trialCohorts(db, app.id, { weeks: 12 });

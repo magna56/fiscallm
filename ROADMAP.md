@@ -13,12 +13,13 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - CSV export of Users, Plans and Trials
 - "What FiscaLLM covers and what it doesn't" page
 - Optional monthly event cap per app
+- **Price audit** against OpenAI, Anthropic and Google pricing pages (all matched; eight legacy OpenAI models added) and a per-model CSV to check your own numbers (ACCURACY.md)
 - **Stripe connector (beta)**: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world reports welcome
 - Runnable examples: a sample-data script, Next.js and FastAPI starting points, and a deploy-to-Vercel button
 - Public roadmap and changelog pages
 
 ## Next (in progress, in this order)
-1. **Accuracy report**: computed cost compared with real provider usage pages, published with the method
+1. **Accuracy against real invoices**: the price audit is done (see ACCURACY.md); a multi-week comparison with a real app's provider invoices still needs real usage
 2. **Docker Compose** for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button covers hosting meanwhile)
 
 ## Later, only if there is demand

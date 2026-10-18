@@ -3,6 +3,7 @@
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
 ## 2026-10-18
+- **Accuracy**: audited the built-in prices against OpenAI, Anthropic and Google pricing pages (all matched), added eight legacy OpenAI models, and a per-model CSV export of Overview to compare with your provider. See ACCURACY.md.
 - **Stripe connector (beta)**: connect Stripe from the Setup page (webhook + signing secret) to count paid invoices, trials, cancellations and refunds. USD only; what you keep is estimated with Stripe's standard fee.
 - **Examples**: a sample-data script that fills the dashboard without any AI key, Next.js and FastAPI starting points, and a Deploy-with-Vercel button.
 - **Kill switch** in both SDKs (0.3.2): set `FISCALLM_DISABLED=1`, or pass `disabled: true` / `disabled=True`, and the SDK does nothing at all.

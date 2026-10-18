@@ -1,5 +1,6 @@
 import { plans, type PlanRow } from "@fiscallm/shared/metrics";
 import { Suspense } from "react";
+import { DownloadCsv } from "@/components/download-csv";
 import { RangePicker } from "@/components/range-picker";
 import { Money, Table } from "@/components/table";
 import { Card, pct, PageHeader } from "@/components/ui";
@@ -26,7 +27,7 @@ async function Plans({ params, searchParams }: PageProps<"/dashboard/[appId]/pla
       <div className="flex justify-end">
         <RangePicker base={`/dashboard/${app.id}/plans`} days={days} />
       </div>
-      <Card title="Plans, worst margin first">
+      <Card title="Plans, worst margin first" action={<DownloadCsv href={`/dashboard/${app.id}/export/plans?days=${days}`} />}>
         <Table<PlanRow>
           rows={rows}
           rowKey={(r) => r.productId}

@@ -12,7 +12,8 @@
     "./report/send": "./src/report/send.ts",
     "./rc-import": "./src/rc-import.ts",
     "./alerts": "./src/alerts/index.ts",
-    "./limits": "./src/limits.ts"
+    "./limits": "./src/limits.ts",
+    "./csv": "./src/csv.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

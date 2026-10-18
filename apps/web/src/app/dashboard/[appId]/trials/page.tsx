@@ -1,5 +1,6 @@
 import { trialCohorts, type TrialCohort } from "@fiscallm/shared/metrics";
 import { Suspense } from "react";
+import { DownloadCsv } from "@/components/download-csv";
 import { Table } from "@/components/table";
 import { Card, pct, usd, PageHeader } from "@/components/ui";
 import { requireApp } from "@/lib/auth";
@@ -20,7 +21,7 @@ async function Trials({ params }: Pick<PageProps<"/dashboard/[appId]/trials">, "
   return (
     <>
     <PageHeader title="Trials" subtitle="What free trials cost you, by start week." />
-    <Card title="Trial cohorts by start week (last 12 weeks)">
+    <Card title="Trial cohorts by start week (last 12 weeks)" action={<DownloadCsv href={`/dashboard/${app.id}/export/trials`} />}>
       <Table<TrialCohort>
         rows={rows}
         rowKey={(r) => r.week}

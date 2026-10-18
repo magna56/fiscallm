@@ -1,6 +1,7 @@
 import { users, type UserRow } from "@fiscallm/shared/metrics";
 import Link from "next/link";
 import { Suspense } from "react";
+import { DownloadCsv } from "@/components/download-csv";
 import { RangePicker } from "@/components/range-picker";
 import { Money, Table } from "@/components/table";
 import { Card, PageHeader } from "@/components/ui";
@@ -43,7 +44,7 @@ async function Users({ params, searchParams }: PageProps<"/dashboard/[appId]/use
         </div>
         <RangePicker base={base} days={days} query={losing ? "losing=1" : undefined} />
       </div>
-      <Card title="Users, worst margin first">
+      <Card title="Users, worst margin first" action={<DownloadCsv href={`/dashboard/${app.id}/export/users?days=${days}${losing ? "&losing=1" : ""}`} />}>
         <Table<UserRow>
           rows={rows.slice(0, PAGE)}
           rowKey={(r) => r.userId}

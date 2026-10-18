@@ -17,8 +17,8 @@ const STEPS = [
   },
   {
     n: "02",
-    title: "Connect RevenueCat",
-    body: "Paste one webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of store fees and tax.",
+    title: "Connect your revenue",
+    body: "Paste one RevenueCat or Stripe webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of fees and tax.",
     code: "https://fiscallm.com/api/webhooks/rc/…",
   },
   {
@@ -30,9 +30,9 @@ const STEPS = [
 ];
 
 const FAQ: [string, string][] = [
-  ["What does FiscaLLM store?", "User IDs, token counts, models and RevenueCat events. Never prompts or responses."],
+  ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
-  ["Do I need RevenueCat?", "No. RevenueCat connects with one webhook, but you can also send payments from Stripe or any billing system with one SDK call."],
+  ["Do I need RevenueCat?", "No. Connect RevenueCat or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request."],
   ["What does it cost?", "Nothing. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
 ];
@@ -189,7 +189,12 @@ function Runtimes() {
   const row = [...RUNTIMES, ...RUNTIMES];
   return (
     <section className="mx-auto mt-20 w-full max-w-6xl px-6">
-      <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted">Works with your stack</p>
+      <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted">
+        Works with your stack ·{" "}
+        <Link href="/integrations" className="normal-case tracking-normal text-accent hover:underline">
+          see all integrations
+        </Link>
+      </p>
       <div className="marquee mt-6 overflow-hidden">
         <div className="marquee-track gap-10">
           {row.map((r, i) => (
@@ -249,7 +254,7 @@ function Problem() {
 
 function Solution() {
   const points: [string, string][] = [
-    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. One RevenueCat webhook reports payments."],
+    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. One RevenueCat or Stripe webhook reports payments."],
     ["Shows your real margin", "Per user, per plan, per free trial, and which model or feature drives the bill."],
     ["Warns you early", "Alerts and a webhook when a user or the app goes over your budget."],
   ];
@@ -503,7 +508,7 @@ function FinalCta() {
           <span />
         </div>
         <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Stop guessing your AI margins.</h2>
-        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and RevenueCat in ten minutes. Free and open source.</p>
+        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and your billing in ten minutes. Free and open source.</p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
           We&apos;re looking for our first 10 apps. Tell us what you build and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
           <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">

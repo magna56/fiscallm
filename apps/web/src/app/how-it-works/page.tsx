@@ -99,7 +99,7 @@ export default function HowItWorksPage() {
           <code>ON CONFLICT DO NOTHING</code> on the event id, so a retried batch cannot count twice. The API answers <code>202</code>.
         </p>
 
-        <h2 id="revenue">3. Revenue: RevenueCat or your own</h2>
+        <h2 id="revenue">3. Revenue: RevenueCat, Stripe or your own</h2>
         <p>
           RevenueCat posts every subscription event to a per-app webhook. The request must carry the secret we generated for that app, compared in
           constant time. Each event is deduplicated on its RevenueCat event id, stored raw, then applied to a <code>subscribers</code> row:
@@ -121,9 +121,37 @@ export default function HowItWorksPage() {
         </table>
         <p>
           <strong>Net revenue</strong> is <code>price × (1 − tax − store commission)</code>, in USD, so margins are after the store takes its cut.
-          Sandbox events are ignored unless you turn on test mode. Not on RevenueCat? Send the same kinds of events with{" "}
+          Sandbox events are ignored unless you turn on test mode. Not on RevenueCat? Connect Stripe (below), or send the same kinds of events with{" "}
           <Link href="/docs#revenue-api">the revenue API</Link>. Subscribers who paid before the webhook existed can be{" "}
           <Link href="/docs#revenuecat">imported from RevenueCat</Link> once.
+        </p>
+
+        <h3 id="stripe">Stripe (beta)</h3>
+        <p>
+          Add a Stripe webhook endpoint pointing at your app&apos;s FiscaLLM URL and paste its signing secret into the Setup page. We store the secret
+          encrypted, and every request must carry a valid <code>Stripe-Signature</code>: an HMAC of the raw body with a timestamp, checked in constant
+          time, with a five-minute window against replays. Verified events are turned into the same revenue events the revenue API takes, so they follow
+          exactly the same path as RevenueCat events.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Stripe event</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>invoice.paid</code></td><td>A purchase (first invoice) or renewal; the first payment after a trial marks the conversion</td></tr>
+            <tr><td><code>customer.subscription.created</code> (trialing)</td><td>Trial started</td></tr>
+            <tr><td><code>customer.subscription.updated</code></td><td>Auto-renew switched off is a cancellation</td></tr>
+            <tr><td><code>customer.subscription.deleted</code></td><td>Subscription ended</td></tr>
+            <tr><td><code>charge.refunded</code></td><td>Only the new part of the refund is subtracted, so partial refunds are not counted twice</td></tr>
+          </tbody>
+        </table>
+        <p>
+          The user is read from <code>metadata.user_id</code> on the subscription or customer, or else the Stripe customer ID is used. What you keep is
+          the payment minus tax minus an <em>estimate</em> of Stripe&apos;s fee (2.9% + $0.30), not the exact fee. USD only for now. See{" "}
+          <Link href="/docs#stripe">the docs</Link>.
         </p>
 
         <h2 id="join">4. Joining cost to revenue</h2>
@@ -169,6 +197,9 @@ export default function HowItWorksPage() {
             <tr><td>Unknown model</td><td>Stored without a cost and flagged as unpriced. Add a price and it is counted going forward.</td></tr>
             <tr><td>User ID mismatch</td><td>Cost shows under free or unmatched; the match rate on Setup drops.</td></tr>
             <tr><td>Bad payload</td><td>The API rejects it with a 4xx and an error message; the SDK does not retry client errors.</td></tr>
+            <tr><td>Hosted monthly limit reached</td><td>On the hosted service an app can send 100,000 events a month. After that the API answers 403 with a clear message until the 1st; the SDK prints it once. Self-hosted copies have no limit.</td></tr>
+            <tr><td>You want reporting off</td><td>Set <code>FISCALLM_DISABLED=1</code> (or <code>disabled: true</code>). The SDK then does nothing at all: no events, no network calls, streams and responses pass through untouched.</td></tr>
+            <tr><td>Stripe event it does not use, or non-USD</td><td>Acknowledged with 200 and ignored, so Stripe does not keep retrying. The response says why.</td></tr>
           </tbody>
         </table>
 

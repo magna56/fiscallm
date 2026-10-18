@@ -12,6 +12,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
     date: "2026-10-18",
     items: [
       "Kill switch in both SDKs (0.3.2): set FISCALLM_DISABLED=1, or pass disabled: true / disabled=True, and the SDK does nothing at all.",
+      "A new Integrations page listing what FiscaLLM connects to, with a status for each. The How it works page now covers Stripe, the monthly limit and the kill switch.",
       "Accuracy: audited the built-in prices against the OpenAI, Anthropic and Google pricing pages (all matched), added eight legacy OpenAI models, and a per-model CSV export on Overview so you can compare with your provider.",
       "Stripe connector (beta): connect Stripe from the Setup page to count paid invoices, trials, cancellations and refunds. USD only; what you keep is estimated with Stripe's standard fee.",
       "Examples: a sample-data script that fills the dashboard without any AI key, Next.js and FastAPI starting points, and a Deploy-with-Vercel button.",

@@ -17,7 +17,7 @@ export default function RoadmapPage() {
         <p>
           FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later.
           Last updated: 18 October 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
-          <a href="https://github.com/magna56/fiscallm">repo</a> too.
+          <a href="https://github.com/magna56/fiscallm">repo</a> too. Follow progress on the <a href="https://github.com/users/magna56/projects/1">public board</a>.
         </p>
 
         <h2>What is free, and stays free</h2>
@@ -102,7 +102,7 @@ export default function RoadmapPage() {
           <li>Per-user cost forecasts and pricing advice</li>
         </ul>
         <p>
-          Want something sooner? <a href="https://github.com/magna56/fiscallm/issues">Open an issue</a> and tell us the problem you have.
+          Want something sooner? Add a 👍 on a <a href="https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap">roadmap issue</a>, share an idea in <a href="https://github.com/magna56/fiscallm/discussions/categories/ideas">Discussions</a>, or <a href="https://github.com/magna56/fiscallm/issues">open an issue</a> and tell us the problem you have.
         </p>
       </Prose>
       <SiteFooter />

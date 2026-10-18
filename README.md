@@ -6,7 +6,7 @@
 
 **Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
 
-[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
+[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) ([board](https://github.com/users/magna56/projects/1)) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
 
 ![FiscaLLM dashboard on sample data: AI cost, net revenue, margin per user, daily cost and cost by model](docs/dashboard.png)
 
@@ -103,7 +103,7 @@ pnpm db:migrate
 
 ## Contributing
 
-Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md).
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md), with a [public board](https://github.com/users/magna56/projects/1). Vote with a 👍 on [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap) or share ideas in [Discussions](https://github.com/magna56/fiscallm/discussions/categories/ideas).
 
 ## Built by
 

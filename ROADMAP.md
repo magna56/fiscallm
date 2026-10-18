@@ -1,6 +1,6 @@
 # Roadmap
 
-FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-10-18. Shipped changes are in [CHANGELOG.md](CHANGELOG.md).
+FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-10-18. Shipped changes are in [CHANGELOG.md](CHANGELOG.md). Follow progress on the [public roadmap board](https://github.com/users/magna56/projects/1), vote with a 👍 on the [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap), or suggest something in [Ideas](https://github.com/magna56/fiscallm/discussions/categories/ideas). This file is the source of truth; the board mirrors it.
 
 ## What is free, and stays free
 - The SDKs (TypeScript and Python), MIT licensed.

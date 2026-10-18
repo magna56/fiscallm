@@ -69,6 +69,13 @@ export interface MeterOptions {
   endpoint?: string;
   /** Defaults to console. Pass `{ warn() {} }` to silence the SDK. */
   logger?: { warn: (message: string) => void };
+  /**
+   * Kill switch. When true the meter does nothing: nothing is queued or sent,
+   * streams and responses pass through untouched. Defaults to true when the
+   * environment variable FISCALLM_DISABLED is "1" or "true", so you can turn
+   * reporting off without a deploy.
+   */
+  disabled?: boolean;
 }
 
 export interface TrackContext {
@@ -137,7 +144,29 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const count = (n: number | undefined) =>
   typeof n === "number" && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
 
+const DISABLED_METER: Meter = {
+  track() {},
+  trackOpenAI() {},
+  trackAnthropic() {},
+  trackGemini() {},
+  trackStream: (stream) => stream,
+  trackSSE: (response) => response,
+  trackRevenue() {},
+  async flush() {},
+};
+
+function isDisabled(options: MeterOptions): boolean {
+  if (options.disabled !== undefined) return options.disabled;
+  try {
+    const value = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.FISCALLM_DISABLED;
+    return value === "1" || value?.toLowerCase() === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function createMeter(options: MeterOptions): Meter {
+  if (isDisabled(options)) return DISABLED_METER;
   const endpoint = options.endpoint ?? DEFAULT_ENDPOINT;
   const logger = options.logger ?? console;
   const warned = new Set<string>();

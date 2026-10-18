@@ -342,6 +342,13 @@ Content-Type: application/json
           <code>id</code> already received are counted as duplicates and ignored, so retrying is safe. Timestamps may be up to 90 days old.
         </p>
 
+        <h2 id="kill-switch">Kill switch</h2>
+        <p>
+          To turn reporting off without a deploy, set <code>FISCALLM_DISABLED=1</code> in your environment, or pass <code>disabled: true</code> (TypeScript)
+          or <code>disabled=True</code> (Python) when you create the meter. A disabled meter does nothing: nothing is queued or sent, and streams and
+          responses pass through untouched. See <a href="/coverage">what FiscaLLM covers and what it doesn&apos;t</a>.
+        </p>
+
         <h2 id="limits">Limits</h2>
         <p>
           The hosted service accepts up to 100,000 events per app per calendar month (UTC). After that the API answers 403 until the 1st, and the SDKs print

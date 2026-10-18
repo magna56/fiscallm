@@ -251,5 +251,35 @@ class SendingTest(unittest.TestCase):
         self.assertEqual(rec.calls, [])
 
 
+class KillSwitchTest(unittest.TestCase):
+    def test_disabled_meter_sends_nothing_and_passes_streams_through(self):
+        rec = Recorder()
+        m = meter(rec, disabled=True)
+        m.track(user_id="u1", provider="openai", model="gpt-4o", input_tokens=10, output_tokens=5)
+        m.track_openai(NS(model="gpt-4o", usage=NS(prompt_tokens=5, completion_tokens=2)), user_id="u1")
+        m.track_revenue(id="p1", user_id="u1", type="purchase", amount_usd=5)
+        source = iter([1, 2, 3])
+        self.assertIs(m.track_stream(source, user_id="u1"), source)
+        m.flush()
+        self.assertEqual(rec.calls, [])
+
+    def test_environment_variable_switches_it_off_and_the_argument_wins(self):
+        os.environ["FISCALLM_DISABLED"] = "1"
+        try:
+            rec = Recorder()
+            m = meter(rec)
+            m.track(user_id="u1", provider="openai", model="gpt-4o", input_tokens=1)
+            m.flush()
+            self.assertEqual(rec.calls, [])
+
+            rec2 = Recorder()
+            m2 = meter(rec2, disabled=False)
+            m2.track(user_id="u1", provider="openai", model="gpt-4o", input_tokens=1)
+            m2.flush()
+            self.assertEqual(len(rec2.events), 1)
+        finally:
+            del os.environ["FISCALLM_DISABLED"]
+
+
 if __name__ == "__main__":
     unittest.main()

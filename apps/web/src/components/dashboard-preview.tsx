@@ -46,6 +46,7 @@ export function DashboardPreview() {
           <div>
             <p className="text-lg font-semibold tracking-tight">Demo</p>
             <p className="mt-0.5 text-xs text-black/50">Last 30 days</p>
+            <span className="mt-1.5 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">Sample data</span>
           </div>
             <div className="hidden rounded-full border border-black/[0.08] bg-white p-0.5 text-xs shadow-sm sm:inline-flex">
               {["7 days", "30 days", "90 days"].map((d) => (

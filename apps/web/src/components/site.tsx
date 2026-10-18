@@ -59,6 +59,7 @@ export function SiteFooter() {
         <nav className="flex flex-wrap gap-5">
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
+          <Link href="/coverage" className="hover:text-foreground">What&apos;s covered</Link>
           <Link href="/guides" className="hover:text-foreground">Guides</Link>
           <a href="https://github.com/magna56/fiscallm" className="hover:text-foreground">GitHub</a>
           <Link href="/privacy" className="hover:text-foreground">Privacy</Link>

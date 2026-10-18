@@ -23,6 +23,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe("createMeter", () => {
@@ -180,3 +181,44 @@ describe("createMeter", () => {
     expect(quiet.warn.mock.calls[0]![0]).toContain("bind(ctx)");
   });
 });
+
+describe("kill switch", () => {
+  it("does nothing when disabled: no events, no requests, streams pass through", async () => {
+    const meter = createMeter({ apiKey: "k", disabled: true, logger: quiet });
+    meter.track(ev);
+    meter.trackRevenue({ id: "p1", userId: "u1", type: "purchase", amountUsd: 5 });
+    await meter.flush();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    async function* gen() {
+      yield { n: 1 };
+      yield { n: 2 };
+    }
+    const source = gen();
+    expect(meter.trackStream(source, { userId: "u1" })).toBe(source);
+    const res = new Response("hi");
+    expect(meter.trackSSE(res, { userId: "u1" })).toBe(res);
+  });
+
+  it("is switched on by FISCALLM_DISABLED, and the option wins over it", async () => {
+    vi.stubEnv("FISCALLM_DISABLED", "1");
+    const off = createMeter({ apiKey: "k", logger: quiet });
+    off.track(ev);
+    await off.flush();
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const on = createMeter({ apiKey: "k", disabled: false, logger: quiet });
+    on.track(ev);
+    await on.flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("is off by default", async () => {
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    meter.track(ev);
+    await meter.flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+

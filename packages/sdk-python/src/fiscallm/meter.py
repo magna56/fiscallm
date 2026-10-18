@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import atexit
 import json
+import os
 import logging
 import threading
 import time
@@ -62,8 +63,14 @@ class Meter:
         *,
         endpoint: str = DEFAULT_ENDPOINT,
         flush_interval: float = INTERVAL_S,
+        disabled: Optional[bool] = None,
         _post: Optional[PostFn] = None,
     ) -> None:
+        # Kill switch: when disabled the meter does nothing. Defaults to on when
+        # the environment variable FISCALLM_DISABLED is "1" or "true".
+        if disabled is None:
+            disabled = os.environ.get("FISCALLM_DISABLED", "").strip().lower() in ("1", "true")
+        self._disabled = bool(disabled)
         self._api_key = api_key
         self._endpoint = endpoint
         self._interval = flush_interval
@@ -76,6 +83,8 @@ class Meter:
         self._closed = False
         self._thread: Optional[threading.Thread] = None
         self._revenue_threads: List[threading.Thread] = []
+        if self._disabled:
+            return
         if not api_key:
             self._warn_once("no-key", "no api_key given; events are not sent")
         atexit.register(self.flush)
@@ -104,6 +113,8 @@ class Meter:
         For usage priced per unit, pass ``units`` with ``unit`` ("image",
         "second", "minute" or "character") and optionally a ``variant`` such
         as "1080p". Pass ``cost_usd`` to give the exact cost instead."""
+        if self._disabled:
+            return
         try:
             if not self._api_key:
                 return
@@ -164,6 +175,8 @@ class Meter:
         cancellation or expiration; ``amount_usd`` is required for purchase,
         renewal and refund. Retries with the same ``id`` are ignored. Sent
         right away on a background thread."""
+        if self._disabled:
+            return
         try:
             if not self._api_key:
                 return
@@ -218,12 +231,16 @@ class Meter:
         """Wraps a streamed result; chunks pass through unchanged and usage is
         recorded when the stream ends. Works for sync and async iterables.
         OpenAI Chat Completions needs ``stream_options={"include_usage": True}``."""
+        if self._disabled:
+            return stream
         if hasattr(stream, "__aiter__"):
             return self._wrap_async(stream, user_id, feature, provider, model)
         return self._wrap_sync(stream, user_id, feature, provider, model)
 
     def flush(self) -> None:
         """Sends everything queued, waiting at most a few seconds. Never raises."""
+        if self._disabled:
+            return
         try:
             self._send_all()
             for t in list(self._revenue_threads):
@@ -281,6 +298,8 @@ class Meter:
             return None
 
     def _track_usage(self, usage: Optional[Usage], source: str, user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str]) -> None:
+        if self._disabled:
+            return
         if usage is None:
             self._warn_once(f"no-usage-{source}", f"{source}: no token usage found in the response; event skipped")
             return
@@ -335,7 +354,7 @@ class Meter:
     def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None) -> None:
         url = url or self._endpoint
         body = json.dumps({"events": batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.3.1"}
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.3.2"}
         for attempt in range(2):
             try:
                 status = self._post(url, headers, body)

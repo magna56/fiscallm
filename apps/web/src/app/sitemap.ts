@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/demo", 0.9],
     ["/how-it-works", 0.8],
     ["/docs", 0.8],
+    ["/coverage", 0.7],
     ["/guides", 0.7],
     ["/guides/track-openai-cost-per-user", 0.7],
     ["/guides/track-anthropic-claude-cost-per-user", 0.7],

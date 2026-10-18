@@ -2,11 +2,11 @@
 // Sends made-up AI usage and payments to a FiscaLLM app, so you can watch the
 // dashboard fill in without any AI provider keys. No dependencies (Node 20+).
 //
-//   FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs
+//   FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs [options]
 //
 // Point it at your own copy with FISCALLM_ENDPOINT=http://localhost:8787/api/v1/events.
 // Use a separate test app: the sample users and payments mix into whatever app the key belongs to.
-// Add --dry-run to print what would be sent.
+// Run with --help to see the available options.
 
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -42,12 +42,17 @@ const USERS = [
 ];
 
 /** Builds the made-up events and payments. `now` and `seed` make it repeatable. */
-export function buildSample(now = Date.now(), seed = 1) {
+export function buildSample(now = Date.now(), seed = 1, { users = USERS.length, days = 14 } = {}) {
   const rand = rng(seed);
   const between = ([lo, hi]) => Math.round(lo + rand() * (hi - lo));
+  const sampleUsers = Array.from({ length: users }, (_, i) => {
+    const base = USERS[i % USERS.length];
+    const generation = Math.floor(i / USERS.length);
+    return generation === 0 ? base : { ...base, id: `${base.id}_extra${generation}` };
+  });
   const events = [];
-  for (const u of USERS) {
-    for (let day = 13; day >= 0; day--) {
+  for (const u of sampleUsers) {
+    for (let day = days - 1; day >= 0; day--) {
       const n = Math.max(1, Math.round(u.requests * (0.6 + rand() * 0.8)));
       for (let i = 0; i < n; i++) {
         const m = MODELS[Math.floor(rand() * MODELS.length)];
@@ -67,7 +72,7 @@ export function buildSample(now = Date.now(), seed = 1) {
   }
 
   const revenue = [];
-  for (const u of USERS) {
+  for (const u of sampleUsers) {
     if (u.trial) {
       revenue.push({ id: `sample-${u.id}-trial`, userId: u.id, type: "trial_started", productId: "pro_monthly", ts: new Date(now - 3 * DAY).toISOString(), periodEnd: new Date(now + 4 * DAY).toISOString() });
     } else if (u.plan) {
@@ -96,13 +101,53 @@ async function post(url, key, events) {
   return res.json();
 }
 
-async function main() {
-  const dryRun = process.argv.includes("--dry-run");
+const HELP = `Usage: FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs [options]
+
+Send made-up usage and payment data to a FiscaLLM test app.
+
+Options:
+  --help       Show this help
+  --dry-run    Print the data summary without sending anything
+  --users N    Number of sample users (default: 6)
+  --days N     Days of usage history (default: 14, maximum: 90)
+  --seed N     Seed for repeatable sample values (default: 1)`;
+
+export function parseOptions(argv) {
+  const options = { help: false, dryRun: false, users: USERS.length, days: 14, seed: 1 };
+  const valueOptions = new Set(["--users", "--days", "--seed"]);
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--help" || arg === "-h") options.help = true;
+    else if (arg === "--dry-run") options.dryRun = true;
+    else {
+      const [name, inlineValue] = arg.split(/=(.*)/s, 2);
+      if (!valueOptions.has(name)) throw new Error(`Unknown option: ${name}`);
+      const raw = inlineValue ?? argv[++i];
+      if (raw === undefined || raw.startsWith("--")) throw new Error(`${name} needs a value`);
+      if (!/^\d+$/.test(raw)) throw new Error(`${name} must be a whole number`);
+      const value = Number(raw);
+      if (!Number.isSafeInteger(value)) throw new Error(`${name} must be a safe whole number`);
+      if (name === "--users" || name === "--days") {
+        if (value < 1) throw new Error(`${name} must be 1 or more`);
+      } else if (value < 0) throw new Error(`${name} must be 0 or more`);
+      if (name === "--days" && value > 90) throw new Error("--days cannot be more than 90 (the API rejects older events)");
+      options[name.slice(2)] = value;
+    }
+  }
+  return options;
+}
+
+async function main(argv = process.argv.slice(2)) {
+  const options = parseOptions(argv);
+  if (options.help) {
+    console.log(HELP);
+    return;
+  }
   const key = process.env.FISCALLM_KEY;
   const endpoint = process.env.FISCALLM_ENDPOINT ?? "https://fiscallm.com/api/v1/events";
-  const { events, revenue } = buildSample();
-  console.log(`${events.length} usage events for ${USERS.length} sample users, ${revenue.length} payments/trials.`);
-  if (dryRun) return;
+  const { events, revenue } = buildSample(Date.now(), options.seed, { users: options.users, days: options.days });
+  console.log(`${events.length} usage events for ${options.users} sample users across ${options.days} days, ${revenue.length} payments/trials.`);
+  if (options.dryRun) return;
   if (!key) {
     console.error("Set FISCALLM_KEY to the ingest key of a test app (shown once when you create the app).");
     process.exit(1);

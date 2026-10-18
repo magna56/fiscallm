@@ -9,6 +9,12 @@ In production both sit behind **one domain**: requests to `/api/*` go to the API
 
 Self-hosting is free and always will be. The hosted service at fiscallm.com is run by the author on a best-effort basis; see the README.
 
+Fastest route: create the Supabase project (step 1 below), then click
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm&project-name=fiscallm&repository-name=fiscallm&env=DATABASE_URL,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,CRON_SECRET,PUBLIC_URL&envDescription=Supabase%20connection%20details%2C%20a%20random%20CRON_SECRET%20and%20your%20public%20URL&envLink=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm%2Fblob%2Fmain%2FSELF-HOSTING.md)
+
+and paste the five values it asks for. To see data right away, run `node examples/send-sample-data.mjs` (see [examples](examples)).
+
 ## What you need
 
 - Node 20+ and pnpm (`npx pnpm@12.11.2` works if pnpm is not installed)

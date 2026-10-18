@@ -36,21 +36,21 @@ export default function RoadmapPage() {
             A page on <Link href="/coverage">what FiscaLLM covers and what it doesn&apos;t</Link>
           </li>
           <li>Optional monthly event cap per app</li>
+          <li>Runnable examples (sample-data script, Next.js and FastAPI starting points) and a deploy-to-Vercel button</li>
+          <li>Public roadmap and changelog pages</li>
         </ul>
 
         <h2>Next, in this order</h2>
         <ol>
           <li>
-            <strong>Runnable example apps</strong> (Next.js route handler, FastAPI endpoint) you can run locally and watch data flow end to end
-          </li>
-          <li>
-            <strong>One-command self-hosting</strong> with Docker Compose, and deploy buttons
-          </li>
-          <li>
             <strong>Stripe connector</strong>, so apps that bill through Stripe can use FiscaLLM as easily as RevenueCat apps
           </li>
           <li>
             <strong>Accuracy report</strong>: computed cost compared with real provider usage pages, published with the method
+          </li>
+          <li>
+            <strong>Docker Compose</strong> for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button
+            covers hosting meanwhile)
           </li>
         </ol>
 

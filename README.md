@@ -56,6 +56,12 @@ Stack: TypeScript, Next.js, Hono, Postgres (Supabase) with Drizzle, hosted on Ve
 - It needs a backend between your app and the AI provider. Apps that call a provider straight from the phone are not covered yet.
 - Revenue comes from RevenueCat or the revenue API. Direct App Store and Google Play connections are not built yet.
 
+## Try it in ten minutes
+
+- No AI key needed: create an app, then `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills the dashboard with sample users (one heavy user who loses money).
+- Copy-paste starting points for [Next.js](examples/nextjs) and [FastAPI](examples/fastapi), see [examples](examples).
+- Run your own copy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm&project-name=fiscallm&repository-name=fiscallm&env=DATABASE_URL,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,CRON_SECRET,PUBLIC_URL&envDescription=Supabase%20connection%20details%2C%20a%20random%20CRON_SECRET%20and%20your%20public%20URL&envLink=https%3A%2F%2Fgithub.com%2Fmagna56%2Ffiscallm%2Fblob%2Fmain%2FSELF-HOSTING.md) (create a Supabase project first, see [SELF-HOSTING.md](SELF-HOSTING.md)).
+
 ## Development
 
 ```sh

@@ -7,6 +7,9 @@ Thanks for helping. Small fixes and clear bug reports are the most useful.
 - Keep changes focused: one idea per pull request.
 - The SDKs must stay dependency-free and must never read or send prompts or responses. Changes that break either will not be merged.
 
+## Be kind
+Please follow the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Development
 ```sh
 pnpm install

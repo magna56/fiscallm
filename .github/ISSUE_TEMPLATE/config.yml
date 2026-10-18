@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://github.com/magna56/fiscallm/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately, as described here, not in a public issue.
+  - name: Docs and how it works
+    url: https://fiscallm.com/docs
+    about: Setup, SDK usage, Stripe and RevenueCat, limits.
+  - name: What FiscaLLM covers (and doesn't)
+    url: https://fiscallm.com/coverage
+    about: Check here before reporting a missing feature or a cost difference.

@@ -13,6 +13,12 @@ updates:
       # ("Cannot read properties of undefined (reading 'readFile')"). Revisit when it supports 7.
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # eslint-plugin-import, jsx-a11y and react (from eslint-config-next) support ESLint 9 at most.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      # Keep the Node typings on the Node version we run (24).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: pip
     directory: /packages/sdk-python
     schedule:

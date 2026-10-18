@@ -25,7 +25,7 @@
     "prepublishOnly": "npm test && npm run build"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^5.0.5"
   }
 }

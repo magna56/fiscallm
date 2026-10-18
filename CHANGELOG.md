@@ -8,6 +8,7 @@ All notable changes. Newest first. Dates are when the change went live on fiscal
 - **Stripe connector (beta)**: connect Stripe from the Setup page (webhook + signing secret) to count paid invoices, trials, cancellations and refunds. USD only; what you keep is estimated with Stripe's standard fee.
 - **Examples**: a sample-data script that fills the dashboard without any AI key, Next.js and FastAPI starting points, and a Deploy-with-Vercel button.
 - **Sample data**: choose the number of users and history days, and use a seed to repeat the generated values. Thanks to [@yoreva-01](https://github.com/yoreva-01).
+- **Tests** for streaming (`trackSSE`) edge cases: split JSON, comments, `[DONE]` and streams without usage. Thanks to [@Huang-404-Q](https://github.com/Huang-404-Q).
 - **Kill switch** in both SDKs (0.3.2): set `FISCALLM_DISABLED=1`, or pass `disabled: true` / `disabled=True`, and the SDK does nothing at all.
 - Public **roadmap** page and changelog page on the site.
 - **CSV export** of the Users, Plans and Trials tables.

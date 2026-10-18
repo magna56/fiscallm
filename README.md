@@ -105,6 +105,8 @@ pnpm db:migrate
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first (it includes a short contributor agreement). The plan, including what we only build if there is demand, is in [ROADMAP.md](ROADMAP.md), with a [public board](https://github.com/users/magna56/projects/1). Vote with a 👍 on [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap) or share ideas in [Discussions](https://github.com/magna56/fiscallm/discussions/categories/ideas).
 
+**Where help is most wanted:** prices for more models and providers (data only, no code knowledge needed), connectors for other billing systems (Adapty, Superwall), examples for AI frameworks, and a comparison of computed costs with a real provider invoice. See the [good first issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
 ## Built by
 
 Built and maintained by [Mayur](https://www.linkedin.com/in/mayur-agnani/) as an independent, open-source side project. Questions, bugs and ideas: [open an issue](https://github.com/magna56/fiscallm/issues) or email theaicommit@gmail.com.

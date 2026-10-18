@@ -134,15 +134,22 @@ function Hero() {
 
         <div className="relative mt-16 w-full max-w-5xl">
           <div className="glow" aria-hidden />
-          <div className="product-frame overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl shadow-indigo-500/10">
+          <Link
+            href="/demo"
+            aria-label="Open the live demo dashboard"
+            className="product-frame group relative block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl shadow-indigo-500/10 transition hover:-translate-y-0.5 hover:shadow-indigo-500/20"
+          >
             <div className="flex items-center gap-2 border-b border-black/5 bg-[#fafafc] px-4 py-3">
               <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
               <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
               <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/dashboard</span>
+              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/demo</span>
             </div>
             <DashboardPreview />
-          </div>
+            <span className="absolute right-3 top-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-white shadow-md transition group-hover:scale-105 sm:text-sm">
+              Try it live →
+            </span>
+          </Link>
 
           <FloatCard className="float -left-4 top-[16%] hidden md:block xl:-left-44">
             <div className="text-xs text-muted">Biggest cost driver</div>
@@ -248,6 +255,11 @@ function Problem() {
         <UserCompare name="Heavy user" plan="$9.99 / month" pays={7.49} cost={25} />
       </div>
       <p className="mt-3 text-center text-sm text-muted">Same plan, same price. Without FiscaLLM, both look the same.</p>
+      <p className="mt-2 text-center text-sm">
+        <Link href="/demo" className="font-medium text-accent hover:underline">
+          See what this looks like in a dashboard →
+        </Link>
+      </p>
     </section>
   );
 }
@@ -357,6 +369,10 @@ function HowItWorks() {
       <p className="mt-6 text-center text-sm">
         <Link href="/how-it-works" className="font-medium text-accent hover:underline">
           Engineer? See exactly how it works →
+        </Link>
+        <span className="mx-2 text-muted">·</span>
+        <Link href="/demo" className="font-medium text-accent hover:underline">
+          Or try the live demo →
         </Link>
       </p>
       <h3 className="mt-20 text-center text-2xl font-semibold tracking-tight">Set up in ten minutes</h3>

@@ -231,6 +231,63 @@ describe("trackStream", () => {
 });
 
 describe("trackSSE", () => {
+  it("parses a JSON event split across two chunks", async () => {
+    const event = {
+      object: "chat.completion.chunk",
+      model: "gpt-4o-mini",
+      choices: [],
+      usage: { prompt_tokens: 8, completion_tokens: 2 },
+    };
+    const text = `data: ${JSON.stringify(event)}\n\n`;
+    const bytes = new TextEncoder().encode(text);
+    const split = text.indexOf('"usage"') + 3;
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(bytes.slice(0, split));
+          controller.enqueue(bytes.slice(split));
+          controller.close();
+        },
+      }),
+      { headers: { "content-type": "text/event-stream" } },
+    );
+
+    let passed = "";
+    const [recorded] = await sent(async (m) => {
+      const tracked = m.trackSSE(response, ctx);
+      passed = await tracked.text();
+    });
+    expect(passed).toBe(text);
+    expect(recorded).toMatchObject({ model: "gpt-4o-mini", inputTokens: 8, outputTokens: 2 });
+  });
+
+  it("ignores SSE comments and the [DONE] sentinel", async () => {
+    const event = {
+      object: "chat.completion.chunk",
+      model: "gpt-4o-mini",
+      choices: [],
+      usage: { prompt_tokens: 5, completion_tokens: 1 },
+    };
+    const text = `: keep-alive\n\ndata: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`;
+    const [recorded] = await sent(async (m) => {
+      await m.trackSSE(new Response(text), ctx).text();
+    });
+    expect(recorded).toMatchObject({ model: "gpt-4o-mini", inputTokens: 5, outputTokens: 1 });
+  });
+
+  it("warns and skips a stream that ends without a usage block", async () => {
+    const text = `data: ${JSON.stringify({
+      object: "chat.completion.chunk",
+      model: "gpt-4o-mini",
+      choices: [{ delta: { content: "hello" } }],
+    })}\n\ndata: [DONE]\n\n`;
+    const events = await sent(async (m) => {
+      await m.trackSSE(new Response(text), ctx).text();
+    });
+    expect(events).toHaveLength(0);
+    expect(quiet.warn.mock.calls[0]![0]).toContain("OpenAI stream had no usage");
+  });
+
   it("returns the same bytes and tracks usage from a copy", async () => {
     const original = sse(anthropicStream);
     const expected = await original.clone().text();

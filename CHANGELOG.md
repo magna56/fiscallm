@@ -4,6 +4,7 @@ All notable changes. Newest first. Dates are when the change went live on fiscal
 
 ## 2026-10-18
 - **Kill switch** in both SDKs (0.3.2): set `FISCALLM_DISABLED=1`, or pass `disabled: true` / `disabled=True`, and the SDK does nothing at all.
+- Public **roadmap** page and changelog page on the site.
 - **CSV export** of the Users, Plans and Trials tables.
 - New page: [What FiscaLLM covers and what it doesn't](https://fiscallm.com/coverage).
 - Homepage dashboard preview is labelled "Sample data".

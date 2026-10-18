@@ -19,6 +19,7 @@ See [SELF-HOSTING.md](SELF-HOSTING.md) to run the apps locally.
 - Add or update tests for behaviour changes (database tests use PGlite, no setup needed).
 - Match the surrounding code's style and comment density.
 - Do not commit secrets, keys or real user data.
+- Add a line to CHANGELOG.md for anything users will notice, and keep ROADMAP.md current when plans change.
 
 ## Licence and contributor agreement
 The project is MIT licensed (see [LICENSE](LICENSE)). By opening a pull request you confirm that:

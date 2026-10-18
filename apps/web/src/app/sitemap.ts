@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/docs", 0.8],
     ["/coverage", 0.7],
     ["/changelog", 0.4],
+    ["/roadmap", 0.5],
     ["/guides", 0.7],
     ["/guides/track-openai-cost-per-user", 0.7],
     ["/guides/track-anthropic-claude-cost-per-user", 0.7],

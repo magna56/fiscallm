@@ -12,6 +12,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
     date: "2026-10-18",
     items: [
       "Kill switch in both SDKs (0.3.2): set FISCALLM_DISABLED=1, or pass disabled: true / disabled=True, and the SDK does nothing at all.",
+      "A public roadmap page, and this changelog page.",
       "CSV export of the Users, Plans and Trials tables.",
       "New page: what FiscaLLM covers and what it doesn't.",
       "The homepage dashboard preview is labelled “Sample data”.",

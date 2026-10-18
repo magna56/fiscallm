@@ -61,6 +61,7 @@ export function SiteFooter() {
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/coverage" className="hover:text-foreground">What&apos;s covered</Link>
           <Link href="/guides" className="hover:text-foreground">Guides</Link>
+          <Link href="/roadmap" className="hover:text-foreground">Roadmap</Link>
           <Link href="/changelog" className="hover:text-foreground">Changelog</Link>
           <a href="https://github.com/magna56/fiscallm" className="hover:text-foreground">GitHub</a>
           <Link href="/privacy" className="hover:text-foreground">Privacy</Link>

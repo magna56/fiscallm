@@ -23,6 +23,9 @@ See [SELF-HOSTING.md](SELF-HOSTING.md) to run the apps locally.
 - Issues labelled `good first issue` are small and well described; see [docs/GOOD-FIRST-ISSUES.md](docs/GOOD-FIRST-ISSUES.md) for ideas.
 - Contributors are credited in the README and in the changelog entry for their change.
 
+## AI-assisted contributions
+Using an AI coding assistant is fine. You are still the author: read and understand what you submit, run the tests yourself (`pnpm test` and `pnpm typecheck`), and say in the pull request description what you tested. Pull requests that are clearly unreviewed generated output, or that change things the issue did not ask for, will be closed politely.
+
 ## Pull requests
 - Add or update tests for behaviour changes (database tests use PGlite, no setup needed).
 - Match the surrounding code's style and comment density.

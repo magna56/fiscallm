@@ -16,7 +16,20 @@ pnpm install
 pnpm typecheck
 pnpm test
 ```
-See [SELF-HOSTING.md](SELF-HOSTING.md) to run the apps locally.
+
+### What you need depends on what you change
+Most changes need **no database, account or API key**. Tests use an in-memory Postgres (PGlite).
+
+| You are changing | Run | Needs |
+|---|---|---|
+| Prices, cost maths, metrics, CSV (`packages/shared`) | `pnpm --filter @fiscallm/shared test` | nothing else |
+| API: ingest, RevenueCat, Stripe (`apps/api`) | `pnpm --filter api test` | nothing else |
+| TypeScript SDK (`packages/sdk`) | `pnpm --filter fiscallm test` | nothing else |
+| Python SDK (`packages/sdk-python`) | `cd packages/sdk-python && python -m unittest discover -s tests` | Python 3.9+ |
+| Examples (`examples/`) | `node examples/send-sample-data.mjs --dry-run` | nothing else |
+| Dashboard and website (`apps/web`) | `pnpm dev:web` | a Supabase project for sign-in; copy `.env.example` (see [SELF-HOSTING.md](SELF-HOSTING.md)). The public pages and `/demo` work without sign-in |
+
+Before opening a pull request run `pnpm typecheck` and `pnpm test` from the repo root.
 
 ## How we work
 - This is a small project run in spare time. We aim to reply to issues and pull requests within a few days, and say so when it will take longer.

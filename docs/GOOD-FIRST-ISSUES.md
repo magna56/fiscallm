@@ -13,7 +13,6 @@ Small, well-scoped tasks that help a lot. Each can be opened as an issue labelle
 6. **A Vercel AI SDK example** showing where to call `meter.track` with its usage object.
 
 ## Code
-7. **Options and `--help` for `examples/send-sample-data.mjs`.** It only has `--dry-run`; add `--help`, `--users`, `--days` and `--seed`.
-8. **More tests for `trackSSE`** with unusual chunk boundaries (split JSON across chunks, comments, `[DONE]`).
-9. **Non-USD Stripe invoices.** The Stripe connector ignores them; convert using the invoice's own exchange data or document a clear fallback (discuss in the issue first).
-10. **Check the per-unit prices** (speech, image, video) against the provider pages; they were not part of the 2026-10-18 audit (see ACCURACY.md).
+7. **Non-USD Stripe invoices.** The Stripe connector ignores them; convert using the invoice's own exchange data or document a clear fallback (discuss in the issue first).
+
+Done already (thanks @yoreva-01 and @Huang-404-Q): options for `send-sample-data.mjs`, and more `trackSSE` tests.

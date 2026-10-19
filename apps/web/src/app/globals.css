@@ -30,6 +30,9 @@ body {
 /* ---------- Landing page ---------- */
 
 .text-gradient {
+  /* background-clip: text only paints inside the box; give descenders (g, y, p) room. */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
   background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 45%, var(--accent-3) 90%);
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -242,6 +245,9 @@ details[open] .chev { transform: rotate(45deg); }
 
 /* Shimmer across small labels. */
 .shimmer {
+  /* background-clip: text only paints inside the box; give descenders (g, y, p) room. */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
   background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 40%, #c4b5fd 50%, var(--accent) 60%, var(--accent) 100%);
   background-size: 300% 100%;
   -webkit-background-clip: text;
@@ -290,6 +296,9 @@ details[open] .chev { transform: rotate(45deg); }
 
 /* Numbers in the stats band, in gradient. */
 .stat-num {
+  /* background-clip: text only paints inside the box; give descenders (g, y, p) room. */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
   background: linear-gradient(180deg, var(--foreground) 30%, #6b6b80);
   -webkit-background-clip: text;
   background-clip: text;

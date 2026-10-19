@@ -13,6 +13,8 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - CSV export of Users, Plans and Trials
 - "What FiscaLLM covers and what it doesn't" page
 - Optional monthly event cap per app
+- **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` (TypeScript and Python); fails open
+- **Slack alerts** and a **runaway-loop alert** (a user over N tokens in 5 minutes)
 - **Price audit** against OpenAI, Anthropic and Google pricing pages (all matched; eight legacy OpenAI models added) and a per-model CSV to check your own numbers (ACCURACY.md)
 - **Stripe connector (beta)**: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world reports welcome
 - Runnable examples: a sample-data script, Next.js and FastAPI starting points, and a deploy-to-Vercel button
@@ -32,9 +34,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 If we introduce paid hosted plans, existing free users get advance notice, and anything already in the open-source code stays open source.
 
 ## Ideas, roughly in order
-- Budget enforcement: a check endpoint so your backend can ask "may this user make another call?" (only if people say they want protection, not just reports)
 - Spread annual-plan revenue across the months it covers
-- Slack and webhook alert channels
 - Adapty and Superwall webhooks
 - Hosted proxy for apps with no backend
 - Direct App Store and Google Play connections

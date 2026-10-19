@@ -3,7 +3,7 @@
 import { generateIngestKey, generateWebhookSecret, hashKey, schema, sealSecret } from "@fiscallm/shared";
 import { importCutoff } from "@fiscallm/shared/rc-import";
 import { ALERT_KINDS, type AlertKind } from "@fiscallm/shared/schema";
-import { describeAlert, signWebhook, webhookPayload } from "@fiscallm/shared/alerts";
+import { describeAlert, isSlackWebhook, signWebhook, slackPayload, webhookPayload } from "@fiscallm/shared/alerts";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
@@ -259,8 +259,10 @@ export async function addAlertRule(appId: string, formData: FormData) {
   let threshold: string | null = null;
   if (kind !== "unpriced_model") {
     const n = Number(raw);
-    if (!raw || !Number.isFinite(n) || n <= 0) fail(USD_KINDS.has(kind) ? "Enter an amount in USD above 0" : "Enter a percentage above 0");
-    threshold = String(kind === "app_cost_share" ? n / 100 : n);
+    if (!raw || !Number.isFinite(n) || n <= 0) {
+      fail(kind === "user_burst" ? "Enter a number of tokens above 0 (for example 50000)" : USD_KINDS.has(kind) ? "Enter an amount in USD above 0" : "Enter a percentage above 0");
+    }
+    threshold = String(kind === "app_cost_share" ? n / 100 : kind === "user_burst" ? Math.round(n) : n);
   }
   const email = formData.get("email") === "on";
   const webhookUrl = String(formData.get("webhookUrl") ?? "").trim() || null;
@@ -271,7 +273,9 @@ export async function addAlertRule(appId: string, formData: FormData) {
   if (webhookUrl && !app.alertSecret) {
     await db.update(schema.apps).set({ alertSecret: generateWebhookSecret() }).where(eq(schema.apps.id, app.id));
   }
-  await db.insert(schema.alertRules).values({ appId: app.id, kind, threshold, email, webhookUrl });
+  // Only a user's own budget can refuse calls; ignore the box for other kinds.
+  const enforce = formData.get("enforce") === "on" && (kind === "user_daily_cost" || kind === "user_30d_cost");
+  await db.insert(schema.alertRules).values({ appId: app.id, kind, threshold, email, webhookUrl, enforce });
   redirect(`${settings}#alerts`);
 }
 
@@ -323,7 +327,17 @@ export async function sendTestAlert(appId: string, ruleId: string) {
     }).catch(() => null);
     results.push(res?.ok ? `email sent to ${user.email}` : "email failed");
   }
-  if (rule!.webhookUrl && app.alertSecret) {
+  if (rule!.webhookUrl && isSlackWebhook(rule!.webhookUrl)) {
+    const base = process.env.PUBLIC_URL ?? "https://fiscallm.com";
+    const slack = slackPayload(app, sample, base);
+    const res = await fetch(rule!.webhookUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: `[Test] ${slack.text}` }),
+      signal: AbortSignal.timeout(5_000),
+    }).catch(() => null);
+    results.push(res ? `Slack answered ${res.status}` : "Slack unreachable");
+  } else if (rule!.webhookUrl && app.alertSecret) {
     const body = JSON.stringify({ ...webhookPayload(app, sample), test: true });
     const res = await fetch(rule!.webhookUrl, {
       method: "POST",

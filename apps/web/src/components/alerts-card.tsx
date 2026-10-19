@@ -12,6 +12,7 @@ const KINDS = Object.entries(ALERT_LABELS) as [Rule["kind"], string][];
 function thresholdText(r: Rule) {
   if (r.threshold === null) return "";
   const n = Number(r.threshold);
+  if (r.kind === "user_burst") return `${n.toLocaleString("en-US")} tokens`;
   return r.kind === "app_cost_share" ? `${(n * 100).toFixed(0)}%` : `$${n}`;
 }
 
@@ -20,8 +21,13 @@ export function AlertsCard({ appId, rules, events, alertSecret }: { appId: strin
     <Card title={<span id="alerts">Budgets and alerts</span>}>
       <div className="flex flex-col gap-4 text-sm">
         <p className="text-foreground/70">
-          Get an email, or a webhook your backend can act on (for example to slow down a user over budget). Per-user budgets are checked as
-          usage arrives; the others once a day. Each alert fires at most once per user per day.
+          Get an email, a Slack message, or a webhook your backend can act on. Per-user budgets and the 5-minute token limit (to catch a runaway
+          loop) are checked as usage arrives; the others once a day. Each alert fires at most once per user per day. To refuse a user over budget,
+          tick &quot;Block&quot; below and call <code>meter.check(userId)</code> before the AI call; see the{" "}
+          <a href="/docs#caps" className="underline">
+            docs
+          </a>
+          .
         </p>
 
         {rules.length > 0 && (
@@ -31,7 +37,9 @@ export function AlertsCard({ appId, rules, events, alertSecret }: { appId: strin
                 <span className="flex-1">
                   {ALERT_LABELS[r.kind]} <strong>{thresholdText(r)}</strong>
                   <span className="block text-xs text-foreground/60">
-                    {[r.email && "email", r.webhookUrl && `webhook ${r.webhookUrl}`].filter(Boolean).join(" · ")}
+                    {[r.email && "email", r.webhookUrl && (r.webhookUrl.startsWith("https://hooks.slack.com/") ? "Slack" : `webhook ${r.webhookUrl}`), r.enforce && "blocks over-budget users (meter.check)"]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 </span>
                 <form action={sendTestAlert.bind(null, appId, r.id)}>
@@ -57,16 +65,22 @@ export function AlertsCard({ appId, rules, events, alertSecret }: { appId: strin
                 </option>
               ))}
             </select>
-            <Input name="threshold" inputMode="decimal" placeholder="$ or % (e.g. 5)" />
+            <Input name="threshold" inputMode="decimal" placeholder="$, % or tokens (e.g. 5)" />
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-1.5">
               <input type="checkbox" name="email" defaultChecked /> Email me
             </label>
-            <Input name="webhookUrl" placeholder="Webhook URL (optional, https://…)" className="min-w-0 flex-1" />
+            <Input name="webhookUrl" placeholder="Slack or webhook URL (optional, https://…)" className="min-w-0 flex-1" />
             <Button type="submit">Add alert</Button>
           </div>
-          <p className="text-xs text-foreground/60">Amounts are USD; the revenue-share alert takes a percentage. &quot;A model without a price&quot; needs no amount.</p>
+          <label className="flex items-center gap-1.5 text-xs">
+            <input type="checkbox" name="enforce" /> Block: also refuse this user in <code>meter.check</code> once they reach the amount (daily and 30-day budgets only)
+          </label>
+          <p className="text-xs text-foreground/60">
+            Amounts are USD; the revenue-share alert takes a percentage; the 5-minute limit takes a token count. &quot;A model without a price&quot; needs no
+            amount. For Slack, paste an incoming-webhook URL (https://hooks.slack.com/services/…).
+          </p>
         </form>
 
         {alertSecret && (

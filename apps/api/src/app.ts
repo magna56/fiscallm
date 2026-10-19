@@ -9,6 +9,7 @@ import { unsubscribeRoute } from "./unsubscribe";
 import { importRoute } from "./revenuecat/import/route";
 import { revenueRoute } from "./revenue/route";
 import { stripeRoute } from "./stripe/route";
+import { checkRoute } from "./check/route";
 
 // Vercel routes /api/* to this service and passes the path through unchanged.
 export const app = new Hono().basePath("/api");
@@ -16,6 +17,7 @@ export const app = new Hono().basePath("/api");
 app.get("/health", (c) => c.json({ ok: true }));
 app.route("/v1/events", eventsRoute(getDb));
 app.route("/v1/revenue", revenueRoute(getDb));
+app.route("/v1/check", checkRoute(getDb));
 app.route("/webhooks/rc", revenueCatRoute(getDb));
 app.route("/webhooks/stripe", stripeRoute(getDb));
 app.route("/cron/retention", retentionRoute(getDb));

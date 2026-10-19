@@ -44,6 +44,12 @@ export default function RoadmapPage() {
             reports welcome
           </li>
           <li>Optional monthly event cap per app</li>
+          <li>
+            <strong>Spending caps</strong>: mark a per-user budget as Block and call <code>meter.check(userId)</code> (TypeScript and Python); fails open
+          </li>
+          <li>
+            <strong>Slack alerts</strong> and a <strong>runaway-loop alert</strong> (a user over N tokens in 5 minutes)
+          </li>
           <li>Runnable examples (sample-data script, Next.js and FastAPI starting points) and a deploy-to-Vercel button</li>
           <li>Public roadmap and changelog pages</li>
         </ul>
@@ -93,9 +99,7 @@ export default function RoadmapPage() {
 
         <h2>Ideas, roughly in order</h2>
         <ul>
-          <li>Budget enforcement: a check endpoint so your backend can ask &quot;may this user make another call?&quot; (only if people say they want protection, not just reports)</li>
           <li>Spread annual-plan revenue across the months it covers</li>
-          <li>Slack and webhook alert channels</li>
           <li>Adapty and Superwall webhooks</li>
           <li>Hosted proxy for apps with no backend</li>
           <li>Direct App Store and Google Play connections</li>

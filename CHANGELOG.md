@@ -2,6 +2,11 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-10-19
+- **Spending caps**: mark a daily or 30-day per-user budget as Block, and call `meter.check(userId)` (TypeScript) or `meter.check(user_id)` (Python, `acheck` for async) before an AI call. It returns `allow: false` with a reason once the user reaches the amount, and fails open if FiscaLLM is slow or down. Also available as `POST /api/v1/check`. SDKs 0.4.0.
+- **Slack alerts**: paste a Slack incoming-webhook URL as an alert's webhook.
+- **Runaway-loop alert**: get alerted when one user uses more than N tokens in 5 minutes.
+
 ## 2026-10-18
 - **Integrations page** listing what FiscaLLM connects to with a status for each, and the How it works page now covers Stripe, the monthly limit and the kill switch.
 - **Accuracy**: audited the built-in prices against OpenAI, Anthropic and Google pricing pages (all matched), added eight legacy OpenAI models, and a per-model CSV export of Overview to compare with your provider. See ACCURACY.md.

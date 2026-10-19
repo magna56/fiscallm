@@ -179,8 +179,13 @@ export default function HowItWorksPage() {
 
         <h2 id="alerts">6. Alerts</h2>
         <p>
-          A daily job compares each user&apos;s and the whole app&apos;s spend with the budgets you set, per plan or per app. A breach sends an email
-          or calls your webhook once, and the alert is recorded so it does not repeat. A Monday job sends the weekly margin report.
+          Per-user budgets, and a limit on tokens used in 5 minutes (to catch a runaway loop), are checked within seconds of usage arriving. The rest
+          (a paying user losing money, cost share of revenue, unpriced models) are compared once a day. A breach sends an email, a Slack message or a
+          webhook once, and the alert is recorded so it does not repeat. A Monday job sends the weekly margin report.
+        </p>
+        <p>
+          Budgets can also be enforced: mark one as Block, and your backend calls <code>meter.check(userId)</code> before an AI call. It answers from
+          the cost already recorded, and fails open, so if FiscaLLM is slow or down the call goes through.
         </p>
 
         <h2 id="failure">When something fails</h2>

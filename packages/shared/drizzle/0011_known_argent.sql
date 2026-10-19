@@ -1,0 +1,1 @@
+ALTER TABLE "alert_rules" ADD COLUMN "enforce" boolean DEFAULT false NOT NULL;

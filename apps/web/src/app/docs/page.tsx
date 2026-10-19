@@ -297,12 +297,18 @@ meter.track_revenue(id=invoice.id, user_id=user_id, type="purchase",
 
         <h2 id="alerts">Budgets and alerts</h2>
         <p>
-          In Settings → Budgets and alerts, get an email or a webhook when a user&apos;s AI cost passes a budget (today or over 30 days), a paying
-          user loses you more than a set amount, AI cost passes a share of revenue, the app&apos;s daily spend passes a limit, or a model without
-          a price appears. Per-user budgets are checked within seconds of usage arriving; the others once a day. Each alert fires at most once
-          per user (or app) per day.
+          In Settings → Budgets and alerts, get an email, a Slack message or a webhook when a user&apos;s AI cost passes a budget (today or over
+          30 days), a user uses more tokens in 5 minutes than you allow (a runaway loop), a paying user loses you more than a set amount, AI cost
+          passes a share of revenue, the app&apos;s daily spend passes a limit, or a model without a price appears. Per-user budgets and the
+          5-minute limit are checked within seconds of usage arriving; the others once a day. Each alert fires at most once per user (or app) per
+          day.
         </p>
-        <p>Webhooks are a signed JSON POST your backend can act on, for example to slow down or pause a user over budget:</p>
+        <p>
+          <strong>Slack:</strong> create an incoming webhook in Slack (Apps → Incoming Webhooks), and paste its URL (
+          <code>https://hooks.slack.com/services/…</code>) as the alert&apos;s webhook. FiscaLLM then posts a plain message with a link to the
+          dashboard. &quot;Send test&quot; shows how it looks.
+        </p>
+        <p>Other webhooks are a signed JSON POST your backend can act on, for example to slow down or pause a user over budget:</p>
         <pre>
           <code>{`POST <your URL>
 X-FiscaLLM-Signature: t=1792200000,v1=5f2c…
@@ -337,6 +343,43 @@ def verify(raw_body: bytes, header: str, secret: str) -> bool:
     parts = dict(p.split("=", 1) for p in header.split(","))
     expected = hmac.new(secret.encode(), f"{parts['t']}.".encode() + raw_body, hashlib.sha256).hexdigest()
     return abs(time.time() - int(parts["t"])) < 300 and hmac.compare_digest(expected, parts["v1"])`}</code>
+        </pre>
+
+        <h2 id="caps">Spending caps</h2>
+        <p>
+          Alerts tell you; caps let your backend say no. When you add a daily or 30-day per-user budget in Settings, tick <strong>Block</strong>.
+          Your backend then asks FiscaLLM before each AI call, and refuses the user (or switches to a cheaper model) once they reach the amount:
+        </p>
+        <pre>
+          <code>{`const { allow, reason } = await meter.check(userId);
+if (!allow) return respond(429, "You have reached today's AI limit"); // or pick a cheaper model
+
+# Python
+r = meter.check(user_id)          # await meter.acheck(user_id) in async code
+if not r.allow:
+    return refuse(r.reason)`}</code>
+        </pre>
+        <ul>
+          <li>
+            <strong>It fails open.</strong> If FiscaLLM is slow (over 1.5 seconds), down, or the key is wrong, <code>check</code> returns{" "}
+            <code>allow: true</code>. FiscaLLM can never take your app down.
+          </li>
+          <li>The answer is cached for 5 seconds in the SDK and 10 seconds on the server, so a busy backend does not ask on every request.</li>
+          <li>
+            It is based on the cost already recorded, so a user can go a little over the amount before they are refused (a few seconds of usage,
+            and any call still running). It is a guard against runaway cost, not a billing system.
+          </li>
+          <li>Only budgets marked Block can refuse a user. Without any, <code>check</code> always allows.</li>
+          <li>Turned off by the kill switch below: the meter then allows every call.</li>
+        </ul>
+        <p>Without the SDK:</p>
+        <pre>
+          <code>{`POST https://fiscallm.com/api/v1/check
+Authorization: Bearer fsk_…
+{ "userId": "rc-app-user-id" }
+
+200 { "allow": false, "reason": "daily AI budget reached ($6.12 of $5.00)",
+      "spentToday": 6.12, "spent30d": 26.4, "dailyLimit": 5, "monthlyLimit": null }`}</code>
         </pre>
 
         <h2 id="api">Ingest API</h2>

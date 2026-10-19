@@ -235,6 +235,7 @@ export const ALERT_KINDS = [
   "app_cost_share",
   "app_daily_cost",
   "unpriced_model",
+  "user_burst",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -250,6 +251,9 @@ export const alertRules = pgTable(
     threshold: numeric("threshold", { precision: 18, scale: 8 }),
     email: boolean("email").notNull().default(true),
     webhookUrl: text("webhook_url"),
+    // For the per-user budgets: also refuse the user in POST /v1/check, so the
+    // backend can block or downgrade their calls (see meter.check in the SDKs).
+    enforce: boolean("enforce").notNull().default(false),
     enabled: boolean("enabled").notNull().default(true),
     createdAt: ts("created_at").notNull().defaultNow(),
   },

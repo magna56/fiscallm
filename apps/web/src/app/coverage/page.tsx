@@ -129,7 +129,10 @@ export default function CoveragePage() {
         <ul>
           <li>It never reads, stores or sends prompts, responses or any message content.</li>
           <li>It is not an observability tool: no traces, latency, evaluations or prompt management. Tools like Langfuse and Helicone do that.</li>
-          <li>It does not block anything. It reports and sends alerts; a budget-enforcement check is a possible future feature.</li>
+          <li>
+            It blocks nothing by itself. Alerts only report. To refuse a user over budget, mark the budget as Block and call <code>meter.check</code> in your
+            backend; it fails open and is based on cost already recorded, so a user can go slightly over before being refused.
+          </li>
           <li>Hosted use is limited to 100,000 events per app per month. Self-hosting has no limit.</li>
         </ul>
 

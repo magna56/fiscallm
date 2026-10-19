@@ -87,7 +87,24 @@ export interface TrackContext {
   model?: string;
 }
 
+/** The answer to `meter.check(userId)`. */
+export interface CheckResult {
+  /** False only when the user reached a budget you marked "Block" in Settings. */
+  allow: boolean;
+  /** Why the user is refused, e.g. "daily AI budget reached ($6.00 of $5.00)". */
+  reason?: string;
+  spentToday?: number;
+  spent30d?: number;
+}
+
 export interface Meter {
+  /**
+   * May this user make another AI call? Call it before the AI call and, on
+   * `allow: false`, refuse, or switch to a cheaper model. Fails open: on any
+   * error, timeout or missing key it returns `{ allow: true }`, so FiscaLLM
+   * being slow or down never takes your app down. Never rejects.
+   */
+  check(userId: string): Promise<CheckResult>;
   /** Queues an event. Never throws and never waits on the network. */
   track(event: TrackEvent): void;
   /** Chat Completions or Responses API result, from the SDK or `res.json()`. */
@@ -134,6 +151,11 @@ const DEFAULT_ENDPOINT = "https://fiscallm.com/api/v1/events";
 export const MAX_BATCH = 100;
 const TIMEOUT_MS = 2000;
 const RETRY_DELAY_MS = 250;
+// check() waits this long at most before letting the call through, and
+// remembers an answer briefly so a busy backend does not ask on every request.
+const CHECK_TIMEOUT_MS = 1500;
+const CHECK_CACHE_MS = 5000;
+const CHECK_CACHE_MAX = 2000;
 // Batch window for events from one request when waitUntil is available.
 const WAIT_UNTIL_DELAY_MS = 50;
 // Batch window for long-running servers without waitUntil.
@@ -145,6 +167,9 @@ const count = (n: number | undefined) =>
   typeof n === "number" && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
 
 const DISABLED_METER: Meter = {
+  async check() {
+    return { allow: true };
+  },
   track() {},
   trackOpenAI() {},
   trackAnthropic() {},
@@ -178,6 +203,7 @@ export function createMeter(options: MeterOptions): Meter {
     } catch {}
   };
 
+  const checkCache = new Map<string, { value: CheckResult; at: number }>();
   let queue: WireEvent[] = [];
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pendingRelease: (() => void) | undefined;
@@ -363,6 +389,38 @@ export function createMeter(options: MeterOptions): Meter {
         keepAlive(p);
       } catch {
         // Metering must never break the caller.
+      }
+    },
+
+    async check(userId) {
+      const open: CheckResult = { allow: true };
+      try {
+        if (!options.apiKey || !userId) return open;
+        const id = String(userId);
+        const hit = checkCache.get(id);
+        if (hit && Date.now() - hit.at < CHECK_CACHE_MS) return hit.value;
+        const res = await fetch(endpoint.replace(/\/events$/, "/check"), {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${options.apiKey}` },
+          body: JSON.stringify({ userId: id }),
+          signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
+        });
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) warnOnce(`check-${res.status}`, `check() was refused (${res.status}); check the ingest key. Allowing the call.`);
+          return open;
+        }
+        const data = (await res.json()) as Partial<CheckResult>;
+        const value: CheckResult = {
+          allow: data.allow !== false,
+          ...(typeof data.reason === "string" ? { reason: data.reason } : {}),
+          ...(typeof data.spentToday === "number" ? { spentToday: data.spentToday } : {}),
+          ...(typeof data.spent30d === "number" ? { spent30d: data.spent30d } : {}),
+        };
+        if (checkCache.size >= CHECK_CACHE_MAX) checkCache.clear();
+        checkCache.set(id, { value, at: Date.now() });
+        return value;
+      } catch {
+        return open;
       }
     },
 

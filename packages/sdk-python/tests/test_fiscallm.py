@@ -7,7 +7,7 @@ from types import SimpleNamespace as NS
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from fiscallm import Meter  # noqa: E402
+from fiscallm import CheckResult, Meter  # noqa: E402
 
 
 class Recorder:
@@ -279,6 +279,57 @@ class KillSwitchTest(unittest.TestCase):
             self.assertEqual(len(rec2.events), 1)
         finally:
             del os.environ["FISCALLM_DISABLED"]
+
+
+class CheckTest(unittest.TestCase):
+    @staticmethod
+    def server(*answers):
+        calls = []
+        queue = list(answers)
+
+        def post_json(url, headers, body):
+            calls.append((url, headers, json.loads(body)))
+            answer = queue.pop(0) if queue else (200, b'{"allow": true}')
+            if isinstance(answer, Exception):
+                raise answer
+            return answer
+
+        return post_json, calls
+
+    def test_returns_the_servers_answer(self):
+        post_json, calls = self.server((200, json.dumps({"allow": False, "reason": "daily AI budget reached ($6.00 of $5.00)", "spentToday": 6, "spent30d": 26}).encode()))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        r = m.check("heavy")
+        self.assertEqual(r, CheckResult(allow=False, reason="daily AI budget reached ($6.00 of $5.00)", spent_today=6, spent_30d=26))
+        url, headers, body = calls[0]
+        self.assertEqual(url, "https://fiscallm.com/api/v1/check")
+        self.assertEqual((headers["authorization"], body), ("Bearer k", {"userId": "heavy"}))
+
+    def test_remembers_an_answer_for_a_few_seconds(self):
+        post_json, calls = self.server()
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        m.check("u")
+        m.check("u")
+        m.check("other")
+        self.assertEqual(len(calls), 2)
+
+    def test_fails_open(self):
+        post_json, _ = self.server((500, b""), OSError("network"), (200, b"not json"), (403, b""))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        for uid in ("a", "b", "c", "d"):
+            self.assertTrue(m.check(uid).allow)
+
+    def test_allows_without_key_user_or_when_disabled_and_makes_no_call(self):
+        post_json, calls = self.server()
+        self.assertTrue(Meter(api_key=None, _post=Recorder(), _post_json=post_json).check("u").allow)
+        self.assertTrue(Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json).check("").allow)
+        self.assertTrue(Meter(api_key="k", disabled=True, _post=Recorder(), _post_json=post_json).check("u").allow)
+        self.assertEqual(calls, [])
+
+    def test_async_version(self):
+        post_json, _ = self.server((200, b'{"allow": false, "reason": "x"}'))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        self.assertFalse(asyncio.run(m.acheck("u")).allow)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, AsyncIterable, AsyncIterator, Callable, Dict, Iterable, Iterator, List, Optional, TypeVar, Union
 
@@ -25,6 +26,11 @@ MAX_BATCH = 100
 TIMEOUT_S = 2.0
 RETRY_DELAY_S = 0.25
 INTERVAL_S = 2.0
+# check() waits this long at most, then lets the call through, and remembers
+# an answer briefly so a busy backend does not ask on every request.
+CHECK_TIMEOUT_S = 1.5
+CHECK_CACHE_S = 5.0
+CHECK_CACHE_MAX = 2000
 
 log = logging.getLogger("fiscallm")
 T = TypeVar("T")
@@ -40,6 +46,30 @@ def _http_post(url: str, headers: Dict[str, str], body: bytes) -> int:
             return response.status
     except urllib.error.HTTPError as e:
         return e.code
+
+
+PostJsonFn = Callable[[str, Dict[str, str], bytes], "tuple[int, bytes]"]
+
+
+def _http_post_json(url: str, headers: Dict[str, str], body: bytes) -> "tuple[int, bytes]":
+    """POSTs and returns (status, body); raises on network errors."""
+    request = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=CHECK_TIMEOUT_S) as response:
+            return response.status, response.read()
+    except urllib.error.HTTPError as e:
+        return e.code, b""
+
+
+@dataclass(frozen=True)
+class CheckResult:
+    """The answer to ``meter.check(user_id)``."""
+
+    allow: bool = True
+    #: Why the user is refused, e.g. "daily AI budget reached ($6.00 of $5.00)".
+    reason: Optional[str] = None
+    spent_today: Optional[float] = None
+    spent_30d: Optional[float] = None
 
 
 def _count(value: Any) -> int:
@@ -65,6 +95,7 @@ class Meter:
         flush_interval: float = INTERVAL_S,
         disabled: Optional[bool] = None,
         _post: Optional[PostFn] = None,
+        _post_json: Optional[PostJsonFn] = None,
     ) -> None:
         # Kill switch: when disabled the meter does nothing. Defaults to on when
         # the environment variable FISCALLM_DISABLED is "1" or "true".
@@ -75,6 +106,8 @@ class Meter:
         self._endpoint = endpoint
         self._interval = flush_interval
         self._post = _post or _http_post
+        self._post_json = _post_json or _http_post_json
+        self._check_cache: Dict[str, "tuple[float, CheckResult]"] = {}
         self._queue: List[Dict[str, Any]] = []
         self._lock = threading.Lock()
         self._send_lock = threading.Lock()
@@ -237,6 +270,48 @@ class Meter:
             return self._wrap_async(stream, user_id, feature, provider, model)
         return self._wrap_sync(stream, user_id, feature, provider, model)
 
+    def check(self, user_id: str) -> CheckResult:
+        """May this user make another AI call?
+
+        Call it before the AI call and, when ``allow`` is False, refuse or switch
+        to a cheaper model. It fails open: on any error, timeout or missing key it
+        returns ``CheckResult(allow=True)``, so FiscaLLM being slow or down never
+        takes your app down. Never raises.
+        """
+        open_ = CheckResult()
+        try:
+            if self._disabled or not self._api_key or not user_id:
+                return open_
+            uid = str(user_id)
+            hit = self._check_cache.get(uid)
+            if hit and time.monotonic() - hit[0] < CHECK_CACHE_S:
+                return hit[1]
+            url = self._endpoint[: -len("/events")] + "/check" if self._endpoint.endswith("/events") else self._endpoint
+            status, raw = self._post_json(url, {"content-type": "application/json", "authorization": "Bearer " + self._api_key}, json.dumps({"userId": uid}).encode())
+            if status != 200:
+                if status in (401, 403):
+                    self._warn_once("check-%d" % status, "check() was refused (%d); check the ingest key. Allowing the call." % status)
+                return open_
+            data = json.loads(raw)
+            result = CheckResult(
+                allow=data.get("allow") is not False,
+                reason=data["reason"] if isinstance(data.get("reason"), str) else None,
+                spent_today=data["spentToday"] if isinstance(data.get("spentToday"), (int, float)) else None,
+                spent_30d=data["spent30d"] if isinstance(data.get("spent30d"), (int, float)) else None,
+            )
+            if len(self._check_cache) >= CHECK_CACHE_MAX:
+                self._check_cache.clear()
+            self._check_cache[uid] = (time.monotonic(), result)
+            return result
+        except Exception:
+            return open_
+
+    async def acheck(self, user_id: str) -> CheckResult:
+        """``check()`` for async code, run off the event loop."""
+        import asyncio
+
+        return await asyncio.get_running_loop().run_in_executor(None, self.check, user_id)
+
     def flush(self) -> None:
         """Sends everything queued, waiting at most a few seconds. Never raises."""
         if self._disabled:
@@ -354,7 +429,7 @@ class Meter:
     def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None) -> None:
         url = url or self._endpoint
         body = json.dumps({"events": batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.3.2"}
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.4.0"}
         for attempt in range(2):
             try:
                 status = self._post(url, headers, body)

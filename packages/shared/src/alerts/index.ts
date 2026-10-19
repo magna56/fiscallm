@@ -44,7 +44,11 @@ export const ALERT_LABELS: Record<schema.AlertKind, string> = {
   app_cost_share: "AI cost in 7 days is over this share of revenue",
   app_daily_cost: "The app's AI cost today is over",
   unpriced_model: "A model without a price is used",
+  user_burst: "A user uses more tokens in 5 minutes than",
 };
+
+/** Window for the user_burst rule (runaway loops and abuse show up in minutes). */
+export const BURST_WINDOW_MINUTES = 5;
 
 export function describeAlert(a: Alert): string {
   const t = a.threshold ?? 0;
@@ -61,6 +65,8 @@ export function describeAlert(a: Alert): string {
       return `The app spent ${usd(a.value)} on AI today (budget ${usd(t)}).`;
     case "unpriced_model":
       return `Model ${a.subject} was used but has no price, so its cost counts as zero.`;
+    case "user_burst":
+      return `User ${a.subject} used ${Math.round(a.value).toLocaleString("en-US")} tokens in ${BURST_WINDOW_MINUTES} minutes (limit ${Math.round(t).toLocaleString("en-US")}). This can be a runaway loop.`;
   }
 }
 
@@ -76,7 +82,7 @@ const threshold = (rule: AlertRule) => (rule.threshold === null ? null : Number(
 
 /** Per-user budgets for the users in a fresh batch of events. */
 export async function checkUserBudgets(db: MetricsDb, appId: string, userIds: string[], now = new Date()): Promise<Alert[]> {
-  const rules = await enabledRules(db, appId, ["user_daily_cost", "user_30d_cost", "app_daily_cost"]);
+  const rules = await enabledRules(db, appId, ["user_daily_cost", "user_30d_cost", "app_daily_cost", "user_burst"]);
   if (rules.length === 0 || userIds.length === 0) return [];
   const today = day(now);
   const from30 = lastDays(30, now).from;
@@ -93,6 +99,17 @@ export async function checkUserBudgets(db: MetricsDb, appId: string, userIds: st
       const [r] = await rows<{ cost: string | null }>(db, sql`SELECT sum(cost_usd) AS cost FROM daily_user_cost WHERE app_id = ${appId}::uuid AND day = ${today}::date`);
       const cost = Number(r?.cost ?? 0);
       if (cost > t) alerts.push({ rule, subject: "app", period: today, value: cost, threshold: t });
+      continue;
+    }
+    if (rule.kind === "user_burst") {
+      const from = new Date(now.getTime() - BURST_WINDOW_MINUTES * 60_000).toISOString();
+      const burst = await rows<{ user_id: string; tokens: string }>(
+        db,
+        sql`SELECT user_id, sum(coalesce(input_tokens, 0) + coalesce(output_tokens, 0)) AS tokens FROM ai_events
+            WHERE app_id = ${appId}::uuid AND user_id IN (${ids}) AND ts >= ${from}::timestamptz AND ts <= ${now.toISOString()}::timestamptz
+            GROUP BY user_id HAVING sum(coalesce(input_tokens, 0) + coalesce(output_tokens, 0)) > ${t}`,
+      );
+      for (const b of burst) alerts.push({ rule, subject: b.user_id, period: today, value: Number(b.tokens), threshold: t });
       continue;
     }
     const since = rule.kind === "user_daily_cost" ? today : from30;
@@ -155,6 +172,64 @@ export function webhookPayload(app: AlertApp, a: Alert) {
   };
 }
 
+// ---- Slack ----
+
+/** True for Slack incoming-webhook URLs, which take {text} instead of our signed JSON. */
+export function isSlackWebhook(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && u.hostname === "hooks.slack.com" && u.pathname.startsWith("/services/");
+  } catch {
+    return false;
+  }
+}
+
+export function slackPayload(app: Pick<AlertApp, "id" | "name">, a: Alert, baseUrl: string) {
+  return { text: `*${app.name}*: ${describeAlert(a)} <${baseUrl}/dashboard/${app.id}|Open the dashboard>` };
+}
+
+// ---- caps ----
+
+export interface Allowance {
+  allow: boolean;
+  /** Why the user is refused; absent when allowed. */
+  reason?: string;
+  spentToday: number;
+  spent30d: number;
+  /** The tightest enforced limits, if any. */
+  dailyLimit: number | null;
+  monthlyLimit: number | null;
+}
+
+/**
+ * May this user make another AI call? Only budgets marked `enforce` can say no;
+ * a user is refused once their spend reaches the limit.
+ */
+export async function checkAllowance(db: MetricsDb, appId: string, userId: string, now = new Date()): Promise<Allowance> {
+  const rules = (await enabledRules(db, appId, ["user_daily_cost", "user_30d_cost"])).filter((r) => r.enforce);
+  const limit = (kind: AlertRule["kind"]) => {
+    const ts = rules.filter((r) => r.kind === kind).map(threshold).filter((t): t is number => t !== null);
+    return ts.length ? Math.min(...ts) : null;
+  };
+  const dailyLimit = limit("user_daily_cost");
+  const monthlyLimit = limit("user_30d_cost");
+  const [r] = await rows<{ today: string | null; d30: string | null }>(
+    db,
+    sql`SELECT sum(cost_usd) FILTER (WHERE day = ${day(now)}::date) AS today, sum(cost_usd) AS d30
+        FROM daily_user_cost WHERE app_id = ${appId}::uuid AND user_id = ${userId} AND day >= ${lastDays(30, now).from}::date`,
+  );
+  const spentToday = Number(r?.today ?? 0);
+  const spent30d = Number(r?.d30 ?? 0);
+  const out: Allowance = { allow: true, spentToday, spent30d, dailyLimit, monthlyLimit };
+  if (dailyLimit !== null && spentToday >= dailyLimit) {
+    return { ...out, allow: false, reason: `daily AI budget reached (${usd(spentToday)} of ${usd(dailyLimit)})` };
+  }
+  if (monthlyLimit !== null && spent30d >= monthlyLimit) {
+    return { ...out, allow: false, reason: `30-day AI budget reached (${usd(spent30d)} of ${usd(monthlyLimit)})` };
+  }
+  return out;
+}
+
 /**
  * Records new alerts (skipping ones already sent today), then emails the
  * owner one summary and calls each rule's webhook.
@@ -199,6 +274,16 @@ export async function deliverAlerts(db: MetricsDb, app: AlertApp, alerts: Alert[
 
   for (const f of fresh) {
     const url = f.alert.rule.webhookUrl;
+    if (url && isSlackWebhook(url)) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(slackPayload(app, f.alert, config.baseUrl)),
+        signal: AbortSignal.timeout(5_000),
+      }).catch(() => null);
+      delivery.set(f.id, { ...delivery.get(f.id), slack: res ? res.status : "network error" });
+      continue;
+    }
     if (!url || !app.alertSecret) continue;
     const body = JSON.stringify(webhookPayload(app, f.alert));
     const res = await fetch(url, {

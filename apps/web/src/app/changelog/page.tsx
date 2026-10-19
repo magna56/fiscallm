@@ -9,6 +9,14 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-10-19",
+    items: [
+      "Spending caps: mark a daily or 30-day per-user budget as Block, and call meter.check(userId) (TypeScript) or meter.check(user_id) (Python) before an AI call. It says no once the user reaches the amount, and fails open if FiscaLLM is slow or down. Also POST /api/v1/check. SDKs 0.4.0.",
+      "Slack alerts: paste a Slack incoming-webhook URL as an alert's webhook.",
+      "Runaway-loop alert: get alerted when one user uses more than N tokens in 5 minutes.",
+    ],
+  },
+  {
     date: "2026-10-18",
     items: [
       "Kill switch in both SDKs (0.3.2): set FISCALLM_DISABLED=1, or pass disabled: true / disabled=True, and the SDK does nothing at all.",

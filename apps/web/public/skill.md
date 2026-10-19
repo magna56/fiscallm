@@ -135,6 +135,17 @@ meter.track_openai(res, user_id=user_id, feature="chat")
 
 Serverless (Lambda, Cloud Functions): call `meter.flush()` before returning. Streams: `meter.track_stream(stream, user_id=user_id)` returns a stream to iterate instead.
 
+## 5b. Optional: block users over budget
+
+If the user wants to stop a user who reached their budget (not just be alerted), call `check` before the AI call. It fails open, so it can never take the app down:
+
+```ts
+const { allow, reason } = await meter.check(userId);
+if (!allow) return new Response(reason, { status: 429 });
+```
+
+Python: `r = meter.check(user_id)` (`await meter.acheck(user_id)` in async code). The user must also add a daily or 30-day budget in Settings and tick "Block". Only add this if they asked for it.
+
 ## 6. Finish
 
 Tell the user, briefly:

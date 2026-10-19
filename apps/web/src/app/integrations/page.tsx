@@ -109,8 +109,9 @@ export default function IntegrationsPage() {
             ["Webhook alerts", "Supported", "Signed with X-FiscaLLM-Signature, so your backend can act on them."],
             ["Weekly report", "Supported", "A Monday email with last week's margin and the users who lost you money."],
             ["CSV export", "Supported", "Users, plans, trials and cost by model."],
-            ["Slack alerts", "Planned", "On the roadmap."],
-            ["Budget enforcement", "Planned", "A check your backend can call before a request; only if people ask for protection and not just reports."],
+            ["Slack alerts", "Supported", "Paste a Slack incoming-webhook URL as an alert's webhook."],
+            ["Runaway-loop alert", "Supported", "A user using more tokens in 5 minutes than you allow."],
+            ["Spending caps", "Supported", "Mark a per-user budget as Block and call meter.check(userId) before a request. Fails open; based on cost already recorded."],
           ]}
         />
 

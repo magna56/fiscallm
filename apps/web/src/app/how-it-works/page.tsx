@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArchitectureDiagram } from "@/components/architecture-diagram";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
@@ -7,29 +8,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/how-it-works" },
   description: "The architecture behind FiscaLLM: what the SDK sends, how cost is priced, how revenue is joined to it, and what happens when something fails.",
 };
-
-const DIAGRAM = `  Your backend                                   FiscaLLM
- ┌──────────────────────┐                  ┌───────────────────────────────┐
- │ AI call ─▶ provider  │                  │ POST /api/v1/events           │
- │    │                 │   token counts   │   validate · price · dedupe   │
- │    └─ meter.track() ─┼─────────────────▶│   └▶ ai_events + daily_user_  │
- │      (background)    │   (no prompts)   │       cost  (one transaction) │
- └──────────────────────┘                  │                               │
-                                           │ POST /api/webhooks/rc/:app    │
- RevenueCat / your billing ───────────────▶│   verify · dedupe · apply     │
-     purchases, renewals, refunds          │   └▶ rc_events + subscribers  │
-                                           │                               │
- ┌──────────────────────┐                  │                               │
- │ before an AI call:   │   user id        │ POST /api/v1/check            │
- │ meter.check(user) ───┼─────────────────▶│ spent today vs the cap        │
- │ allow or refuse      ◀──────────────────┤ └▶ allow or refuse            │
- └──────────────────────┘  (fails open)    │                               │
-                                           │                               │
-                                           │ metrics: cost ⨝ revenue       │
-                                           │   per user, plan, trial       │
-                                           └───────────────┬───────────────┘
-                                                           ▼
-                                            dashboard · alerts · caps · weekly email`;
 
 export default function HowItWorksPage() {
   return (
@@ -44,9 +22,7 @@ export default function HowItWorksPage() {
         </p>
 
         <h2 id="architecture">Architecture</h2>
-        <pre>
-          <code>{DIAGRAM}</code>
-        </pre>
+        <ArchitectureDiagram />
         <p>
           Two inputs, both one-way and asynchronous: usage events from your backend, and revenue events from RevenueCat (or from your own code).
           Everything else is computed from those two tables.

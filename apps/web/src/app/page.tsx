@@ -33,7 +33,8 @@ const FAQ: [string, string][] = [
   ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
   ["Do I need RevenueCat?", "No. Connect RevenueCat or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
-  ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request."],
+  ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check fails open."],
+  ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
   ["What does it cost?", "Nothing. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
 ];
 
@@ -268,7 +269,7 @@ function Solution() {
   const points: [string, string][] = [
     ["Joins cost and revenue, per user", "One line in your backend reports AI usage. One RevenueCat or Stripe webhook reports payments."],
     ["Shows your real margin", "Per user, per plan, per free trial, and which model or feature drives the bill."],
-    ["Warns you early", "Alerts and a webhook when a user or the app goes over your budget."],
+    ["Warns you, and can say no", "Email, Slack or webhook alerts when a user goes over budget or loops. Mark a budget as Block and your backend can refuse them."],
   ];
   return (
     <section className="mx-auto mt-28 w-full max-w-6xl px-6">
@@ -334,10 +335,10 @@ function UserCompare({ name, plan, pays, cost }: { name: string; plan: string; p
 function Actions() {
   const actions: [string, string][] = [
     ["Price plans on real numbers", "See which plan loses money once AI is paid for."],
-    ["Cap heavy users", "A budget per user, and a webhook so your backend can slow them down."],
+    ["Cap heavy users", "Mark a budget as Block, and meter.check(userId) tells your backend to refuse the user or use a cheaper model. It fails open."],
     ["Switch the expensive feature", "Find the feature and model behind the bill; move it to a cheaper model."],
     ["Fix trials that don't pay off", "Know what each trial and each conversion costs."],
-    ["Get alerts the same day", "By email or webhook, when a user or the app goes over your line."],
+    ["Catch runaway loops", "By email, Slack or webhook, when a user goes over budget or burns a huge number of tokens in 5 minutes."],
     ["A Monday email", "Last week's margin and who lost you money."],
   ];
   return (

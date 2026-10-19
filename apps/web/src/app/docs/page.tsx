@@ -352,7 +352,10 @@ def verify(raw_body: bytes, header: str, secret: str) -> bool:
         </p>
         <pre>
           <code>{`const { allow, reason } = await meter.check(userId);
-if (!allow) return respond(429, "You have reached today's AI limit"); // or pick a cheaper model
+if (!allow) return respond(429, "You have reached today's AI limit");
+
+// or keep them going on a cheaper model instead of refusing
+const model = allow ? "gpt-5" : "gpt-5-mini";
 
 # Python
 r = meter.check(user_id)          # await meter.acheck(user_id) in async code

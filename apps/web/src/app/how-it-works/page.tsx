@@ -23,7 +23,7 @@ const DIAGRAM = `  Your backend                                   FiscaLLM
                                            │   per user, plan, trial       │
                                            └───────────────┬───────────────┘
                                                            ▼
-                                            dashboard · alerts · weekly email`;
+                                            dashboard · alerts · caps · weekly email`;
 
 export default function HowItWorksPage() {
   return (

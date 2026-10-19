@@ -38,7 +38,7 @@ const STEPS: Step[] = [
   { caption: "FiscaLLM prices it and adds it to that user's cost." },
   { caption: "Your billing, RevenueCat or Stripe, reports what the same user paid.", packet: { from: NODES.rc, to: NODES.fiscallm, label: "renewal +$7.49", color: "#16a34a" } },
   { caption: "Cost passes the user's budget, so you get an alert…" },
-  { caption: "…and a webhook your backend can act on.", packet: { from: NODES.fiscallm, to: NODES.backend, label: "slow down user_k3x9", color: "#dc2626" } },
+  { caption: "…and when your backend asks meter.check before the next call, the answer is no.", packet: { from: NODES.fiscallm, to: NODES.backend, label: "allow: false", color: "#dc2626" } },
 ];
 const STEP_MS = 1900;
 const REDUCED = "(prefers-reduced-motion: reduce)";

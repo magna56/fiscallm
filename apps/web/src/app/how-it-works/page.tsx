@@ -19,6 +19,12 @@ const DIAGRAM = `  Your backend                                   FiscaLLM
  RevenueCat / your billing ───────────────▶│   verify · dedupe · apply     │
      purchases, renewals, refunds          │   └▶ rc_events + subscribers  │
                                            │                               │
+ ┌──────────────────────┐                  │                               │
+ │ before an AI call:   │   user id        │ POST /api/v1/check            │
+ │ meter.check(user) ───┼─────────────────▶│ spent today vs the cap        │
+ │ allow or refuse      ◀──────────────────┤ └▶ allow or refuse            │
+ └──────────────────────┘  (fails open)    │                               │
+                                           │                               │
                                            │ metrics: cost ⨝ revenue       │
                                            │   per user, plan, trial       │
                                            └───────────────┬───────────────┘

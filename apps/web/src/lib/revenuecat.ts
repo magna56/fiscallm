@@ -52,8 +52,8 @@ export async function beginImport(appId: string, projectId: string, key: string)
  * Finishes "Connect RevenueCat" for one project: points a webhook at
  * FiscaLLM, records the project, and imports past subscribers.
  */
-export async function connectProject(app: { id: string; rcWebhookSecret: string }, token: string, project: RcProject) {
-  const webhookId = await ensureWebhook(token, project.id, `${await publicUrl()}/api/webhooks/rc/${app.id}`, app.rcWebhookSecret);
+export async function connectProject(app: { id: string; name: string; rcWebhookSecret: string }, token: string, project: RcProject) {
+  const webhookId = await ensureWebhook(token, project.id, `${await publicUrl()}/api/webhooks/rc/${app.id}`, app.rcWebhookSecret, app.name, app.id);
   await getDb()
     .update(schema.rcConnections)
     .set({ projectId: project.id, projectName: project.name, webhookIntegrationId: webhookId, updatedAt: new Date() })

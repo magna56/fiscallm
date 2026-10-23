@@ -173,12 +173,15 @@ interface Webhook {
  * Points a RevenueCat webhook at FiscaLLM, for all apps and both
  * environments (sandbox only counts while the app is in test mode). Reuses
  * an existing FiscaLLM webhook for the same URL, so reconnecting never adds
- * a second one. Returns the webhook integration id.
+ * a second one. Names must be unique in a project, and the owner may already
+ * have a manual "FiscaLLM" webhook (or one per FiscaLLM app), so the name
+ * carries the app. Returns the webhook integration id.
  */
-export async function ensureWebhook(token: string, projectId: string, url: string, authorization: string): Promise<string> {
+export async function ensureWebhook(token: string, projectId: string, url: string, authorization: string, appName: string, appId: string): Promise<string> {
   const base = `/projects/${encodeURIComponent(projectId)}/integrations/webhooks`;
   const list: { items: Webhook[] } = await api(token, `${base}?limit=100`);
-  const body = { name: "FiscaLLM", url, authorization_header: authorization, environment: null, event_types: null };
+  const name = `FiscaLLM: ${appName.slice(0, 80)} (${appId.slice(0, 8)})`;
+  const body = { name, url, authorization_header: authorization, environment: null, event_types: null };
   const existing = list.items.find((w) => w.url === url);
   if (existing) {
     await api(token, `${base}/${encodeURIComponent(existing.id)}`, { method: "POST", body: JSON.stringify(body) });

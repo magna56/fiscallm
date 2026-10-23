@@ -71,13 +71,13 @@ describe("rc-oauth", () => {
       .mockResolvedValueOnce(json({ items: [{ id: "wh_1", url: "https://fiscallm.com/api/webhooks/rc/x" }] }))
       .mockResolvedValueOnce(json({ id: "wh_1", url: "https://fiscallm.com/api/webhooks/rc/x" }));
     vi.stubGlobal("fetch", fetchMock);
-    expect(await ensureWebhook("atk", "proj", "https://fiscallm.com/api/webhooks/rc/x", "s")).toBe("wh_1");
+    expect(await ensureWebhook("atk", "proj", "https://fiscallm.com/api/webhooks/rc/x", "s", "My app", "75fb61ca-9cde")).toBe("wh_1");
     expect(fetchMock.mock.calls[1]![0]).toBe("https://api.revenuecat.com/v2/projects/proj/integrations/webhooks/wh_1");
 
     fetchMock.mockReset()
       .mockResolvedValueOnce(json({ items: [] }))
       .mockResolvedValueOnce(json({ id: "wh_2", url: "https://fiscallm.com/api/webhooks/rc/x" }, 201));
-    expect(await ensureWebhook("atk", "proj", "https://fiscallm.com/api/webhooks/rc/x", "s")).toBe("wh_2");
-    expect(JSON.parse(String((fetchMock.mock.calls[1]![1] as RequestInit).body))).toMatchObject({ name: "FiscaLLM", authorization_header: "s", environment: null });
+    expect(await ensureWebhook("atk", "proj", "https://fiscallm.com/api/webhooks/rc/x", "s", "My app", "75fb61ca-9cde")).toBe("wh_2");
+    expect(JSON.parse(String((fetchMock.mock.calls[1]![1] as RequestInit).body))).toMatchObject({ name: "FiscaLLM: My app (75fb61ca)", authorization_header: "s", environment: null });
   });
 });

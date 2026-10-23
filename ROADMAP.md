@@ -13,7 +13,8 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - CSV export of Users, Plans and Trials
 - "What FiscaLLM covers and what it doesn't" page
 - Optional monthly event cap per app
-- **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` (TypeScript and Python); fails open
+- **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` (TypeScript and Python)
+- **Caps that hold during an outage** (SDKs 0.6.0): a refused user stays refused while FiscaLLM is unreachable, `checkOnError: "deny"` to fail closed, and an in-process local limit that stops a runaway loop with no network call
 - **Jobs**: tag AI calls with a `jobId` and report each job as pending, captured or refunded; see the cost of refunded and unresolved jobs per user (SDKs 0.5.0)
 - **Slack alerts** and a **runaway-loop alert** (a user over N tokens in 5 minutes)
 - **Price audit** against OpenAI, Anthropic and Google pricing pages (all matched; eight legacy OpenAI models added) and a per-model CSV to check your own numbers (ACCURACY.md)
@@ -22,8 +23,9 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - Public roadmap and changelog pages
 
 ## Next (in progress, in this order)
-1. **Accuracy against real invoices**: the price audit is done (see ACCURACY.md); a multi-week comparison with a real app's provider invoices still needs real usage
-2. **Docker Compose** for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button covers hosting meanwhile)
+1. **Per-user downgrade**: a third setting on a budget, between Alert and Block. Past the amount, `meter.check` answers "downgrade" with the cheaper model you chose, so a heavy user keeps chatting on a cheaper model instead of being cut off mid-conversation or running up your bill
+2. **Accuracy against real invoices**: the price audit is done (see ACCURACY.md); a multi-week comparison with a real app's provider invoices still needs real usage
+3. **Docker Compose** for one-command self-hosting (waiting for a machine with Docker to test it properly; the Vercel button covers hosting meanwhile)
 
 ## Later, only if there is demand
 | Stage | What we do | Only when |

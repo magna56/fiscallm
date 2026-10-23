@@ -45,7 +45,11 @@ export default function RoadmapPage() {
           </li>
           <li>Optional monthly event cap per app</li>
           <li>
-            <strong>Spending caps</strong>: mark a per-user budget as Block and call <code>meter.check(userId)</code> (TypeScript and Python); fails open
+            <strong>Spending caps</strong>: mark a per-user budget as Block and call <code>meter.check(userId)</code> (TypeScript and Python)
+          </li>
+          <li>
+            <strong>Caps that hold during an outage</strong> (SDKs 0.6.0): a refused user stays refused while FiscaLLM is unreachable,{" "}
+            <code>checkOnError: &quot;deny&quot;</code> to fail closed, and an in-process local limit that stops a runaway loop with no network call
           </li>
           <li>
             <strong>Jobs</strong>: tag AI calls with a <code>jobId</code> and report each job as pending, captured or refunded; see the cost of refunded and
@@ -60,6 +64,11 @@ export default function RoadmapPage() {
 
         <h2>Next, in this order</h2>
         <ol>
+          <li>
+            <strong>Per-user downgrade</strong>: a third setting on a budget, between Alert and Block. Past the amount, <code>meter.check</code> answers
+            &quot;downgrade&quot; with the cheaper model you chose, so a heavy user keeps chatting on a cheaper model instead of being cut off
+            mid-conversation or running up your bill
+          </li>
           <li>
             <strong>Accuracy against real invoices</strong>: the price audit is done; a multi-week comparison with a real app&apos;s provider invoices still
             needs real usage

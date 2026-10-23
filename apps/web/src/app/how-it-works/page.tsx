@@ -167,7 +167,9 @@ export default function HowItWorksPage() {
         </p>
         <p>
           Budgets can also be enforced: mark one as Block, and your backend calls <code>meter.check(userId)</code> before an AI call. It answers from
-          the cost already recorded, and fails open, so if FiscaLLM is slow or down the call goes through.
+          the cost already recorded. If FiscaLLM is slow or down, a user it already refused stays refused and anyone else is allowed (or refused, if
+          you set <code>checkOnError: &quot;deny&quot;</code>). An optional local limit in the SDK counts each user&apos;s calls and tokens in your
+          process, so a runaway loop is stopped even when FiscaLLM cannot be reached.
         </p>
         <p>
           Apps that charge per job (credits held, then captured or returned) can tag each AI event with a <code>jobId</code> and report the job as

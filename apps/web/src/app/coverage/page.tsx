@@ -131,7 +131,8 @@ export default function CoveragePage() {
           <li>It is not an observability tool: no traces, latency, evaluations or prompt management. Tools like Langfuse and Helicone do that.</li>
           <li>
             It blocks nothing by itself. Alerts only report. To refuse a user over budget, mark the budget as Block and call <code>meter.check</code> in your
-            backend; it fails open and is based on cost already recorded, so a user can go slightly over before being refused.
+            backend. It is based on cost already recorded, so a user can go slightly over before being refused. If FiscaLLM is unreachable, users it
+            already refused stay refused and others are allowed unless you choose to fail closed. Automatic downgrade to a cheaper model is on the roadmap.
           </li>
           <li>Hosted use is limited to 100,000 events per app per month. Self-hosting has no limit.</li>
         </ul>

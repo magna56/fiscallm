@@ -3,6 +3,7 @@
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
 ## 2026-10-23
+- **Caps that hold during an outage** (SDKs 0.6.0): if FiscaLLM is slow or down, `meter.check` keeps refusing a user it already refused, instead of letting them through. New `checkOnError: "deny"` (`check_on_error="deny"`) to fail closed for everyone, and `localLimit` (`local_limit=LocalLimit(...)`) to cap each user's calls, tokens or exact cost in your own process with no network call, which stops a runaway loop even when FiscaLLM is unreachable. Results now include `source`.
 - **Jobs**: for apps that charge per job (credits held, then captured or returned). Tag AI calls with a `jobId` and report each job's status with `meter.trackJob({ jobId, userId, status })` (`track_job` in Python) or `POST /api/v1/jobs`. The new Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user. SDKs 0.5.0.
 
 ## 2026-10-19

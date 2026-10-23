@@ -76,7 +76,7 @@ export function ArchitectureDiagram() {
         {/* Left column */}
         <Box x={20} y={64} w={250} h={92} title="Your backend" lines={["AI call → provider, then", "meter.track() in the background"]} />
         <Box x={20} y={204} w={250} h={92} title="RevenueCat / your billing" lines={["purchases, renewals, refunds", "or your own revenue API calls"]} />
-        <Box x={20} y={344} w={250} h={92} title="Your backend, before a call" lines={["meter.check(userId)", "optional, fails open"]} mono />
+        <Box x={20} y={344} w={250} h={92} title="Your backend, before a call" lines={["meter.check(userId)", "optional, holds in outages"]} mono />
 
         {/* Endpoints */}
         <Box x={380} y={64} w={470} h={92} title="POST /api/v1/events" lines={["validate · price · dedupe", "→ ai_events + daily_user_cost (one transaction)"]} mono />

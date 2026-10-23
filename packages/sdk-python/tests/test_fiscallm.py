@@ -316,7 +316,7 @@ class CheckTest(unittest.TestCase):
         post_json, calls = self.server((200, json.dumps({"allow": False, "reason": "daily AI budget reached ($6.00 of $5.00)", "spentToday": 6, "spent30d": 26}).encode()))
         m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
         r = m.check("heavy")
-        self.assertEqual(r, CheckResult(allow=False, reason="daily AI budget reached ($6.00 of $5.00)", spent_today=6, spent_30d=26))
+        self.assertEqual(r, CheckResult(allow=False, reason="daily AI budget reached ($6.00 of $5.00)", spent_today=6, spent_30d=26, source="server"))
         url, headers, body = calls[0]
         self.assertEqual(url, "https://fiscallm.com/api/v1/check")
         self.assertEqual((headers["authorization"], body), ("Bearer k", {"userId": "heavy"}))
@@ -341,6 +341,49 @@ class CheckTest(unittest.TestCase):
         self.assertTrue(Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json).check("").allow)
         self.assertTrue(Meter(api_key="k", disabled=True, _post=Recorder(), _post_json=post_json).check("u").allow)
         self.assertEqual(calls, [])
+
+    def test_keeps_refusing_a_refused_user_while_unreachable(self):
+        post_json, _ = self.server((200, b'{"allow": false, "reason": "daily AI budget reached"}'), OSError("timeout"), OSError("timeout"), (200, b'{"allow": true}'), OSError("timeout"))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        self.assertFalse(m.check("heavy").allow)
+        m._check_cache.clear()  # as if the 5-second cache ran out
+        r = m.check("heavy")
+        self.assertEqual((r.allow, r.reason, r.source), (False, "daily AI budget reached", "last-known"))
+        self.assertEqual(m.check("someone-else"), CheckResult(allow=True, source="unreachable"))
+        m._check_cache.clear()
+        self.assertTrue(m.check("heavy").allow)  # FiscaLLM allows them again
+        m._check_cache.clear()
+        self.assertTrue(m.check("heavy").allow)  # so an outage no longer refuses them
+
+    def test_fails_closed_when_check_on_error_is_deny(self):
+        post_json, _ = self.server((503, b""))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json, check_on_error="deny")
+        r = m.check("a")
+        self.assertEqual((r.allow, r.source), (False, "unreachable"))
+
+    def test_local_limit_refuses_with_no_network_call(self):
+        from fiscallm import LocalLimit
+
+        post_json, calls = self.server()
+        m = Meter(api_key=None, _post=Recorder(), _post_json=post_json, local_limit=LocalLimit(requests=3, window_seconds=60))
+        for _ in range(3):
+            self.assertTrue(m.check("loop").allow)
+            m.track(user_id="loop", provider="openai", model="gpt-4o", input_tokens=10)
+        r = m.check("loop")
+        self.assertEqual((r.allow, r.reason, r.source), (False, "local limit: 3 AI calls in 1 minute", "local"))
+        self.assertTrue(m.check("other").allow)
+        m._recent["loop"] = [(t - 61, n, c) for t, n, c in m._recent["loop"]]  # the window passes
+        self.assertTrue(m.check("loop").allow)
+        self.assertEqual(calls, [])
+
+    def test_local_limit_counts_tokens_and_exact_cost(self):
+        from fiscallm import LocalLimit
+
+        m = Meter(api_key=None, _post=Recorder(), local_limit=LocalLimit(tokens=1000, cost_usd=1))
+        m.track(user_id="t", provider="openai", model="m", input_tokens=600, output_tokens=400)
+        self.assertEqual(m.check("t").reason, "local limit: 1000 tokens in 5 minutes")
+        m.track(user_id="c", provider="fal", model="veo", cost_usd=1.2)
+        self.assertEqual(m.check("c").reason, "local limit: $1.20 in 5 minutes")
 
     def test_async_version(self):
         post_json, _ = self.server((200, b'{"allow": false, "reason": "x"}'))

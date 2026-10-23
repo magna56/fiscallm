@@ -137,7 +137,7 @@ Serverless (Lambda, Cloud Functions): call `meter.flush()` before returning. Str
 
 ## 5b. Optional: block users over budget
 
-If the user wants to stop a user who reached their budget (not just be alerted), call `check` before the AI call. It fails open, so it can never take the app down:
+If the user wants to stop a user who reached their budget (not just be alerted), call `check` before the AI call. If FiscaLLM is unreachable, users it already refused stay refused and others are allowed (set `checkOnError: "deny"` to refuse instead). For runaway loops, `createMeter({ apiKey, localLimit: { requests: 60, windowSeconds: 300 } })` adds an in-process limit that needs no network:
 
 ```ts
 const { allow, reason } = await meter.check(userId);

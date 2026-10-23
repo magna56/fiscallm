@@ -364,8 +364,22 @@ if not r.allow:
         </pre>
         <ul>
           <li>
-            <strong>It fails open.</strong> If FiscaLLM is slow (over 1.5 seconds), down, or the key is wrong, <code>check</code> returns{" "}
-            <code>allow: true</code>. FiscaLLM can never take your app down.
+            <strong>If FiscaLLM is slow or down</strong> (over 1.5 seconds, an error, or a wrong key): a user FiscaLLM already refused stays refused
+            until it says otherwise, so a capped user cannot slip through an outage. Anyone else is allowed by default; set{" "}
+            <code>checkOnError: &quot;deny&quot;</code> (<code>check_on_error=&quot;deny&quot;</code> in Python) to refuse instead. The result&apos;s{" "}
+            <code>source</code> says which case applied.
+          </li>
+          <li>
+            <strong>Local limit</strong>: a guard that needs no network at all. The SDK counts each user&apos;s AI calls, tokens and exact costs in
+            your process, and <code>check</code> refuses past the limit, so a runaway loop is stopped even while FiscaLLM is unreachable:
+            <pre>
+              <code>{`createMeter({ apiKey, localLimit: { requests: 60, tokens: 500_000, windowSeconds: 300 } })
+
+# Python
+Meter(api_key, local_limit=LocalLimit(requests=60, tokens=500_000, window_seconds=300))`}</code>
+            </pre>
+            It counts only calls tracked by this process, so with several servers each one enforces it separately. <code>costUsd</code> counts only
+            events tracked with an exact cost.
           </li>
           <li>The answer is cached for 5 seconds in the SDK and 10 seconds on the server, so a busy backend does not ask on every request.</li>
           <li>

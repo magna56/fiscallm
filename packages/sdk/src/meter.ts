@@ -100,6 +100,29 @@ export interface MeterOptions {
    * reporting off without a deploy.
    */
   disabled?: boolean;
+  /**
+   * What `check()` answers when FiscaLLM cannot be reached: "allow" (default)
+   * or "deny". Either way, a user FiscaLLM refused earlier stays refused until
+   * it says otherwise.
+   */
+  checkOnError?: "allow" | "deny";
+  /**
+   * A per-user limit `check()` enforces in this process, with no network call,
+   * from the events this meter has tracked. Catches a runaway loop even when
+   * FiscaLLM is down. `costUsd` counts only events tracked with an exact cost.
+   */
+  localLimit?: LocalLimit;
+}
+
+export interface LocalLimit {
+  /** AI calls per window. */
+  requests?: number;
+  /** Tokens (input, output, cache reads and writes) per window. */
+  tokens?: number;
+  /** Exact cost (`costUsd` on tracked events) per window. */
+  costUsd?: number;
+  /** Defaults to 300 (5 minutes). */
+  windowSeconds?: number;
 }
 
 export interface TrackContext {
@@ -121,14 +144,21 @@ export interface CheckResult {
   reason?: string;
   spentToday?: number;
   spent30d?: number;
+  /**
+   * Where the answer came from: "server", "local" (the local limit),
+   * "last-known" (FiscaLLM unreachable; the user was refused before) or
+   * "unreachable" (FiscaLLM unreachable; `checkOnError` decided).
+   */
+  source?: "server" | "local" | "last-known" | "unreachable";
 }
 
 export interface Meter {
   /**
    * May this user make another AI call? Call it before the AI call and, on
-   * `allow: false`, refuse, or switch to a cheaper model. Fails open: on any
-   * error, timeout or missing key it returns `{ allow: true }`, so FiscaLLM
-   * being slow or down never takes your app down. Never rejects.
+   * `allow: false`, refuse, or switch to a cheaper model. The `localLimit` is
+   * checked first, in process. If FiscaLLM is slow or down, a user it refused
+   * before stays refused; anyone else gets `checkOnError` (allow by default).
+   * Never rejects.
    */
   check(userId: string): Promise<CheckResult>;
   /** Queues an event. Never throws and never waits on the network. */
@@ -185,6 +215,9 @@ const RETRY_DELAY_MS = 250;
 const CHECK_TIMEOUT_MS = 1500;
 const CHECK_CACHE_MS = 5000;
 const CHECK_CACHE_MAX = 2000;
+// Users the local limit keeps history for; the oldest is dropped past this.
+const LOCAL_USERS_MAX = 10_000;
+const LOCAL_WINDOW_S = 300;
 // Batch window for events from one request when waitUntil is available.
 const WAIT_UNTIL_DELAY_MS = 50;
 // Batch window for long-running servers without waitUntil.
@@ -234,6 +267,43 @@ export function createMeter(options: MeterOptions): Meter {
   };
 
   const checkCache = new Map<string, { value: CheckResult; at: number }>();
+  // Last refusal per user, kept until FiscaLLM allows them again.
+  const lastDeny = new Map<string, CheckResult>();
+  const limit = options.localLimit;
+  const windowMs = (limit?.windowSeconds ?? LOCAL_WINDOW_S) * 1000;
+  const recent = new Map<string, { at: number; tokens: number; cost: number }[]>();
+
+  function recentFor(userId: string, now: number) {
+    const list = (recent.get(userId) ?? []).filter((e) => now - e.at < windowMs);
+    if (list.length === 0) recent.delete(userId);
+    else recent.set(userId, list);
+    return list;
+  }
+
+  function noteLocal(userId: string, tokens: number, cost: number) {
+    if (!limit) return;
+    const now = Date.now();
+    const list = recentFor(userId, now);
+    list.push({ at: now, tokens, cost });
+    // Re-insert so Map order is least recently used first.
+    recent.delete(userId);
+    recent.set(userId, list);
+    if (recent.size > LOCAL_USERS_MAX) recent.delete(recent.keys().next().value!);
+  }
+
+  function localRefusal(userId: string): CheckResult | undefined {
+    if (!limit) return undefined;
+    const list = recentFor(userId, Date.now());
+    const secs = windowMs / 1000;
+    const mins = secs % 60 === 0 ? (secs === 60 ? "1 minute" : `${secs / 60} minutes`) : `${secs} seconds`;
+    const tokens = list.reduce((n, e) => n + e.tokens, 0);
+    const cost = list.reduce((n, e) => n + e.cost, 0);
+    let reason: string | undefined;
+    if (limit.requests !== undefined && list.length >= limit.requests) reason = `local limit: ${list.length} AI calls in ${mins}`;
+    else if (limit.tokens !== undefined && tokens >= limit.tokens) reason = `local limit: ${tokens} tokens in ${mins}`;
+    else if (limit.costUsd !== undefined && cost >= limit.costUsd) reason = `local limit: $${cost.toFixed(2)} in ${mins}`;
+    return reason ? { allow: false, reason, source: "local" } : undefined;
+  }
   let queue: WireEvent[] = [];
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pendingRelease: (() => void) | undefined;
@@ -451,9 +521,21 @@ export function createMeter(options: MeterOptions): Meter {
 
     async check(userId) {
       const open: CheckResult = { allow: true };
+      if (!userId) return open;
+      const id = String(userId);
+      // When FiscaLLM cannot answer: keep refusing a user it refused before,
+      // otherwise do what checkOnError says.
+      const fallback = (): CheckResult => {
+        const last = lastDeny.get(id);
+        if (last) return { ...last, source: "last-known" };
+        return options.checkOnError === "deny"
+          ? { allow: false, reason: "FiscaLLM unreachable; checkOnError is deny", source: "unreachable" }
+          : { allow: true, source: "unreachable" };
+      };
       try {
-        if (!options.apiKey || !userId) return open;
-        const id = String(userId);
+        const local = localRefusal(id);
+        if (local) return local;
+        if (!options.apiKey) return open;
         const hit = checkCache.get(id);
         if (hit && Date.now() - hit.at < CHECK_CACHE_MS) return hit.value;
         const res = await fetch(endpoint.replace(/\/events$/, "/check"), {
@@ -463,8 +545,8 @@ export function createMeter(options: MeterOptions): Meter {
           signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
         });
         if (!res.ok) {
-          if (res.status === 401 || res.status === 403) warnOnce(`check-${res.status}`, `check() was refused (${res.status}); check the ingest key. Allowing the call.`);
-          return open;
+          if (res.status === 401 || res.status === 403) warnOnce(`check-${res.status}`, `check() was refused (${res.status}); check the ingest key. Using checkOnError.`);
+          return fallback();
         }
         const data = (await res.json()) as Partial<CheckResult>;
         const value: CheckResult = {
@@ -472,17 +554,30 @@ export function createMeter(options: MeterOptions): Meter {
           ...(typeof data.reason === "string" ? { reason: data.reason } : {}),
           ...(typeof data.spentToday === "number" ? { spentToday: data.spentToday } : {}),
           ...(typeof data.spent30d === "number" ? { spent30d: data.spent30d } : {}),
+          source: "server",
         };
         if (checkCache.size >= CHECK_CACHE_MAX) checkCache.clear();
         checkCache.set(id, { value, at: Date.now() });
+        if (value.allow) lastDeny.delete(id);
+        else {
+          if (lastDeny.size >= CHECK_CACHE_MAX) lastDeny.clear();
+          lastDeny.set(id, value);
+        }
         return value;
       } catch {
-        return open;
+        return fallback();
       }
     },
 
     track(event) {
       try {
+        if (event?.userId) {
+          noteLocal(
+            String(event.userId),
+            count(event.inputTokens) + count(event.outputTokens) + count(event.cachedTokens) + count(event.cacheWriteTokens),
+            typeof event.costUsd === "number" && event.costUsd > 0 ? event.costUsd : 0,
+          );
+        }
         if (!options.apiKey) {
           warnOnce("no-key", "no apiKey given; events are not sent");
           return;

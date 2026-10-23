@@ -11,6 +11,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
   {
     date: "2026-10-23",
     items: [
+      "Caps that hold during an outage (SDKs 0.6.0): if FiscaLLM is slow or down, meter.check keeps refusing a user it already refused. New checkOnError: \"deny\" to fail closed, and localLimit to cap each user's calls, tokens or exact cost in your own process with no network call, so a runaway loop stops even when FiscaLLM is unreachable.",
       "Jobs, for pay-per-job apps (credits held, then charged or returned): tag AI calls with a jobId and report each job as pending, captured or refunded with meter.trackJob (TypeScript), meter.track_job (Python) or POST /api/v1/jobs. The new Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user. SDKs 0.5.0.",
     ],
   },

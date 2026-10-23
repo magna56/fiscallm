@@ -59,7 +59,7 @@ meter.track_openai(res, user_id=user_id, feature="chat")
 - Both are joined on the user ID. RevenueCat aliases are resolved, so anonymous and logged-in users merge.
 - **Budgets and alerts**: email, Slack or signed webhooks when a user goes over budget, when a paying user loses money, or when one user burns a huge number of tokens in 5 minutes (a runaway loop).
 - **Jobs** (pay-per-job apps, e.g. credits for a video render): tag AI calls with a `jobId` and report each job as pending, captured or refunded with `meter.trackJob` / `track_job`. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user.
-- **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` before an AI call (TypeScript, Python). It says no once the user reaches the amount, and **fails open** if FiscaLLM is slow or down.
+- **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` before an AI call (TypeScript, Python). It says no once the user reaches the amount, If FiscaLLM is slow or down, a user it already refused stays refused; anyone else is allowed by default (or refused, with `checkOnError: "deny"`). An optional **local limit** counts each user's calls and tokens in your process, so a runaway loop is stopped even with no network.
 
 Cost is priced on arrival: exact `costUsd` if given, otherwise per-token (input, output, cache read and cache write priced separately) or per-unit (images, audio, video) from a price table. Unknown models are flagged as unpriced, never counted as zero.
 

@@ -111,6 +111,7 @@ export default function IntegrationsPage() {
             ["CSV export", "Supported", "Users, plans, trials and cost by model."],
             ["Slack alerts", "Supported", "Paste a Slack incoming-webhook URL as an alert's webhook."],
             ["Runaway-loop alert", "Supported", "A user using more tokens in 5 minutes than you allow."],
+            ["Jobs (pay-per-job credits)", "Supported", "Tag AI calls with a jobId and report pending, captured or refunded. Shows the cost of refunded and unresolved jobs per user."],
             ["Spending caps", "Supported", "Mark a per-user budget as Block and call meter.check(userId) before a request. Fails open; based on cost already recorded."],
           ]}
         />

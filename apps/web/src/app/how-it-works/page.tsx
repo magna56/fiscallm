@@ -169,6 +169,12 @@ export default function HowItWorksPage() {
           Budgets can also be enforced: mark one as Block, and your backend calls <code>meter.check(userId)</code> before an AI call. It answers from
           the cost already recorded, and fails open, so if FiscaLLM is slow or down the call goes through.
         </p>
+        <p>
+          Apps that charge per job (credits held, then captured or returned) can tag each AI event with a <code>jobId</code> and report the job as
+          pending, captured or refunded. The newest status wins, and a late &quot;pending&quot; never reopens a finished job. A job with no captured or
+          refunded status an hour after its last event counts as unresolved. The Jobs page sums the cost of refunded and unresolved jobs per user: AI
+          spend the user never paid for.
+        </p>
 
         <h2 id="failure">When something fails</h2>
         <table>

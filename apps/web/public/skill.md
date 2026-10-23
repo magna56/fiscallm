@@ -146,6 +146,18 @@ if (!allow) return new Response(reason, { status: 429 });
 
 Python: `r = meter.check(user_id)` (`await meter.acheck(user_id)` in async code). The user must also add a daily or 30-day budget in Settings and tick "Block". Only add this if they asked for it.
 
+## 5c. Optional: pay-per-job apps
+
+If the app charges per job (credits held when a job starts, then taken or returned), pass the job id on each AI call and report the outcome. Only add this if the app works this way:
+
+```ts
+meter.trackJob({ jobId, userId, status: "pending" });   // credits held
+meter.track({ userId, provider, model, units: 15, unit: "second", jobId }); // or trackOpenAI(res, { userId, jobId })
+meter.trackJob({ jobId, userId, status: "captured" });  // or "refunded" when credits go back
+```
+
+Python: `job_id=` on `track`/`track_openai`/etc., and `meter.track_job(job_id=..., user_id=..., status=...)`. If a failed job was still billed by the provider, track its cost anyway (units or `costUsd`) before reporting "refunded". Needs SDK 0.5.0 or later.
+
 ## 6. Finish
 
 Tell the user, briefly:

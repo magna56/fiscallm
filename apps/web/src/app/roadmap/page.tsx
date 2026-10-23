@@ -48,6 +48,10 @@ export default function RoadmapPage() {
             <strong>Spending caps</strong>: mark a per-user budget as Block and call <code>meter.check(userId)</code> (TypeScript and Python); fails open
           </li>
           <li>
+            <strong>Jobs</strong>: tag AI calls with a <code>jobId</code> and report each job as pending, captured or refunded; see the cost of refunded and
+            unresolved jobs per user (SDKs 0.5.0)
+          </li>
+          <li>
             <strong>Slack alerts</strong> and a <strong>runaway-loop alert</strong> (a user over N tokens in 5 minutes)
           </li>
           <li>Runnable examples (sample-data script, Next.js and FastAPI starting points) and a deploy-to-Vercel button</li>

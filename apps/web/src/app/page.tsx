@@ -35,6 +35,7 @@ const FAQ: [string, string][] = [
   ["Do I need RevenueCat?", "No. Connect RevenueCat or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check fails open."],
   ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
+  ["I charge per job (credits), not per month. Does it fit?", "Yes. Tag each AI call with your job id and report whether the user's credits were captured or refunded. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user."],
   ["What does it cost?", "Nothing. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
 ];
 
@@ -336,6 +337,7 @@ function Actions() {
   const actions: [string, string][] = [
     ["Price plans on real numbers", "See which plan loses money once AI is paid for."],
     ["Cap heavy users", "Mark a budget as Block, and meter.check(userId) tells your backend to refuse the user or use a cheaper model. It fails open."],
+    ["See what failed jobs cost you", "Credits refunded on a failed render, or a timeout never reconciled: the Jobs page shows what you paid the provider anyway, per user."],
     ["Switch the expensive feature", "Find the feature and model behind the bill; move it to a cheaper model."],
     ["Fix trials that don't pay off", "Know what each trial and each conversion costs."],
     ["Catch runaway loops", "By email, Slack or webhook, when a user goes over budget or burns a huge number of tokens in 5 minutes."],

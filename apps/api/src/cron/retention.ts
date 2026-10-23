@@ -26,5 +26,7 @@ export async function deleteOldRawEvents(db: AnyDb) {
     .delete(schema.aiEvents)
     .where(lt(schema.aiEvents.ts, cutoff))
     .returning({ id: schema.aiEvents.id });
+  // Job outcomes only matter next to their raw events.
+  await db.delete(schema.jobs).where(lt(schema.jobs.statusAt, cutoff));
   return { deleted: deleted.length, before: cutoff.toISOString() };
 }

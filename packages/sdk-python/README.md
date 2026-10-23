@@ -39,6 +39,14 @@ meter.track(user_id=user_id, provider="fal", model="flux-pro", cost_usd=0.05)
 # No RevenueCat? Report payments yourself:
 meter.track_revenue(id=invoice_id, user_id=user_id, type="renewal", amount_usd=9.99, fee_pct=0.15)
 
+# Pay-per-job apps (credits held, then charged or returned): tag the job's
+# calls, report the outcome, and the Jobs page shows the cost of refunded
+# or never-resolved jobs per user. Track a failed job's cost too if the
+# provider still billed it.
+meter.track_job(job_id=job_id, user_id=user_id, status="pending")
+meter.track(user_id=user_id, provider="fal", model="veo-3", units=15, unit="second", job_id=job_id)
+meter.track_job(job_id=job_id, user_id=user_id, status="captured")   # or "refunded"
+
 # Serverless (AWS Lambda, Cloud Functions): before returning
 meter.flush()          # or: await meter.aflush()
 ```

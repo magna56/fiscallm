@@ -9,6 +9,12 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-10-23",
+    items: [
+      "Jobs, for pay-per-job apps (credits held, then charged or returned): tag AI calls with a jobId and report each job as pending, captured or refunded with meter.trackJob (TypeScript), meter.track_job (Python) or POST /api/v1/jobs. The new Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user. SDKs 0.5.0.",
+    ],
+  },
+  {
     date: "2026-10-19",
     items: [
       "Spending caps: mark a daily or 30-day per-user budget as Block, and call meter.check(userId) (TypeScript) or meter.check(user_id) (Python) before an AI call. It says no once the user reaches the amount, and fails open if FiscaLLM is slow or down. Also POST /api/v1/check. SDKs 0.4.0.",

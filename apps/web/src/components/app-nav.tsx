@@ -7,6 +7,7 @@ const TABS = [
   ["", "Overview", "M3 12h4l3-8 4 16 3-8h4"],
   ["/users", "Users", "M16 19v-1a4 4 0 0 0-8 0v1M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6"],
   ["/plans", "Plans", "M4 6h16M4 12h16M4 18h10"],
+  ["/jobs", "Jobs", "M4 7h16v12H4zM9 7V5h6v2"],
   ["/trials", "Trials", "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18"],
   ["/setup", "Setup", "M4 12l5 5L20 6"],
   ["/settings", "Settings", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 12h2M3 12h2M12 3v2M12 19v2"],

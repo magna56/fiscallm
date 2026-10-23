@@ -18,7 +18,8 @@ class Recorder:
         self.calls = []
 
     def __call__(self, url, headers, body):
-        self.calls.append((url, headers, json.loads(body)["events"]))
+        data = json.loads(body)
+        self.calls.append((url, headers, data.get("events", data.get("jobs"))))
         status = self.statuses.pop(0) if self.statuses else 202
         if isinstance(status, Exception):
             raise status
@@ -132,6 +133,21 @@ class RevenueTest(unittest.TestCase):
         self.assertEqual(batch[0]["periodEnd"], "2026-11-17T00:00:00Z")
         self.assertEqual((batch[0]["amountUsd"], batch[0]["feePct"]), (9.99, 0.15))
         self.assertNotIn("netUsd", batch[0])
+
+
+class JobTest(unittest.TestCase):
+    def test_tags_events_and_sends_outcomes_to_the_jobs_endpoint(self):
+        rec = Recorder()
+        m = meter(rec)
+        m.track_openai(NS(model="gpt-4o", usage=NS(prompt_tokens=3, completion_tokens=2)), user_id="u", job_id="render-1")
+        m.track_job(job_id="render-1", user_id="u", status="refunded")
+        m.track_job(job_id="render-2", user_id="u", status="lost")
+        m.flush()
+        by_url = {url: batch for url, _, batch in rec.calls}
+        self.assertEqual(by_url["https://fiscallm.com/api/v1/events"][0]["jobId"], "render-1")
+        jobs = by_url["https://fiscallm.com/api/v1/jobs"]
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual((jobs[0]["jobId"], jobs[0]["status"]), ("render-1", "refunded"))
 
 
 class StreamTest(unittest.TestCase):

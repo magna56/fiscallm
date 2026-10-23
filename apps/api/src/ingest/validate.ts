@@ -29,6 +29,8 @@ export const eventSchema = z.object({
   // An exact cost; wins over the price table.
   costUsd: z.number().nonnegative().max(1000).optional(),
   feature: z.string().min(1).max(64).optional(),
+  // Joins the cost to a job outcome sent to POST /v1/jobs.
+  jobId: z.string().min(1).max(128).optional(),
 });
 
 const withUnit = eventSchema.refine((e) => (e.units === undefined) === (e.unit === undefined), {

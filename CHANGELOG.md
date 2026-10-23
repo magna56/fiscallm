@@ -2,6 +2,9 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-10-23
+- **Jobs**: for apps that charge per job (credits held, then captured or returned). Tag AI calls with a `jobId` and report each job's status with `meter.trackJob({ jobId, userId, status })` (`track_job` in Python) or `POST /api/v1/jobs`. The new Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user. SDKs 0.5.0.
+
 ## 2026-10-19
 - **Spending caps**: mark a daily or 30-day per-user budget as Block, and call `meter.check(userId)` (TypeScript) or `meter.check(user_id)` (Python, `acheck` for async) before an AI call. It returns `allow: false` with a reason once the user reaches the amount, and fails open if FiscaLLM is slow or down. Also available as `POST /api/v1/check`. SDKs 0.4.0.
 - **Slack alerts**: paste a Slack incoming-webhook URL as an alert's webhook.

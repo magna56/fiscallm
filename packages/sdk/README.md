@@ -44,6 +44,14 @@ meter.track({ userId, provider: "fal", model: "flux", costUsd: 0.04 });
 // No RevenueCat? Report payments yourself:
 meter.trackRevenue({ id: invoice.id, userId, type: "renewal", amountUsd: 9.99, feePct: 0.15 });
 
+// Pay-per-job apps (credits held, then charged or returned): tag the job's
+// calls, report the outcome, and the Jobs page shows the cost of refunded
+// or never-resolved jobs per user. Track a failed job's cost too if the
+// provider still billed it.
+meter.trackJob({ jobId, userId, status: "pending" });
+meter.track({ userId, provider: "fal", model: "veo-3", units: 15, unit: "second", jobId });
+meter.trackJob({ jobId, userId, status: "captured" }); // or "refunded"
+
 // Serverless without waitUntil (e.g. Firebase): before returning
 await meter.flush();
 ```

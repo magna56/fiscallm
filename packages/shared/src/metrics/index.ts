@@ -348,3 +348,105 @@ export async function breakdown(
   };
 }
 
+
+export type JobOutcomeKind = "captured" | "refunded" | "unresolved" | "inProgress";
+
+export interface JobTotals {
+  jobs: number;
+  costUsd: number;
+}
+
+export interface JobLossUser {
+  userId: string;
+  /** AI cost of jobs whose payment was given back. */
+  refundedCostUsd: number;
+  refundedJobs: number;
+  /** AI cost of jobs never captured or refunded, past `staleAfterMinutes`. */
+  unresolvedCostUsd: number;
+  unresolvedJobs: number;
+}
+
+export interface JobLoss {
+  /** The range actually used: raw events are kept 90 days. */
+  range: Range;
+  totals: Record<JobOutcomeKind, JobTotals>;
+  /** Users with refunded or unresolved job cost, most lost first. */
+  users: JobLossUser[];
+  /** Job events with no price; their cost is missing from the totals. */
+  unpriced: number;
+}
+
+/**
+ * AI cost per job, split by what happened to the user's payment. Only events
+ * sent with a jobId count. A job with no final status (pending, or never
+ * reported) is "in progress" until nothing has happened on it for
+ * `staleAfterMinutes`, then "unresolved": you may have paid the provider for
+ * it without charging the user. Its cost is already in the user's margin;
+ * this shows how much of it bought nothing the user paid for.
+ */
+export async function jobLoss(
+  db: MetricsDb,
+  appId: string,
+  r: Range,
+  opts: { now?: Date; staleAfterMinutes?: number; limit?: number } = {},
+): Promise<JobLoss> {
+  const now = opts.now ?? new Date();
+  const oldest = lastDays(RAW_RETENTION_DAYS, now).from;
+  const range = { from: r.from < oldest ? oldest : r.from, to: r.to };
+  const stale = new Date(now.getTime() - (opts.staleAfterMinutes ?? 60) * 60_000).toISOString();
+  const jobsCte = sql`
+    job_cost AS (
+      SELECT e.job_id, min(e.user_id) AS user_id, sum(e.cost_usd) AS cost, max(e.ts) AS last_ts,
+             count(*) FILTER (WHERE e.cost_usd IS NULL) AS unpriced
+      FROM ai_events e
+      WHERE e.app_id = ${appId}::uuid AND e.job_id IS NOT NULL
+        AND e.ts >= ${range.from}::date AND e.ts < ${range.to}::date
+      GROUP BY e.job_id
+    ),
+    job AS (
+      SELECT coalesce(a.canonical_user_id, j.user_id, c.user_id) AS uid, c.cost, c.unpriced,
+             CASE WHEN j.status IN ('captured', 'refunded') THEN j.status
+                  WHEN greatest(c.last_ts, j.status_at) < ${stale}::timestamptz THEN 'unresolved'
+                  ELSE 'inProgress' END AS outcome
+      FROM job_cost c
+      LEFT JOIN jobs j ON j.app_id = ${appId}::uuid AND j.job_id = c.job_id
+      LEFT JOIN user_aliases a ON a.app_id = ${appId}::uuid AND a.alias = coalesce(j.user_id, c.user_id)
+    )`;
+  const totals = await query(
+    db,
+    sql`WITH ${jobsCte}
+      SELECT outcome, count(*) AS jobs, sum(cost) AS cost, sum(unpriced) AS unpriced FROM job GROUP BY outcome`,
+  );
+  const rows = await query(
+    db,
+    sql`WITH ${jobsCte}
+      SELECT uid,
+             sum(cost) FILTER (WHERE outcome = 'refunded') AS refunded_cost,
+             count(*) FILTER (WHERE outcome = 'refunded') AS refunded_jobs,
+             sum(cost) FILTER (WHERE outcome = 'unresolved') AS unresolved_cost,
+             count(*) FILTER (WHERE outcome = 'unresolved') AS unresolved_jobs
+      FROM job WHERE outcome IN ('refunded', 'unresolved')
+      GROUP BY uid
+      ORDER BY coalesce(sum(cost), 0) DESC, uid
+      LIMIT ${opts.limit ?? 50}`,
+  );
+  const empty = (): JobTotals => ({ jobs: 0, costUsd: 0 });
+  const out: Record<JobOutcomeKind, JobTotals> = { captured: empty(), refunded: empty(), unresolved: empty(), inProgress: empty() };
+  let unpriced = 0;
+  for (const t of totals) {
+    out[t.outcome as JobOutcomeKind] = { jobs: num(t.jobs), costUsd: num(t.cost) };
+    unpriced += num(t.unpriced);
+  }
+  return {
+    range,
+    totals: out,
+    unpriced,
+    users: rows.map((x) => ({
+      userId: String(x.uid),
+      refundedCostUsd: num(x.refunded_cost),
+      refundedJobs: num(x.refunded_jobs),
+      unresolvedCostUsd: num(x.unresolved_cost),
+      unresolvedJobs: num(x.unresolved_jobs),
+    })),
+  };
+}

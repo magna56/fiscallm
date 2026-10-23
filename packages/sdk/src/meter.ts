@@ -27,7 +27,31 @@ export interface TrackEvent {
   costUsd?: number;
   /** Your own label, e.g. "chat" or "summary", to break cost down by. */
   feature?: string;
+  /**
+   * Your id for the job this call belongs to, e.g. a video render. Report
+   * what happened to the user's payment with `trackJob`, and FiscaLLM shows
+   * the cost of jobs the user was refunded for, or never charged.
+   */
+  jobId?: string;
   /** When the call happened. Defaults to now. */
+  ts?: Date | string;
+}
+
+/**
+ * What happened to the user's payment (or credits) for a job. Send it each
+ * time the status changes; the newest report wins, and "pending" never
+ * reopens a job already captured or refunded.
+ */
+export interface JobOutcome {
+  /** The same `jobId` passed when tracking the job's AI calls. */
+  jobId: string;
+  userId: string;
+  /**
+   * pending: payment held, outcome not known yet (e.g. the provider timed out).
+   * captured: the user was charged. refunded: the user got it back.
+   */
+  status: "pending" | "captured" | "refunded";
+  /** When the status changed. Defaults to now. */
   ts?: Date | string;
 }
 
@@ -81,6 +105,8 @@ export interface MeterOptions {
 export interface TrackContext {
   userId: string;
   feature?: string;
+  /** See `TrackEvent.jobId`. */
+  jobId?: string;
   /** Name an OpenAI-compatible provider, e.g. "groq" or "openrouter". */
   provider?: string;
   /** Overrides the model read from the response. */
@@ -126,6 +152,8 @@ export interface Meter {
   trackSSE(response: Response, ctx: TrackContext): Response;
   /** Reports a payment, for apps without RevenueCat. Sent right away, in the background. */
   trackRevenue(event: RevenueEvent): void;
+  /** Reports a job's payment status. Sent right away, in the background. */
+  trackJob(outcome: JobOutcome): void;
   /** Sends everything queued. Never rejects. */
   flush(): Promise<void>;
 }
@@ -145,6 +173,7 @@ interface WireEvent {
   variant?: string;
   costUsd?: number;
   feature?: string;
+  jobId?: string;
 }
 
 const DEFAULT_ENDPOINT = "https://fiscallm.com/api/v1/events";
@@ -177,6 +206,7 @@ const DISABLED_METER: Meter = {
   trackStream: (stream) => stream,
   trackSSE: (response) => response,
   trackRevenue() {},
+  trackJob() {},
   async flush() {},
 };
 
@@ -211,7 +241,7 @@ export function createMeter(options: MeterOptions): Meter {
   // trackSSE copies still being read; flush() waits for them too.
   const reading = new Set<Promise<void>>();
 
-  async function post(batch: unknown[], url = endpoint): Promise<"ok" | "retry" | "drop"> {
+  async function post(batch: unknown[], url = endpoint, field = "events"): Promise<"ok" | "retry" | "drop"> {
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -219,7 +249,7 @@ export function createMeter(options: MeterOptions): Meter {
           "content-type": "application/json",
           authorization: `Bearer ${options.apiKey}`,
         },
-        body: JSON.stringify({ events: batch }),
+        body: JSON.stringify({ [field]: batch }),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
       if (res.ok) return "ok";
@@ -232,10 +262,10 @@ export function createMeter(options: MeterOptions): Meter {
     }
   }
 
-  async function send(batch: unknown[], url = endpoint): Promise<void> {
-    if ((await post(batch, url)) !== "retry") return;
+  async function send(batch: unknown[], url = endpoint, field = "events"): Promise<void> {
+    if ((await post(batch, url, field)) !== "retry") return;
     await sleep(RETRY_DELAY_MS);
-    if ((await post(batch, url)) === "retry") {
+    if ((await post(batch, url, field)) === "retry") {
       warnOnce("unreachable", `could not reach ${url}; ${batch.length} events dropped`);
     }
   }
@@ -299,6 +329,7 @@ export function createMeter(options: MeterOptions): Meter {
       ...usage,
       userId: ctx.userId,
       feature: ctx.feature,
+      jobId: ctx.jobId,
       provider: ctx.provider ?? usage.provider,
       model: ctx.model ?? usage.model,
     });
@@ -392,6 +423,32 @@ export function createMeter(options: MeterOptions): Meter {
       }
     },
 
+    trackJob(outcome) {
+      try {
+        if (!options.apiKey) {
+          warnOnce("no-key", "no apiKey given; events are not sent");
+          return;
+        }
+        if (!outcome?.jobId || !outcome.userId || !["pending", "captured", "refunded"].includes(outcome.status)) {
+          warnOnce("invalid-job", "trackJob() needs jobId, userId and a status of pending, captured or refunded; skipped");
+          return;
+        }
+        const ts = outcome.ts === undefined ? new Date() : new Date(outcome.ts);
+        const wire = {
+          jobId: String(outcome.jobId),
+          userId: String(outcome.userId),
+          status: outcome.status,
+          ts: (Number.isNaN(ts.getTime()) ? new Date() : ts).toISOString(),
+        };
+        const p = send([wire], endpoint.replace(/\/events$/, "/jobs"), "jobs").catch(() => {});
+        inflight.add(p);
+        p.finally(() => inflight.delete(p));
+        keepAlive(p);
+      } catch {
+        // Metering must never break the caller.
+      }
+    },
+
     async check(userId) {
       const open: CheckResult = { allow: true };
       try {
@@ -449,6 +506,7 @@ export function createMeter(options: MeterOptions): Meter {
           ...(event.variant && event.units ? { variant: String(event.variant) } : {}),
           ...(typeof event.costUsd === "number" && event.costUsd >= 0 ? { costUsd: event.costUsd } : {}),
           ...(event.feature ? { feature: event.feature } : {}),
+          ...(event.jobId ? { jobId: String(event.jobId) } : {}),
         });
         if (queue.length >= MAX_BATCH) void sendQueued();
         else schedule();

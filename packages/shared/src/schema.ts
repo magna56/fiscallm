@@ -66,10 +66,39 @@ export const aiEvents = pgTable(
       enum: ["table", "override", "client"],
     }).notNull(),
     feature: text("feature"),
+    // Your own id for the unit of work the call belongs to, e.g. a video
+    // render. Joins the cost to the job's outcome in `jobs`.
+    jobId: text("job_id"),
   },
   (t) => [
     primaryKey({ columns: [t.appId, t.id] }),
     index("ai_events_app_user_ts").on(t.appId, t.userId, t.ts),
+    index("ai_events_app_job").on(t.appId, t.jobId),
+  ],
+).enableRLS();
+
+export const JOB_STATUSES = ["pending", "captured", "refunded"] as const;
+export type JobStatus = (typeof JOB_STATUSES)[number];
+
+// What happened to the user's payment for a job: still held ("pending"),
+// charged ("captured") or given back ("refunded"). Cost on jobs that were
+// refunded, or never resolved, is cost the user did not pay for.
+export const jobs = pgTable(
+  "jobs",
+  {
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    jobId: text("job_id").notNull(),
+    userId: text("user_id").notNull(),
+    status: text("status", { enum: JOB_STATUSES }).notNull(),
+    // When the status took effect; older reports never overwrite newer ones.
+    statusAt: ts("status_at").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.appId, t.jobId] }),
+    index("jobs_app_status_at").on(t.appId, t.statusAt),
   ],
 ).enableRLS();
 

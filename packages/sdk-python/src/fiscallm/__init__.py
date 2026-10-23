@@ -10,4 +10,4 @@ from .meter import DEFAULT_ENDPOINT, MAX_BATCH, CheckResult, Meter
 from .usage import StreamUsage, Usage, from_anthropic, from_gemini, from_openai
 
 __all__ = ["Meter", "CheckResult", "Usage", "StreamUsage", "from_openai", "from_anthropic", "from_gemini", "DEFAULT_ENDPOINT", "MAX_BATCH"]
-__version__ = "0.4.0"
+__version__ = "0.5.0"

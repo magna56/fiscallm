@@ -385,6 +385,55 @@ Authorization: Bearer fsk_…
       "spentToday": 6.12, "spent30d": 26.4, "dailyLimit": 5, "monthlyLimit": null }`}</code>
         </pre>
 
+        <h2 id="jobs">Jobs, holds and refunds</h2>
+        <p>
+          For apps that charge per job (credits for a video render, an image, a report): tag the job&apos;s AI calls with your job id, and report
+          what happened to the user&apos;s payment. The <strong>Jobs</strong> page then shows the AI cost of jobs you refunded, and of jobs that
+          never resolved, per user.
+        </p>
+        <pre>
+          <code>{`meter.trackJob({ jobId, userId, status: "pending" });   // credits held, job started
+meter.track({ userId, provider: "fal", model: "veo-3", units: 15, unit: "second", jobId });
+meter.trackJob({ jobId, userId, status: "captured" });  // clip stored, credits taken
+// or, on a definite failure:
+meter.trackJob({ jobId, userId, status: "refunded" });  // credits returned
+
+# Python
+meter.track(user_id=user_id, provider="fal", model="veo-3", units=15, unit="second", job_id=job_id)
+meter.track_job(job_id=job_id, user_id=user_id, status="refunded")`}</code>
+        </pre>
+        <ul>
+          <li>
+            <code>jobId</code> also works on <code>trackOpenAI</code>, <code>trackStream</code> and the other helpers (<code>job_id</code> in
+            Python).
+          </li>
+          <li>
+            The newest status wins. A late <code>pending</code> never reopens a job that was captured or refunded, so retries and out-of-order
+            deliveries are safe.
+          </li>
+          <li>
+            A job with no captured or refunded status an hour after its last event counts as <strong>unresolved</strong>: cost you may have paid
+            without charging the user. After a timeout, track the cost once you learn the provider billed it, and report the outcome when you
+            reconcile.
+          </li>
+          <li>Job cost is already part of each user&apos;s margin. The Jobs page shows how much of it bought nothing the user paid for.</li>
+          <li>
+            <strong>Failed but billed:</strong> a failed job often returns no usage, so it is easy to skip tracking it. If the provider still
+            charged you, track the call anyway, with its units or the exact cost, then report the refund. If the provider did not charge you,
+            report only the refund; the job then shows $0 cost.
+          </li>
+        </ul>
+        <pre>
+          <code>{`// The render failed; the user gets their credits back, but the provider billed it.
+meter.track({ userId, provider: "fal", model: "veo-3", units: 15, unit: "second", jobId });
+// or, if you know the exact charge:
+meter.track({ userId, provider: "fal", model: "veo-3", costUsd: 0.75, jobId });
+meter.trackJob({ jobId, userId, status: "refunded" });`}</code>
+        </pre>
+        <ul>
+          <li>Without the SDK: <code>{`POST /api/v1/jobs { "jobs": [{ "jobId", "userId", "status", "ts"? }] }`}</code>, up to 100 per request.</li>
+        </ul>
+
         <h2 id="api">Ingest API</h2>
         <p>For backends not written in TypeScript, send events directly:</p>
         <pre>

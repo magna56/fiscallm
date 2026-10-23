@@ -167,6 +167,20 @@ describe("createMeter", () => {
     expect(e.ts).toBeTruthy();
   });
 
+  it("tags events with a job id and sends job outcomes to the jobs endpoint", async () => {
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    meter.trackOpenAI({ model: "gpt-4o", usage: { prompt_tokens: 3, completion_tokens: 2 } }, { userId: "u", jobId: "render-1" });
+    meter.trackJob({ jobId: "render-1", userId: "u", status: "refunded" });
+    meter.trackJob({ jobId: "render-2", userId: "u", status: "lost" as never });
+    await meter.flush();
+    const calls = fetchMock.mock.calls.map(([url, init]) => [url, JSON.parse((init as RequestInit).body as string)]);
+    const jobs = calls.find(([url]) => url === "https://fiscallm.com/api/v1/jobs")![1].jobs;
+    expect(jobs).toEqual([{ jobId: "render-1", userId: "u", status: "refunded", ts: expect.any(String) }]);
+    const events = calls.find(([url]) => url === "https://fiscallm.com/api/v1/events")![1].events;
+    expect(events[0].jobId).toBe("render-1");
+    expect(quiet.warn.mock.calls.some(([m]) => String(m).includes("trackJob() needs"))).toBe(true);
+  });
+
   it("survives a waitUntil that throws", async () => {
     const meter = createMeter({
       apiKey: "k",

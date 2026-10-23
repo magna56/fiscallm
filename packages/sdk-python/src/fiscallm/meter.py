@@ -139,13 +139,15 @@ class Meter:
         variant: Optional[str] = None,
         cost_usd: Optional[float] = None,
         feature: Optional[str] = None,
+        job_id: Optional[str] = None,
         ts: Optional[datetime] = None,
     ) -> None:
         """Queues one event. ``input_tokens`` excludes cache reads and writes.
 
         For usage priced per unit, pass ``units`` with ``unit`` ("image",
         "second", "minute" or "character") and optionally a ``variant`` such
-        as "1080p". Pass ``cost_usd`` to give the exact cost instead."""
+        as "1080p". Pass ``cost_usd`` to give the exact cost instead. ``job_id``
+        ties the call to a job whose payment you report with ``track_job``."""
         if self._disabled:
             return
         try:
@@ -177,6 +179,8 @@ class Meter:
                 event["costUsd"] = float(cost_usd)
             if feature:
                 event["feature"] = feature
+            if job_id:
+                event["jobId"] = str(job_id)
             with self._lock:
                 self._queue.append(event)
                 full = len(self._queue) >= MAX_BATCH
@@ -247,28 +251,58 @@ class Meter:
         except Exception:
             pass
 
-    def track_openai(self, response: Any, *, user_id: str, feature: Optional[str] = None, provider: Optional[str] = None, model: Optional[str] = None) -> None:
+    def track_job(self, *, job_id: str, user_id: str, status: str, ts: Optional[datetime] = None) -> None:
+        """Reports what happened to the user's payment (or credits) for a job:
+        "pending" (held, outcome not known yet, e.g. the provider timed out),
+        "captured" (charged) or "refunded" (given back). Send it each time the
+        status changes; the newest report wins, and "pending" never reopens a
+        captured or refunded job. Sent right away on a background thread."""
+        if self._disabled:
+            return
+        try:
+            if not self._api_key:
+                return
+            if not job_id or not user_id or status not in ("pending", "captured", "refunded"):
+                self._warn_once("invalid-job", "track_job() needs job_id, user_id and a status of pending, captured or refunded; skipped")
+                return
+            when = ts or datetime.now(timezone.utc)
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=timezone.utc)
+            job = {
+                "jobId": str(job_id),
+                "userId": str(user_id),
+                "status": status,
+                "ts": when.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+            }
+            url = self._endpoint[: -len("/events")] + "/jobs" if self._endpoint.endswith("/events") else self._endpoint
+            t = threading.Thread(target=self._send, args=([job], url, "jobs"), name="fiscallm-job", daemon=True)
+            t.start()
+            self._revenue_threads = [x for x in self._revenue_threads if x.is_alive()] + [t]
+        except Exception:
+            pass
+
+    def track_openai(self, response: Any, *, user_id: str, feature: Optional[str] = None, provider: Optional[str] = None, model: Optional[str] = None, job_id: Optional[str] = None) -> None:
         """A Chat Completions or Responses API result, from the SDK or ``r.json()``.
         Set ``provider`` for OpenAI-compatible APIs such as Groq or OpenRouter."""
-        self._track_usage(self._safe(from_openai, response), "track_openai", user_id, feature, provider, model)
+        self._track_usage(self._safe(from_openai, response), "track_openai", user_id, feature, provider, model, job_id)
 
-    def track_anthropic(self, response: Any, *, user_id: str, feature: Optional[str] = None, model: Optional[str] = None) -> None:
+    def track_anthropic(self, response: Any, *, user_id: str, feature: Optional[str] = None, model: Optional[str] = None, job_id: Optional[str] = None) -> None:
         """A Messages API result."""
-        self._track_usage(self._safe(from_anthropic, response), "track_anthropic", user_id, feature, None, model)
+        self._track_usage(self._safe(from_anthropic, response), "track_anthropic", user_id, feature, None, model, job_id)
 
-    def track_gemini(self, response: Any, *, user_id: str, feature: Optional[str] = None, model: Optional[str] = None) -> None:
+    def track_gemini(self, response: Any, *, user_id: str, feature: Optional[str] = None, model: Optional[str] = None, job_id: Optional[str] = None) -> None:
         """A ``generate_content`` result from google-genai, or the REST JSON."""
-        self._track_usage(self._safe(from_gemini, response), "track_gemini", user_id, feature, None, model)
+        self._track_usage(self._safe(from_gemini, response), "track_gemini", user_id, feature, None, model, job_id)
 
-    def track_stream(self, stream: Any, *, user_id: str, feature: Optional[str] = None, provider: Optional[str] = None, model: Optional[str] = None) -> Any:
+    def track_stream(self, stream: Any, *, user_id: str, feature: Optional[str] = None, provider: Optional[str] = None, model: Optional[str] = None, job_id: Optional[str] = None) -> Any:
         """Wraps a streamed result; chunks pass through unchanged and usage is
         recorded when the stream ends. Works for sync and async iterables.
         OpenAI Chat Completions needs ``stream_options={"include_usage": True}``."""
         if self._disabled:
             return stream
         if hasattr(stream, "__aiter__"):
-            return self._wrap_async(stream, user_id, feature, provider, model)
-        return self._wrap_sync(stream, user_id, feature, provider, model)
+            return self._wrap_async(stream, user_id, feature, provider, model, job_id)
+        return self._wrap_sync(stream, user_id, feature, provider, model, job_id)
 
     def check(self, user_id: str) -> CheckResult:
         """May this user make another AI call?
@@ -331,7 +365,7 @@ class Meter:
 
     # ---- internals ----
 
-    def _wrap_sync(self, stream: Iterable[T], user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str]) -> Iterator[T]:
+    def _wrap_sync(self, stream: Iterable[T], user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str], job_id: Optional[str] = None) -> Iterator[T]:
         acc = StreamUsage()
         try:
             for chunk in stream:
@@ -343,9 +377,9 @@ class Meter:
         finally:
             # Also runs when the caller stops early; partial usage is still
             # the best estimate of what was billed.
-            self._finish_stream(acc, user_id, feature, provider, model)
+            self._finish_stream(acc, user_id, feature, provider, model, job_id)
 
-    async def _wrap_async(self, stream: AsyncIterable[T], user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str]) -> AsyncIterator[T]:
+    async def _wrap_async(self, stream: AsyncIterable[T], user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str], job_id: Optional[str] = None) -> AsyncIterator[T]:
         acc = StreamUsage()
         try:
             async for chunk in stream:
@@ -355,14 +389,14 @@ class Meter:
                     pass
                 yield chunk
         finally:
-            self._finish_stream(acc, user_id, feature, provider, model)
+            self._finish_stream(acc, user_id, feature, provider, model, job_id)
 
-    def _finish_stream(self, acc: StreamUsage, user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str]) -> None:
+    def _finish_stream(self, acc: StreamUsage, user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str], job_id: Optional[str] = None) -> None:
         try:
             if acc.missing_openai_usage:
                 self._warn_once("include-usage", 'OpenAI stream had no usage; pass stream_options={"include_usage": True}')
                 return
-            self._track_usage(acc.usage, "track_stream", user_id, feature, provider, model)
+            self._track_usage(acc.usage, "track_stream", user_id, feature, provider, model, job_id)
         except Exception:
             pass
 
@@ -372,7 +406,7 @@ class Meter:
         except Exception:
             return None
 
-    def _track_usage(self, usage: Optional[Usage], source: str, user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str]) -> None:
+    def _track_usage(self, usage: Optional[Usage], source: str, user_id: str, feature: Optional[str], provider: Optional[str], model: Optional[str], job_id: Optional[str] = None) -> None:
         if self._disabled:
             return
         if usage is None:
@@ -387,6 +421,7 @@ class Meter:
             cached_tokens=usage.cached_tokens,
             cache_write_tokens=usage.cache_write_tokens,
             feature=feature,
+            job_id=job_id,
         )
 
     def _warn_once(self, key: str, message: str) -> None:
@@ -426,10 +461,10 @@ class Meter:
                     return
                 self._send(batch)
 
-    def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None) -> None:
+    def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None, field: str = "events") -> None:
         url = url or self._endpoint
-        body = json.dumps({"events": batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.4.0"}
+        body = json.dumps({field: batch}).encode()
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.5.0"}
         for attempt in range(2):
             try:
                 status = self._post(url, headers, body)

@@ -222,6 +222,8 @@ meter.flush()   # or: await meter.aflush()`}</code>
           then adds its webhook to your project and imports your past subscribers. Nothing to copy or paste. It asks for read-only access to customers,
           subscriptions and purchases, read access to your project list, and permission to manage webhooks (to add its own). Tokens are stored
           encrypted; Disconnect on the Setup page removes FiscaLLM&apos;s webhook and deletes them. If your account has several projects, you pick one.
+          On RevenueCat&apos;s approval screen, keep <strong>Read &amp; Write</strong>: with Read only, FiscaLLM cannot add its webhook (it still asks for
+          read-only access to customer data).
         </p>
         <p>Or set it up by hand (and on self-hosted copies, which have no RevenueCat OAuth client):</p>
         <ol>

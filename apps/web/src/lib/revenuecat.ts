@@ -1,7 +1,7 @@
 import "server-only";
 import { schema, sealSecret } from "@fiscallm/shared";
 import { importCutoff } from "@fiscallm/shared/rc-import";
-import { ensureWebhook, OAUTH_IMPORT_KEY, type RcProject } from "@fiscallm/shared/rc-oauth";
+import { ensureWebhook, OAUTH_IMPORT_KEY, RcOAuthError, type RcProject } from "@fiscallm/shared/rc-oauth";
 import { eq } from "drizzle-orm";
 import { getDb, metricsDb } from "./db";
 import { origin } from "./origin";
@@ -53,7 +53,19 @@ export async function beginImport(appId: string, projectId: string, key: string)
  * FiscaLLM, records the project, and imports past subscribers.
  */
 export async function connectProject(app: { id: string; name: string; rcWebhookSecret: string }, token: string, project: RcProject) {
-  const webhookId = await ensureWebhook(token, project.id, `${await publicUrl()}/api/webhooks/rc/${app.id}`, app.rcWebhookSecret, app.name, app.id);
+  let webhookId: string;
+  try {
+    webhookId = await ensureWebhook(token, project.id, `${await publicUrl()}/api/webhooks/rc/${app.id}`, app.rcWebhookSecret, app.name, app.id);
+  } catch (e) {
+    // RevenueCat lets the owner grant "Read only", which cannot add a webhook.
+    if (e instanceof RcOAuthError && (e.status === 401 || e.status === 403)) {
+      await getDb().delete(schema.rcConnections).where(eq(schema.rcConnections.appId, app.id));
+      throw new Error(
+        'RevenueCat did not allow FiscaLLM to add its webhook. Connect again and choose "Read & Write" permissions, or add the webhook by hand below.',
+      );
+    }
+    throw e;
+  }
   await getDb()
     .update(schema.rcConnections)
     .set({ projectId: project.id, projectName: project.name, webhookIntegrationId: webhookId, updatedAt: new Date() })

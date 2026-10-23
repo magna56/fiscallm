@@ -38,6 +38,7 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
     .orderBy(asc(schema.appPriceOverrides.provider), asc(schema.appPriceOverrides.model));
   const unpriced = (await breakdown(metricsDb(), app.id, lastDays(90))).byModel.filter((m) => m.unpriced > 0);
   const [importJob] = await getDb().select().from(schema.rcImports).where(eq(schema.rcImports.appId, app.id));
+  const [rcConn] = await getDb().select({ projectId: schema.rcConnections.projectId }).from(schema.rcConnections).where(eq(schema.rcConnections.appId, app.id));
   const alertRules = await getDb().select().from(schema.alertRules).where(eq(schema.alertRules.appId, app.id)).orderBy(asc(schema.alertRules.createdAt));
   const alertEvents = await getDb()
     .select()
@@ -91,7 +92,7 @@ async function Settings({ params, searchParams }: PageProps<"/dashboard/[appId]/
 
       <AlertsCard appId={app.id} rules={alertRules} events={alertEvents} alertSecret={app.alertSecret} />
 
-      <ImportCard appId={app.id} job={importJob} />
+      <ImportCard appId={app.id} job={importJob} connected={Boolean(rcConn?.projectId)} />
 
       <Card title="Weekly email">
         <div className="flex flex-col gap-3 text-sm">

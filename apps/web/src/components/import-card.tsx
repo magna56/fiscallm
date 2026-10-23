@@ -6,7 +6,7 @@ import { Button, Card, Input, Notice } from "./ui";
 type Job = typeof schema.rcImports.$inferSelect;
 
 /** Settings card for importing subscribers who paid before the webhook was connected. */
-export function ImportCard({ appId, job }: { appId: string; job: Job | undefined }) {
+export function ImportCard({ appId, job, connected = false }: { appId: string; job: Job | undefined; connected?: boolean }) {
   const running = job?.status === "running";
   return (
     <Card title={<span id="import">Import past subscribers</span>}>
@@ -33,7 +33,8 @@ export function ImportCard({ appId, job }: { appId: string; job: Job | undefined
         {job?.status === "done" && (
           <Notice tone="ok">
             Imported {job.customersDone.toLocaleString()} customers and {job.eventsImported.toLocaleString()} purchases
-            {job.finishedAt ? ` on ${job.finishedAt.toISOString().slice(0, 10)}` : ""}. The key was deleted.
+            {job.finishedAt ? ` on ${job.finishedAt.toISOString().slice(0, 10)}` : ""}
+            {connected ? " through your RevenueCat connection." : ". The key was deleted."}
           </Notice>
         )}
         {job?.status === "failed" && <Notice tone="error">{job.error}</Notice>}

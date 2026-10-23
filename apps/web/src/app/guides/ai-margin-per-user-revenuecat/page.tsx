@@ -131,13 +131,13 @@ const userId = req.headers["x-rc-app-user-id"];`}</code>
 
       <h2 id="fiscallm">The shortcut</h2>
       <p>
-        FiscaLLM does the join for you. One line reports AI cost under the user&apos;s ID, a RevenueCat webhook reports payments, and you get margin per
+        FiscaLLM does the join for you. One line reports AI cost under the user&apos;s ID, one click on Connect RevenueCat sets up the webhook and imports past payments, and you get margin per
         user, per plan and per trial cohort, with alerts when someone crosses a budget. Aliases, net revenue, de-duplication and refunds are handled.
         Annual plans are counted when the payment arrives, so use a 90-day view for them.
       </p>
       <pre>
         <code>{`meter.trackOpenAI(res, { userId, feature: "chat" });   // userId = RevenueCat app user ID
-// RevenueCat → Integrations → Webhooks → paste the URL and authorization value from your Setup page`}</code>
+// Setup page → Connect RevenueCat → approve. FiscaLLM adds its webhook and imports past subscribers.`}</code>
       </pre>
       <p>
         It&apos;s free and open source. <Link href="/demo">Open the demo dashboard</Link> (no sign-up), read <Link href="/how-it-works">how it works</Link>

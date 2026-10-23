@@ -163,7 +163,7 @@ Python: `job_id=` on `track`/`track_openai`/etc., and `meter.track_job(job_id=..
 Tell the user, briefly:
 
 1. Add `FISCALLM_KEY` to the backend's environment (the ingest key from https://fiscallm.com/dashboard → their app → Setup). Never commit it.
-2. In RevenueCat: Integrations → Webhooks → add the webhook URL and authorization value from the same Setup page.
+2. On the same Setup page, press **Connect RevenueCat** and approve access: FiscaLLM adds its webhook to their RevenueCat project and imports past subscribers. (Manual alternative: RevenueCat → Integrations → Webhooks → add the webhook URL and authorization value shown on the Setup page.)
 3. Deploy, make one AI request, and watch the Setup page: "First AI event received" turns green within seconds.
 
 List the files you changed and which call sites now report usage, and mention any AI calls you could not instrument and why.

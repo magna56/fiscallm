@@ -21,7 +21,7 @@ export function SetupChecklist({ appId, state, compact = false }: { appId: strin
     {
       done: state.revenueEvents > 0,
       title: "Connect revenue",
-      detail: state.revenueEvents > 0 ? `${state.revenueEvents.toLocaleString()} purchase events received` : "Paste the RevenueCat webhook, or send payments with the API.",
+      detail: state.revenueEvents > 0 ? `${state.revenueEvents.toLocaleString()} purchase events received` : "Press Connect RevenueCat, or send payments with the API.",
       href: "#revenue",
     },
     {

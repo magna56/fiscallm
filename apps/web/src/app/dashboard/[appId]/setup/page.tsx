@@ -15,7 +15,8 @@ import { requireApp } from "@/lib/auth";
 import { getDb, metricsDb } from "@/lib/db";
 import { keyCookie } from "@/lib/key-cookie";
 import { origin } from "@/lib/origin";
-import { connectStripe, disconnectStripe, dismissKey, rotateKey } from "../../actions";
+import { accessToken, listProjects, oauthClient, type RcProject } from "@fiscallm/shared/rc-oauth";
+import { chooseRevenueCatProject, connectStripe, disconnectStripe, disconnectRevenueCat, dismissKey, rotateKey } from "../../actions";
 
 export default function SetupPage({ params, searchParams }: PageProps<"/dashboard/[appId]/setup">) {
   return (
@@ -47,6 +48,18 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
         .orderBy(desc(schema.rcEvents.eventTs))
         .limit(1)
     : [];
+  const rcOAuth = oauthClient();
+  const [rcConn] = rcOAuth
+    ? await getDb().select().from(schema.rcConnections).where(eq(schema.rcConnections.appId, app.id))
+    : [];
+  // Connected, but the account has several projects: ask which one.
+  let rcProjects: RcProject[] = [];
+  if (rcOAuth && rcConn && !rcConn.projectId) {
+    try {
+      const token = await accessToken(metricsDb(), process.env.CRON_SECRET!, rcOAuth, app.id);
+      if (token) rcProjects = await listProjects(token);
+    } catch {}
+  }
   const cap = monthlyEventCap();
   const used = cap === null ? 0 : await eventsThisMonth(metricsDb(), app.id);
 
@@ -131,6 +144,43 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
       </Card>
 
       <Card title={<span id="revenue" className="scroll-mt-24">2. Connect revenue: RevenueCat, or send it yourself</span>}>
+        {rcConn?.projectId ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-green-500/10 p-3 text-sm">
+            <span>
+              <strong>Connected to RevenueCat</strong> project {rcConn.projectName ?? rcConn.projectId}. The webhook is set up; past subscribers import on the{" "}
+              <Link href={`/dashboard/${app.id}/settings#import`} className="underline">
+                Settings page
+              </Link>
+              .
+            </span>
+            <form action={disconnectRevenueCat.bind(null, app.id)}>
+              <Button variant="secondary">Disconnect</Button>
+            </form>
+          </div>
+        ) : rcConn && rcProjects.length > 0 ? (
+          <form action={chooseRevenueCatProject.bind(null, app.id)} className="mb-4 flex flex-wrap items-end gap-3 rounded-xl bg-foreground/5 p-3 text-sm">
+            <label className="flex flex-col gap-1">
+              Which RevenueCat project is this app?
+              <select name="projectId" className="rounded-lg border border-black/10 bg-white px-3 py-2">
+                {rcProjects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button>Connect this project</Button>
+          </form>
+        ) : rcOAuth ? (
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
+            <a href={`/dashboard/${app.id}/revenuecat/connect`} className="rounded-full bg-foreground px-4 py-2 font-medium text-white">
+              Connect RevenueCat
+            </a>
+            <span className="text-foreground/60">
+              Approve access in RevenueCat; FiscaLLM adds its webhook and imports past subscribers. Read-only for customer data. Or set it up by hand:
+            </span>
+          </div>
+        ) : null}
         <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
           <li>In RevenueCat, open your project → Integrations → Webhooks → Add new configuration.</li>
           <li>

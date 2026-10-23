@@ -14,6 +14,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - "What FiscaLLM covers and what it doesn't" page
 - Optional monthly event cap per app
 - **Spending caps**: mark a per-user budget as Block and call `meter.check(userId)` (TypeScript and Python)
+- **Connect RevenueCat** (OAuth): one click adds the webhook and imports past subscribers
 - **Caps that hold during an outage** (SDKs 0.6.0): a refused user stays refused while FiscaLLM is unreachable, `checkOnError: "deny"` to fail closed, and an in-process local limit that stops a runaway loop with no network call
 - **Jobs**: tag AI calls with a `jobId` and report each job as pending, captured or refunded; see the cost of refunded and unresolved jobs per user (SDKs 0.5.0)
 - **Slack alerts** and a **runaway-loop alert** (a user over N tokens in 5 minutes)

@@ -91,7 +91,7 @@ Meter(api_key=os.environ["FISCALLM_KEY"], endpoint="http://localhost:8787/api/v1
 
 1. Open your instance, sign in, create an app, copy the ingest key (shown once).
 2. Install the SDK (`npm install fiscallm` or `pip install fiscallm`) and set `endpoint` to `https://your-domain/api/v1/events`.
-3. For revenue, paste the webhook URL and authorization value from the app's Setup page into RevenueCat, or send revenue yourself with the revenue API.
+3. For revenue, paste the webhook URL and authorization value from the app's Setup page into RevenueCat, or send revenue yourself with the revenue API. ("Connect RevenueCat" needs your own OAuth client from RevenueCat support; see `.env.example`.)
 
 ## Optional: a monthly event cap
 

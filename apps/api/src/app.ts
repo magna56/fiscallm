@@ -27,5 +27,11 @@ app.route("/cron/weekly-report", weeklyReportRoute(getDb));
 app.route("/cron/daily", dailyRoute(getDb));
 app.route("/unsubscribe", unsubscribeRoute(getDb));
 app.route("/import/rc", importRoute(getDb));
+// RevenueCat OAuth redirects here (the registered redirect URI); the
+// dashboard finishes the flow, since it knows who is signed in.
+app.get("/oauth/revenuecat/callback", (c) => {
+  const query = new URL(c.req.url).search;
+  return c.redirect(`/dashboard/connect/revenuecat${query}`, 302);
+});
 
 export default app;

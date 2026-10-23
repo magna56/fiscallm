@@ -217,6 +217,13 @@ meter.flush()   # or: await meter.aflush()`}</code>
         </p>
 
         <h2 id="revenuecat">RevenueCat</h2>
+        <p>
+          <strong>Connect RevenueCat</strong> (on fiscallm.com): press the button on your app&apos;s Setup page and approve access in RevenueCat. FiscaLLM
+          then adds its webhook to your project and imports your past subscribers. Nothing to copy or paste. It asks for read-only access to customers,
+          subscriptions and purchases, read access to your project list, and permission to manage webhooks (to add its own). Tokens are stored
+          encrypted; Disconnect on the Setup page removes FiscaLLM&apos;s webhook and deletes them. If your account has several projects, you pick one.
+        </p>
+        <p>Or set it up by hand (and on self-hosted copies, which have no RevenueCat OAuth client):</p>
         <ol>
           <li>In RevenueCat: Project → Integrations → Webhooks → Create new webhook.</li>
           <li>Webhook URL and Authorization header value: copy both from your app&apos;s Setup page.</li>
@@ -226,7 +233,7 @@ meter.flush()   # or: await meter.aflush()`}</code>
           Revenue is net: price × (1 − tax − store commission), as RevenueCat reports them. Refunds subtract on the day they happen.
         </p>
         <p>
-          RevenueCat sends only new events. To bring in subscribers who paid before you connected, use Settings → Import past subscribers: paste
+          RevenueCat sends only new events. Connect RevenueCat imports past subscribers by itself; with the manual setup, use Settings → Import past subscribers: paste
           your RevenueCat project ID and a v2 secret key with read-only access to customer information and project configuration, and FiscaLLM imports their purchases,
           renewals and trials from RevenueCat&apos;s API. Purchases the webhook already delivered are skipped, so nothing counts twice.
           App Store and Play Store subscriptions come in renewal by renewal; for other stores (Stripe, Web Billing) RevenueCat only reports each

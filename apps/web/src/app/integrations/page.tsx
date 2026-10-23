@@ -80,7 +80,7 @@ export default function IntegrationsPage() {
           title="Revenue sources"
           intro="Revenue is matched to AI cost by user ID, net of fees and tax."
           rows={[
-            ["RevenueCat", "Supported", <>Webhook plus a one-time import of past subscribers. See <Link href="/docs#revenuecat">the docs</Link>.</>],
+            ["RevenueCat", "Supported", <>One-click Connect RevenueCat (OAuth): adds the webhook and imports past subscribers. Manual webhook setup also works. See <Link href="/docs#revenuecat">the docs</Link>.</>],
             ["Stripe", "Beta", <>Paid invoices, trials, cancellations and refunds from a webhook. USD only; tested against sample payloads. See <Link href="/docs#stripe">the docs</Link>.</>],
             ["Any other billing system", "Supported", <>One call per payment, refund or cancellation through <Link href="/docs#revenue-api">the revenue API</Link>.</>],
             ["Adapty and Superwall", "Planned", "A webhook converter for each, on the roadmap."],

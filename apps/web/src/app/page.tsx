@@ -18,7 +18,7 @@ const STEPS = [
   {
     n: "02",
     title: "Connect your revenue",
-    body: "Paste one RevenueCat or Stripe webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of fees and tax.",
+    body: "Press Connect RevenueCat, or paste one Stripe webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of fees and tax.",
     code: "https://fiscallm.com/api/webhooks/rc/…",
   },
   {
@@ -32,7 +32,7 @@ const STEPS = [
 const FAQ: [string, string][] = [
   ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
-  ["Do I need RevenueCat?", "No. Connect RevenueCat or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
+  ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check lets calls through, except for users it already refused. You can make it refuse instead, and add a local limit that stops runaway loops with no network at all."],
   ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
   ["I charge per job (credits), not per month. Does it fit?", "Yes. Tag each AI call with your job id and report whether the user's credits were captured or refunded. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user."],

@@ -25,7 +25,7 @@
    meter.trackOpenAI(res, { userId, feature: "chat" });
    ```
 
-3. **Connect revenue**: paste a RevenueCat or Stripe webhook URL, or send payments yourself with the revenue API.
+3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), paste a Stripe webhook URL, or send payments yourself with the revenue API.
 
 No AI key handy? `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills a test app with sample users so you can see it working.
 
@@ -55,7 +55,7 @@ meter.track_openai(res, user_id=user_id, feature="chat")
 - The SDK reads **only the model name and token counts** from the response. Never prompts or answers.
 - Events are batched and sent in the background. Tracking never throws and never blocks your response.
 - Each event has a client-generated UUID, so retries cannot double count.
-- Revenue comes from a RevenueCat webhook, or from your own code with `trackRevenue` / `track_revenue`.
+- Revenue comes from RevenueCat (one-click OAuth connect, or a webhook you add by hand), or from your own code with `trackRevenue` / `track_revenue`.
 - Both are joined on the user ID. RevenueCat aliases are resolved, so anonymous and logged-in users merge.
 - **Budgets and alerts**: email, Slack or signed webhooks when a user goes over budget, when a paying user loses money, or when one user burns a huge number of tokens in 5 minutes (a runaway loop).
 - **Jobs** (pay-per-job apps, e.g. credits for a video render): tag AI calls with a `jobId` and report each job as pending, captured or refunded with `meter.trackJob` / `track_job`. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user.

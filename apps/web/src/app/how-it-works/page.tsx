@@ -83,7 +83,9 @@ export default function HowItWorksPage() {
 
         <h2 id="revenue">3. Revenue: RevenueCat, Stripe or your own</h2>
         <p>
-          RevenueCat posts every subscription event to a per-app webhook. The request must carry the secret we generated for that app, compared in
+          &quot;Connect RevenueCat&quot; uses RevenueCat&apos;s OAuth (with PKCE): you approve access in RevenueCat, FiscaLLM stores the tokens encrypted,
+          refreshes them before they expire, creates its webhook in your project and imports past subscribers through RevenueCat&apos;s API. You can
+          also add the webhook by hand. Either way, RevenueCat posts every subscription event to a per-app webhook. The request must carry the secret we generated for that app, compared in
           constant time. Each event is deduplicated on its RevenueCat event id, stored raw, then applied to a <code>subscribers</code> row:
         </p>
         <table>

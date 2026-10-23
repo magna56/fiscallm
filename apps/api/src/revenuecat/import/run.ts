@@ -1,4 +1,6 @@
 import { openSecret, schema } from "@fiscallm/shared";
+import type { MetricsDb } from "@fiscallm/shared/metrics";
+import { accessToken, OAUTH_IMPORT_KEY, oauthClient } from "@fiscallm/shared/rc-oauth";
 import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import type { AnyDb } from "../../ingest/db";
 import { recompute, setAlias } from "../store";
@@ -39,8 +41,19 @@ export async function runImportChunk(
   if (!app || !job.keyCipher) return finish(db, appId, "failed", "The import lost its key; start it again.");
 
   let api: RcApi;
+  let viaConnection = false;
   try {
-    api = makeApi(job.projectId, await openSecret(serverSecret, job.keyCipher), app.testMode);
+    let key = await openSecret(serverSecret, job.keyCipher);
+    if (key === OAUTH_IMPORT_KEY) {
+      // Started from "Connect RevenueCat": use the connection's token,
+      // refreshed as needed, so a long import outlives the one-hour token.
+      viaConnection = true;
+      const client = oauthClient();
+      const token = client ? await accessToken(db as unknown as MetricsDb, serverSecret, client, appId) : null;
+      if (!token) return finish(db, appId, "failed", "RevenueCat is no longer connected; connect it again on the Setup page.");
+      key = token;
+    }
+    api = makeApi(job.projectId, key, app.testMode);
   } catch {
     return finish(db, appId, "failed", "Could not read the stored key; start the import again.");
   }
@@ -107,7 +120,9 @@ export async function runImportChunk(
     }
   } catch (e) {
     const message =
-      e instanceof RcApiError && (e.status === 401 || e.status === 403)
+      e instanceof RcApiError && (e.status === 401 || e.status === 403) && viaConnection
+        ? "RevenueCat refused the connection's access; connect RevenueCat again on the Setup page."
+        : e instanceof RcApiError && (e.status === 401 || e.status === 403)
         ? "RevenueCat refused the key. Check that it is a v2 secret key with read access to customers, subscriptions and purchases."
         : e instanceof RcApiError && e.status === 404
           ? "RevenueCat did not find that project ID."

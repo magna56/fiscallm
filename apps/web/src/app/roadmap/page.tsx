@@ -48,6 +48,9 @@ export default function RoadmapPage() {
             <strong>Spending caps</strong>: mark a per-user budget as Block and call <code>meter.check(userId)</code> (TypeScript and Python)
           </li>
           <li>
+            <strong>Connect RevenueCat</strong> (OAuth): one click adds the webhook and imports past subscribers
+          </li>
+          <li>
             <strong>Caps that hold during an outage</strong> (SDKs 0.6.0): a refused user stays refused while FiscaLLM is unreachable,{" "}
             <code>checkOnError: &quot;deny&quot;</code> to fail closed, and an in-process local limit that stops a runaway loop with no network call
           </li>

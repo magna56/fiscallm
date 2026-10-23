@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { fileURLToPath } from "node:url";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AnyDb } from "../../ingest/db";
 import { RcApiError, type RcApi, type RcPurchase, type RcSubscription, type RcTransaction } from "./client";
 import { convertCustomer } from "./convert";
@@ -243,6 +243,34 @@ describe("runImportChunk", () => {
     expect(j.status).toBe("failed");
     expect(j.error).toContain("refused the key");
     expect(j.keyCipher).toBeNull();
+  });
+
+  it("uses the RevenueCat connection's token when started from Connect RevenueCat", async () => {
+    const { OAUTH_IMPORT_KEY, saveTokens } = await import("@fiscallm/shared/rc-oauth");
+    vi.stubEnv("REVENUECAT_OAUTH_CLIENT_ID", "cid");
+    vi.stubEnv("REVENUECAT_OAUTH_CLIENT_SECRET", "cs");
+    try {
+      await db.insert(schema.rcImports).values({ appId, status: "running", projectId: "proj", keyCipher: await sealSecret(SECRET, OAUTH_IMPORT_KEY), cutoff: new Date(NOW) });
+      await saveTokens(db as never, SECRET, appId, { accessToken: "atk_live", refreshToken: "rtk", expiresAt: new Date(Date.now() + 3_600_000) });
+      const keys: string[] = [];
+      expect(await runImportChunk(db, appId, (_p, key) => (keys.push(key), fakeApi(CUSTOMERS)), SECRET, 60_000, now)).toBe("done");
+      expect(keys).toEqual(["atk_live"]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("fails clearly when the connection is gone", async () => {
+    const { OAUTH_IMPORT_KEY } = await import("@fiscallm/shared/rc-oauth");
+    vi.stubEnv("REVENUECAT_OAUTH_CLIENT_ID", "cid");
+    vi.stubEnv("REVENUECAT_OAUTH_CLIENT_SECRET", "cs");
+    try {
+      await db.insert(schema.rcImports).values({ appId, status: "running", projectId: "proj", keyCipher: await sealSecret(SECRET, OAUTH_IMPORT_KEY), cutoff: new Date(NOW) });
+      expect(await runImportChunk(db, appId, () => fakeApi(CUSTOMERS), SECRET, 60_000, now)).toBe("stopped");
+      expect((await job()).error).toContain("no longer connected");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("lets only one chunk run at a time", async () => {

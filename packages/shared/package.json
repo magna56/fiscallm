@@ -13,7 +13,8 @@
     "./rc-import": "./src/rc-import.ts",
     "./alerts": "./src/alerts/index.ts",
     "./limits": "./src/limits.ts",
-    "./csv": "./src/csv.ts"
+    "./csv": "./src/csv.ts",
+    "./rc-oauth": "./src/rc-oauth.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

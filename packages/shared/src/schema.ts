@@ -257,6 +257,24 @@ export const rcImports = pgTable("rc_imports", {
   finishedAt: ts("finished_at"),
 }).enableRLS();
 
+// A RevenueCat project connected with OAuth ("Connect RevenueCat"). Tokens
+// are sealed with the server secret. projectId is null until the owner picks
+// a project, when their RevenueCat account has more than one.
+export const rcConnections = pgTable("rc_connections", {
+  appId: uuid("app_id")
+    .primaryKey()
+    .references(() => apps.id, { onDelete: "cascade" }),
+  projectId: text("project_id"),
+  projectName: text("project_name"),
+  accessTokenCipher: text("access_token_cipher").notNull(),
+  accessExpiresAt: ts("access_expires_at").notNull(),
+  // RevenueCat rotates it on every refresh; only the newest one works.
+  refreshTokenCipher: text("refresh_token_cipher").notNull(),
+  webhookIntegrationId: text("webhook_integration_id"),
+  connectedAt: ts("connected_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+}).enableRLS();
+
 export const ALERT_KINDS = [
   "user_daily_cost",
   "user_30d_cost",

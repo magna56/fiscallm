@@ -1,18 +1,19 @@
 "use server";
 
 import { generateIngestKey, generateWebhookSecret, hashKey, schema, sealSecret } from "@fiscallm/shared";
-import { importCutoff } from "@fiscallm/shared/rc-import";
 import { ALERT_KINDS, type AlertKind } from "@fiscallm/shared/schema";
 import { describeAlert, isSlackWebhook, signWebhook, slackPayload, webhookPayload } from "@fiscallm/shared/alerts";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { requireApp, requireUser } from "@/lib/auth";
 import { getDb, metricsDb } from "@/lib/db";
 import { origin } from "@/lib/origin";
 import { sendWeeklyReport } from "@fiscallm/shared/report/send";
 import { keyCookie } from "@/lib/key-cookie";
+import { beginImport, connectProject } from "@/lib/revenuecat";
+import { accessToken, deleteWebhook, listProjects, oauthClient } from "@fiscallm/shared/rc-oauth";
 
 // The plain ingest key is shown once: kept in a short-lived cookie that
 // only the setup page reads, never stored server side.
@@ -208,33 +209,54 @@ export async function startImport(appId: string, formData: FormData) {
   if (check!.status === 404) fail("RevenueCat did not find that project ID");
   if (!check!.ok) fail(`RevenueCat answered ${check!.status}`);
 
-  const db = getDb();
-  const values = {
-    status: "running" as const,
-    projectId,
-    keyCipher: await sealSecret(secret!, key),
-    cursor: null,
-    cutoff: await importCutoff(metricsDb(), app.id),
-    customersDone: 0,
-    eventsImported: 0,
-    error: null,
-    lockedUntil: null,
-    startedAt: new Date(),
-    updatedAt: new Date(),
-    finishedAt: null,
-  };
-  await db
-    .insert(schema.rcImports)
-    .values({ appId: app.id, ...values })
-    .onConflictDoUpdate({ target: schema.rcImports.appId, set: values });
-
-  await fetch(`${await origin()}/api/import/rc/run`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
-    body: JSON.stringify({ appId: app.id }),
-    signal: AbortSignal.timeout(10_000),
-  }).catch(() => {});
+  await beginImport(app.id, projectId, key);
   redirect(`${settings}#import`);
+}
+
+/** Second step of "Connect RevenueCat" when the account has several projects. */
+export async function chooseRevenueCatProject(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const setup = `/dashboard/${app.id}/setup`;
+  const fail = (msg: string): never => redirect(`${setup}?error=${encodeURIComponent(msg)}#revenue`);
+  const client = oauthClient();
+  const secret = process.env.CRON_SECRET;
+  if (!client || !secret) fail("Connect RevenueCat is not configured");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const token = await accessToken(metricsDb(), secret!, client!, app.id);
+    if (!token) fail("Connect RevenueCat again");
+    const project = (await listProjects(token!)).find((p) => p.id === projectId);
+    if (!project) fail("Choose one of your RevenueCat projects");
+    await connectProject(app, token!, project!);
+  } catch (e) {
+    unstable_rethrow(e);
+    fail(`Could not finish connecting RevenueCat: ${(e as Error).message}`);
+  }
+  redirect(`${setup}?done=${encodeURIComponent("RevenueCat connected. The webhook is set up and past subscribers are importing.")}#revenue`);
+}
+
+/** Removes FiscaLLM's webhook from RevenueCat (best effort) and forgets the tokens. */
+export async function disconnectRevenueCat(appId: string) {
+  const app = await requireApp(appId);
+  const db = getDb();
+  const [conn] = await db.select().from(schema.rcConnections).where(eq(schema.rcConnections.appId, app.id));
+  const client = oauthClient();
+  const secret = process.env.CRON_SECRET;
+  if (conn?.projectId && conn.webhookIntegrationId && client && secret) {
+    try {
+      const token = await accessToken(metricsDb(), secret, client, app.id);
+      if (token) await deleteWebhook(token, conn.projectId, conn.webhookIntegrationId);
+    } catch {
+      // Still disconnect; the owner can delete the webhook in RevenueCat.
+    }
+  }
+  // An import running on this connection cannot continue without it.
+  await db
+    .update(schema.rcImports)
+    .set({ status: "cancelled", keyCipher: null, finishedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(schema.rcImports.appId, app.id), eq(schema.rcImports.status, "running")));
+  await db.delete(schema.rcConnections).where(eq(schema.rcConnections.appId, app.id));
+  redirect(`/dashboard/${app.id}/setup?done=${encodeURIComponent("RevenueCat disconnected.")}#revenue`);
 }
 
 export async function cancelImport(appId: string) {

@@ -70,7 +70,7 @@ Net revenue is `price × (1 − tax − store commission)`.
 | Path | What it is |
 |---|---|
 | `apps/web` | Next.js site and dashboard |
-| `apps/api` | Hono API: ingest, RevenueCat webhook, revenue API, cron jobs |
+| `apps/api` | Hono API: ingest, RevenueCat webhook and OAuth callback, revenue API, cron jobs |
 | `packages/shared` | Drizzle schema, pricing, metrics, alerts |
 | `packages/sdk` | TypeScript SDK (`fiscallm` on npm) |
 | `packages/sdk-python` | Python SDK (`fiscallm` on PyPI) |

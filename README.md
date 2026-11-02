@@ -6,7 +6,7 @@
 
 **Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
 
-[Live demo (no sign-up)](https://fiscallm.com/demo) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) ([board](https://github.com/users/magna56/projects/1)) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
+[Live demo (no sign-up)](https://fiscallm.com/demo) · [LLM pricing and cost-per-user calculator](https://fiscallm.com/llm-pricing) · [Compare with alternatives](https://fiscallm.com/compare) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) ([board](https://github.com/users/magna56/projects/1)) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
 
 ![FiscaLLM dashboard on sample data: AI cost, net revenue, margin per user, daily cost and cost by model](docs/dashboard.png)
 
@@ -25,7 +25,7 @@
    meter.trackOpenAI(res, { userId, feature: "chat" });
    ```
 
-3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), paste a Stripe webhook URL, or send payments yourself with the revenue API.
+3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), connect Stripe (webhook, plus a 12-month history import with a read-only key), upload a CSV from any billing system, or send payments yourself with the revenue API.
 
 No AI key handy? `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills a test app with sample users so you can see it working.
 

@@ -18,12 +18,12 @@ const DESCRIPTION = "See what each user costs you in AI, against what they pay. 
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),
-  alternates: { canonical: "/" },
   keywords: ["AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
   title: TITLE,
   description: DESCRIPTION,
   openGraph: { type: "website", siteName: "FiscaLLM", title: TITLE, description: DESCRIPTION, url: "/" },
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  alternates: { canonical: "/", types: { "application/rss+xml": "/guides/rss.xml", "text/plain": "/llms.txt" } },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

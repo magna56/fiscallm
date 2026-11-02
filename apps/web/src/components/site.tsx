@@ -33,6 +33,9 @@ export function SiteHeader() {
           <Link href="/how-it-works" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             For engineers
           </Link>
+          <Link href="/llm-pricing" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground lg:block">
+            LLM pricing
+          </Link>
           <a href="https://github.com/magna56/fiscallm" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground md:block">
             GitHub
           </a>
@@ -71,6 +74,8 @@ export function SiteFooter() {
           <Link href="/integrations" className="hover:text-foreground">Integrations</Link>
           <Link href="/coverage" className="hover:text-foreground">What&apos;s covered</Link>
           <Link href="/guides" className="hover:text-foreground">Guides</Link>
+          <Link href="/llm-pricing" className="hover:text-foreground">LLM pricing</Link>
+          <Link href="/compare" className="hover:text-foreground">Compare</Link>
           <Link href="/roadmap" className="hover:text-foreground">Roadmap</Link>
           <Link href="/changelog" className="hover:text-foreground">Changelog</Link>
           <a href="https://github.com/magna56/fiscallm" className="hover:text-foreground">GitHub</a>

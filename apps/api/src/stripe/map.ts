@@ -29,6 +29,8 @@ export interface MapContext {
   knownUser(customerId: string): Promise<string | null>;
   /** USD already recorded as refunded for this charge. */
   refundedSoFar(chargeId: string): Promise<number>;
+  /** True if this invoice is already stored (by the webhook or the history import). */
+  invoiceSeen?(invoiceId: string): Promise<boolean>;
 }
 
 export interface Mapped {
@@ -94,6 +96,8 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
       if (str(obj.currency)?.toLowerCase() !== "usd") return ignored("only USD is supported");
       const paidCents = num(obj.amount_paid) ?? 0;
       if (paidCents <= 0) return ignored("zero amount");
+      const invoiceId = str(obj.id);
+      if (invoiceId && (await ctx.invoiceSeen?.(invoiceId))) return ignored("already counted");
       const customer = idOf(obj.customer);
       const parentSub = rec(rec(obj.parent).subscription_details);
       const line = rec(list(rec(obj.lines).data)[0]);
@@ -120,7 +124,7 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
           environment,
           ts: iso(rec(obj.status_transitions).paid_at) ?? eventTs,
         },
-        { stripeCustomer: customer, stripeInvoice: str(obj.id), stripeCharge: idOf(obj.charge) },
+        { stripeCustomer: customer, stripeInvoice: invoiceId, stripeCharge: idOf(obj.charge) },
       );
     }
 

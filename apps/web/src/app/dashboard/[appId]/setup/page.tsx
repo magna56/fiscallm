@@ -16,7 +16,7 @@ import { getDb, metricsDb } from "@/lib/db";
 import { keyCookie } from "@/lib/key-cookie";
 import { origin } from "@/lib/origin";
 import { accessToken, listProjects, oauthClient, type RcProject } from "@fiscallm/shared/rc-oauth";
-import { chooseRevenueCatProject, connectStripe, disconnectStripe, disconnectRevenueCat, dismissKey, rotateKey } from "../../actions";
+import { chooseRevenueCatProject, connectStripe, disconnectStripe, disconnectRevenueCat, dismissKey, rotateKey, startStripeImport, uploadRevenueCsv } from "../../actions";
 
 export default function SetupPage({ params, searchParams }: PageProps<"/dashboard/[appId]/setup">) {
   return (
@@ -252,12 +252,56 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
           send from your backend. Without it, FiscaLLM uses the Stripe customer ID (<Code>cus_…</Code>), so then report that as the <Code>userId</Code> in your
           SDK calls. What you keep is estimated as the payment minus tax minus Stripe&apos;s standard fee (2.9% + $0.30).
         </p>
+        <div id="stripe-import" className="mt-4 scroll-mt-24 border-t border-black/5 pt-4">
+          <p className="text-sm">
+            <strong>Import the last 12 months.</strong> The webhook only sees new events. To include past payments, refunds, current trials and ended
+            subscriptions, create a restricted key in Stripe (Developers → API keys → Create restricted key) with <em>Read</em> access to Invoices, Charges
+            and Refunds, and Subscriptions, and paste it here. It is used for this import only and never stored. Invoices already counted are skipped,
+            so running it again is safe.
+          </p>
+          <form action={startStripeImport.bind(null, app.id)} className="mt-2 flex flex-wrap items-center gap-2">
+            <Input name="stripeKey" type="password" autoComplete="off" placeholder="rk_live_…" className="min-w-[16rem] flex-1" />
+            <Button type="submit" variant="secondary">
+              Import from Stripe
+            </Button>
+          </form>
+        </div>
+      </Card>
+
+      <Card title={<span id="csv" className="scroll-mt-24">Optional: upload revenue as CSV</span>}>
+        <p className="text-sm text-foreground/70">
+          For payments that never came through a webhook: an export from Stripe, Paddle, Lemon Squeezy or a spreadsheet. One row per payment, trial,
+          refund or cancellation. Uploading the same file again skips rows already stored, so it is safe to re-upload a longer export.
+        </p>
+        <p className="mt-3 text-sm">
+          Required columns: <Code>id</Code>, <Code>user_id</Code>, <Code>type</Code> ({REVENUE_TYPES_TEXT}), <Code>ts</Code> (a date or ISO time), and{" "}
+          <Code>amount_usd</Code> for purchases, renewals and refunds. Optional: <Code>net_usd</Code>, <Code>tax_pct</Code>, <Code>fee_pct</Code>,{" "}
+          <Code>product_id</Code>, <Code>period_end</Code>, <Code>is_trial_conversion</Code>, <Code>one_time</Code>.
+        </p>
+        <div className="relative mt-2">
+          <pre className="overflow-x-auto rounded bg-foreground/5 p-3 font-mono text-xs leading-relaxed">{CSV_EXAMPLE}</pre>
+          <div className="absolute right-2 top-2">
+            <CopyButton value={CSV_EXAMPLE} />
+          </div>
+        </div>
+        <form action={uploadRevenueCsv.bind(null, app.id)} className="mt-3 flex flex-wrap items-center gap-2">
+          <input name="file" type="file" accept=".csv,text/csv" required className="text-sm" />
+          <Button type="submit">Upload CSV</Button>
+        </form>
+        <p className="mt-2 text-xs text-foreground/60">Up to about 5,000 rows (950 KB) per file. user_id must match the user ID you send from your backend.</p>
       </Card>
     </div>
   );
 }
 
 
+
+const REVENUE_TYPES_TEXT = "purchase, renewal, refund, trial_started, cancellation or expiration";
+
+const CSV_EXAMPLE = `id,user_id,type,ts,amount_usd,net_usd,product_id,period_end
+in_001,user_42,purchase,2026-10-01,20,17.12,pro_monthly,2026-11-01
+in_002,user_42,renewal,2026-11-01,20,17.12,pro_monthly,2026-12-01
+re_001,user_7,refund,2026-10-12,20,20,pro_monthly,`;
 
 function pythonSnippet(key: string, base: string) {
   const endpoint = base === "https://fiscallm.com" ? "" : `, endpoint="${base}/api/v1/events"`;

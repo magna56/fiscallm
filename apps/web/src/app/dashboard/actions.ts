@@ -372,6 +372,83 @@ export async function sendTestAlert(appId: string, ruleId: string) {
   redirect(`${settings}?done=${encodeURIComponent(`Test alert: ${results.join(", ") || "nothing to send"}`)}#alerts`);
 }
 
+/** Imports revenue from a CSV file (payments that never came through a webhook). */
+export async function uploadRevenueCsv(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#csv`);
+  const secret = process.env.CRON_SECRET;
+  if (!secret) fail("CSV import is not configured on this server yet");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) fail("Choose a CSV file");
+  // Server Actions accept 1 MB bodies; about 5,000 rows fit.
+  if ((file as File).size > 950_000) fail("The file is over 950 KB; split it into smaller files");
+
+  const res = await fetch(`${await origin()}/api/import/revenue-csv`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
+    body: JSON.stringify({ appId: app.id, csv: await (file as File).text() }),
+    signal: AbortSignal.timeout(60_000),
+  }).catch(() => null);
+  if (!res) fail("The import did not finish; try again (rows already stored are skipped)");
+  const out = (await res!.json().catch(() => ({}))) as {
+    error?: string;
+    accepted?: number;
+    duplicates?: number;
+    skipped?: number;
+    errors?: { row: number; message: string }[];
+  };
+  if (!res!.ok) fail(out.error ?? `Import failed (${res!.status})`);
+
+  const parts = [`Imported ${out.accepted ?? 0} rows`];
+  if (out.duplicates) parts.push(`${out.duplicates} already there`);
+  if (out.skipped) {
+    const first = out.errors?.slice(0, 3).map((e) => `line ${e.row}: ${e.message}`).join("; ");
+    parts.push(`${out.skipped} skipped (${first}${out.skipped > 3 ? "; …" : ""})`);
+  }
+  revalidatePath(`/dashboard/${app.id}`, "layout");
+  const msg = parts.join(", ") + ".";
+  redirect(`${back}?${out.skipped && !out.accepted ? "error" : "done"}=${encodeURIComponent(msg)}#csv`);
+}
+
+/**
+ * Imports the last 12 months of Stripe payments, refunds, trials and ended
+ * subscriptions. The key is checked, then passed sealed to the import and
+ * never stored.
+ */
+export async function startStripeImport(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#stripe-import`);
+  const secret = process.env.CRON_SECRET;
+  if (!secret) fail("Stripe import is not configured on this server yet");
+  const key = String(formData.get("stripeKey") ?? "").trim();
+  if (!/^(rk|sk)_(live|test)_[A-Za-z0-9]{10,}$/.test(key)) fail("Paste a Stripe restricted key; it starts with rk_live_ (or rk_test_ for test mode)");
+
+  // Check the key can read what the import needs before starting.
+  for (const path of ["/v1/invoices", "/v1/refunds", "/v1/subscriptions"]) {
+    const check = await fetch(`https://api.stripe.com${path}?limit=1`, {
+      headers: { authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => null);
+    if (!check) fail("Could not reach Stripe; try again");
+    if (check!.status === 401) fail("Stripe refused the key");
+    if (check!.status === 403) fail("The key cannot read invoices, refunds and subscriptions. Give it Read access to Invoices, Charges and Refunds, and Subscriptions.");
+    if (!check!.ok) fail(`Stripe answered ${check!.status}`);
+  }
+
+  const since = Math.floor(Date.now() / 1000) - 365 * 86_400;
+  await fetch(`${await origin()}/api/import/stripe/run`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
+    body: JSON.stringify({ appId: app.id, keyCipher: await sealSecret(secret!, key), state: { phase: 0, since, stored: 0, skipped: 0 } }),
+    signal: AbortSignal.timeout(10_000),
+  }).catch(() => {});
+  redirect(
+    `${back}?done=${encodeURIComponent("Stripe import started. Past payments appear on the dashboard over the next few minutes; you can delete the key in Stripe once they do.")}#stripe-import`,
+  );
+}
+
 /** Saves the Stripe webhook signing secret (sealed), which turns the Stripe connection on. */
 export async function connectStripe(appId: string, formData: FormData) {
   const app = await requireApp(appId);

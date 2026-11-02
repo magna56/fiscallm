@@ -8,7 +8,9 @@ import { dailyRoute } from "./cron/daily";
 import { unsubscribeRoute } from "./unsubscribe";
 import { importRoute } from "./revenuecat/import/route";
 import { revenueRoute } from "./revenue/route";
+import { revenueCsvRoute } from "./revenue/csv-route";
 import { stripeRoute } from "./stripe/route";
+import { stripeImportRoute } from "./stripe/import";
 import { checkRoute } from "./check/route";
 import { jobsRoute } from "./jobs/route";
 
@@ -27,6 +29,8 @@ app.route("/cron/weekly-report", weeklyReportRoute(getDb));
 app.route("/cron/daily", dailyRoute(getDb));
 app.route("/unsubscribe", unsubscribeRoute(getDb));
 app.route("/import/rc", importRoute(getDb));
+app.route("/import/revenue-csv", revenueCsvRoute(getDb));
+app.route("/import/stripe", stripeImportRoute(getDb));
 // RevenueCat OAuth redirects here (the registered redirect URI); the
 // dashboard finishes the flow, since it knows who is signed in.
 app.get("/oauth/revenuecat/callback", (c) => {

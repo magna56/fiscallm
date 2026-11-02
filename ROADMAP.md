@@ -8,6 +8,8 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - The hosted service at fiscallm.com is free under fair use (up to 100,000 events per app per month), run by the maintainer on a best-effort basis.
 
 ## Done recently
+- **Stripe history import**: the last 12 months of Stripe payments, refunds, trials and ended subscriptions, with a read-only key that is never stored
+- **Revenue CSV upload** for any billing system
 - Open source (MIT), self-hosting guide, contributing guide
 - Kill switch in both SDKs
 - CSV export of Users, Plans and Trials

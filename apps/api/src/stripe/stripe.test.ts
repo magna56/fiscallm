@@ -198,7 +198,9 @@ describe("POST /webhooks/stripe/:appId", () => {
     const res = await post(invoicePaid());
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ received: true, accepted: 1, duplicates: 0 });
-    expect(await (await post(invoicePaid())).json()).toMatchObject({ accepted: 0, duplicates: 1 });
+    expect(await (await post(invoicePaid())).json()).toMatchObject({ received: true, ignored: "already counted" });
+    // The same invoice under another event id (e.g. already imported) is not counted twice.
+    expect(await (await post(invoicePaid({ id: "evt_other" }))).json()).toMatchObject({ ignored: "already counted" });
 
     const rows = await db.select().from(schema.rcEvents).where(eq(schema.rcEvents.appId, appId));
     expect(rows).toHaveLength(1);

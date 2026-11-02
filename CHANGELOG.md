@@ -2,6 +2,10 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## Unreleased
+- **Stripe history import**: paste a read-only Stripe restricted key on the Setup page to import the last 12 months of paid invoices, refunds, current trials and ended subscriptions. The key is used for the import only and never stored. An invoice is counted once whether it arrives by webhook or import, so re-running is safe.
+- **Revenue CSV upload**: upload payments, renewals, refunds and trials from any billing system (Stripe, Paddle, Lemon Squeezy, a spreadsheet) as a CSV on the Setup page. Bad rows are reported by line number; re-uploading skips rows already stored.
+
 ## 2026-10-23
 - **Connect RevenueCat**: one click on the Setup page. Approve access in RevenueCat and FiscaLLM adds its webhook to your project and imports your past subscribers, with nothing to copy or paste. Read-only for customer data; Disconnect removes the webhook and the tokens. Thanks to the RevenueCat team for the OAuth client. Self-hosted copies keep the manual setup unless they register their own client.
 - **Caps that hold during an outage** (SDKs 0.6.0): if FiscaLLM is slow or down, `meter.check` keeps refusing a user it already refused, instead of letting them through. New `checkOnError: "deny"` (`check_on_error="deny"`) to fail closed for everyone, and `localLimit` (`local_limit=LocalLimit(...)`) to cap each user's calls, tokens or exact cost in your own process with no network call, which stops a runaway loop even when FiscaLLM is unreachable. Results now include `source`.

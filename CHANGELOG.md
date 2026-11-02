@@ -2,7 +2,7 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
-## Unreleased
+## 2026-11-02
 - **Stripe history import**: paste a read-only Stripe restricted key on the Setup page to import the last 12 months of paid invoices, refunds, current trials and ended subscriptions. The key is used for the import only and never stored. An invoice is counted once whether it arrives by webhook or import, so re-running is safe.
 - **Revenue CSV upload**: upload payments, renewals, refunds and trials from any billing system (Stripe, Paddle, Lemon Squeezy, a spreadsheet) as a CSV on the Setup page. Bad rows are reported by line number; re-uploading skips rows already stored.
 

@@ -269,6 +269,14 @@ meter.flush()   # or: await meter.aflush()`}</code>
             please check the first week against your Stripe dashboard and <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
           </li>
         </ul>
+        <h3 id="stripe-import">Import past Stripe payments</h3>
+        <p>
+          The webhook sees only new events. To include the last 12 months, create a Stripe restricted key with <em>Read</em> access to Invoices, Charges
+          and Refunds, and Subscriptions, and paste it under Setup → Import the last 12 months. FiscaLLM imports paid invoices, refunds, current trials
+          and ended subscriptions through the same rules as the webhook. The key is used for that import only and is never stored; you can delete it in
+          Stripe once the numbers appear. An invoice is counted once whether it came from the webhook or the import, so running the import again is
+          safe.
+        </p>
 
         <h2 id="revenue-api">Revenue without RevenueCat</h2>
         <p>
@@ -296,6 +304,25 @@ meter.track_revenue(id=invoice.id, user_id=user_id, type="purchase",
           Or <code>POST https://fiscallm.com/api/v1/revenue</code> with <code>{`{ "events": [ … ] }`}</code> and the same fields, using your
           ingest key. Use <code>oneTime: true</code> for lifetime or credit purchases, and <code>amountUsd</code> as a positive number for
           refunds.
+        </p>
+
+        <h3 id="revenue-csv">Upload revenue as CSV</h3>
+        <p>
+          For payments that never went through a webhook (an export from Stripe, Paddle, Lemon Squeezy, or a spreadsheet), upload a CSV on the Setup
+          page. One row per event, with the same fields as the revenue API:
+        </p>
+        <pre>
+          <code>{`id,user_id,type,ts,amount_usd,net_usd,product_id,period_end
+in_001,user_42,purchase,2026-10-01,20,17.12,pro_monthly,2026-11-01
+in_002,user_42,renewal,2026-11-01,20,17.12,pro_monthly,2026-12-01
+re_001,user_7,refund,2026-10-12,20,20,pro_monthly,`}</code>
+        </pre>
+        <p>
+          Required: <code>id</code>, <code>user_id</code>, <code>type</code>, <code>ts</code> (a date or ISO time), and <code>amount_usd</code> for
+          purchases, renewals and refunds. Optional: <code>net_usd</code>, <code>tax_pct</code>, <code>fee_pct</code>, <code>product_id</code>,{" "}
+          <code>period_end</code>, <code>is_trial_conversion</code>, <code>one_time</code>. Common names such as <code>customer</code>,{" "}
+          <code>date</code> and <code>amount</code> are understood too. Up to about 5,000 rows per file; rows with a problem are skipped and listed by
+          line number, and uploading the same rows again does not count them twice.
         </p>
 
         <h2 id="prices">Prices</h2>

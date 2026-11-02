@@ -81,7 +81,8 @@ export default function IntegrationsPage() {
           intro="Revenue is matched to AI cost by user ID, net of fees and tax."
           rows={[
             ["RevenueCat", "Supported", <>One-click Connect RevenueCat (OAuth): adds the webhook and imports past subscribers. Manual webhook setup also works. See <Link href="/docs#revenuecat">the docs</Link>.</>],
-            ["Stripe", "Beta", <>Paid invoices, trials, cancellations and refunds from a webhook. USD only; tested against sample payloads. See <Link href="/docs#stripe">the docs</Link>.</>],
+            ["Stripe", "Beta", <>Paid invoices, trials, cancellations and refunds from a webhook, plus a one-time <Link href="/docs#stripe-import">import of the last 12 months</Link> with a read-only key that is never stored. USD only. See <Link href="/docs#stripe">the docs</Link>.</>],
+            ["CSV upload", "Supported", <>Upload payments, refunds and trials from Paddle, Lemon Squeezy, a Stripe export or a spreadsheet. See <Link href="/docs#revenue-csv">the docs</Link>.</>],
             ["Any other billing system", "Supported", <>One call per payment, refund or cancellation through <Link href="/docs#revenue-api">the revenue API</Link>.</>],
             ["Adapty and Superwall", "Planned", "A webhook converter for each, on the roadmap."],
             ["App Store and Google Play directly", "Planned", "Today use RevenueCat, Stripe or the revenue API."],

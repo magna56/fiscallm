@@ -9,6 +9,13 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-11-02",
+    items: [
+      "Stripe history import: paste a read-only Stripe restricted key on the Setup page to import the last 12 months of paid invoices, refunds, current trials and ended subscriptions. The key is used for the import only and never stored. An invoice counts once whether it arrives by webhook or import, so re-running is safe.",
+      "Revenue CSV upload: upload payments, renewals, refunds and trials from Paddle, Lemon Squeezy, a Stripe export or a spreadsheet. Bad rows are listed by line number; re-uploading skips rows already stored.",
+    ],
+  },
+  {
     date: "2026-10-23",
     items: [
       "Connect RevenueCat: one click on the Setup page. Approve access in RevenueCat and FiscaLLM adds its webhook to your project and imports your past subscribers, with nothing to copy or paste. Read-only for customer data; Disconnect removes the webhook and the tokens.",

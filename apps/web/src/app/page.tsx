@@ -18,7 +18,7 @@ const STEPS = [
   {
     n: "02",
     title: "Connect your revenue",
-    body: "Press Connect RevenueCat, or paste one Stripe webhook URL. Purchases, renewals, trials and refunds arrive as they happen, net of fees and tax.",
+    body: "Press Connect RevenueCat, connect Stripe and import the last 12 months, or upload a CSV from any billing system. Purchases, renewals, trials and refunds count net of fees and tax.",
     code: "https://fiscallm.com/api/webhooks/rc/…",
   },
   {
@@ -32,7 +32,8 @@ const STEPS = [
 const FAQ: [string, string][] = [
   ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
-  ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe (beta) with one webhook, or send payments from any other billing system with one SDK call."],
+  ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe (beta) with one webhook, or upload a CSV from Paddle, Lemon Squeezy or a spreadsheet, or send payments with one SDK call."],
+  ["Does it include revenue from before I connected?", "Yes. Connect RevenueCat imports past subscribers, the Stripe import brings in the last 12 months with a read-only key that is never stored, and a CSV upload covers anything else. Re-running an import never counts a payment twice."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check lets calls through, except for users it already refused. You can make it refuse instead, and add a local limit that stops runaway loops with no network at all."],
   ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
   ["I charge per job (credits), not per month. Does it fit?", "Yes. Tag each AI call with your job id and report whether the user's credits were captured or refunded. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user."],
@@ -268,7 +269,7 @@ function Problem() {
 
 function Solution() {
   const points: [string, string][] = [
-    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. One RevenueCat or Stripe webhook reports payments."],
+    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. RevenueCat, Stripe (with 12 months of history) or a CSV upload reports payments."],
     ["Shows your real margin", "Per user, per plan, per free trial, and which model or feature drives the bill."],
     ["Warns you, and can say no", "Email, Slack or webhook alerts when a user goes over budget or loops. Mark a budget as Block and your backend can refuse them."],
   ];

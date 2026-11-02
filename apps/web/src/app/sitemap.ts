@@ -16,6 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/guides/track-openai-cost-per-user", 0.7],
     ["/guides/track-anthropic-claude-cost-per-user", 0.7],
     ["/guides/ai-margin-per-user-revenuecat", 0.8],
+    ["/guides/ai-cost-per-customer-stripe", 0.8],
+    ["/guides/ai-margin-from-revenue-csv", 0.8],
     ["/privacy", 0.3],
     ["/terms", 0.3],
   ];

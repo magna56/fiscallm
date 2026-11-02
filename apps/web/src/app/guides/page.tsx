@@ -10,6 +10,16 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/ai-cost-per-customer-stripe",
+    title: "How to track AI cost per customer against Stripe revenue",
+    body: "Tag users in Stripe metadata, use net revenue after fees and tax, handle trials and refunds, and backfill past invoices.",
+  },
+  {
+    href: "/guides/ai-margin-from-revenue-csv",
+    title: "How to calculate AI margin per user from a revenue CSV",
+    body: "Paddle, Lemon Squeezy, Stripe exports or a spreadsheet: the columns you need and how to join them with LLM cost.",
+  },
+  {
     href: "/guides/ai-margin-per-user-revenuecat",
     title: "How to calculate AI margin per user in a RevenueCat app",
     body: "Use the right user ID, net revenue after store fees and tax, and handle trials, annual plans and refunds.",

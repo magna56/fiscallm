@@ -111,3 +111,33 @@ export const calcModels = (): CalcModel[] =>
   [...TEXT_MODELS]
     .sort((a, b) => a.providerName.localeCompare(b.providerName) || messageCost(a.price) - messageCost(b.price))
     .map((m) => ({ slug: m.slug, name: m.name, providerName: m.providerName, input: m.price.input, cached: m.price.cached ?? m.price.input, output: m.price.output }));
+
+// Models people compare most; every pair among them gets a comparison page.
+const POPULAR = [
+  "gpt-6-sol", "gpt-6-luna", "gpt-5.5", "gpt-5-mini", "gpt-5-nano", "gpt-4.1", "gpt-4o", "gpt-4o-mini", "o3",
+  "claude-opus-5-5", "claude-sonnet-5-5", "claude-sonnet-4-5", "claude-haiku-5-5", "claude-haiku-4-5",
+  "gemini-4-argon", "gemini-3.8-flash", "gemini-2.5-pro", "gemini-2.5-flash",
+];
+
+const PAIR_SEP = "-vs-";
+export const pairSlug = (a: string, b: string) => [a, b].sort().join(PAIR_SEP);
+
+/** Every comparison page, each pair once (slugs in alphabetical order). */
+export function modelPairs(): [TextModel, TextModel][] {
+  const list = POPULAR.map(findModel).filter((m): m is TextModel => Boolean(m));
+  const out: [TextModel, TextModel][] = [];
+  for (let i = 0; i < list.length; i++)
+    for (let j = i + 1; j < list.length; j++) {
+      const [a, b] = [list[i]!, list[j]!].sort((x, y) => x.slug.localeCompare(y.slug));
+      out.push([a!, b!]);
+    }
+  return out;
+}
+
+export function parsePair(slug: string): [TextModel, TextModel] | null {
+  const pair = modelPairs().find(([a, b]) => pairSlug(a.slug, b.slug) === slug);
+  return pair ?? null;
+}
+
+/** Pairs that include this model, for links from its page. */
+export const pairsFor = (slug: string) => modelPairs().filter(([a, b]) => a.slug === slug || b.slug === slug);

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { COMPETITORS } from "@/lib/compare";
-import { TEXT_MODELS } from "@/lib/models";
+import { modelPairs, pairSlug, TEXT_MODELS } from "@/lib/models";
 
 const BASE = "https://fiscallm.com";
 
@@ -23,6 +23,7 @@ export const PAGES: [string, number][] = [
   ["/guides/ai-margin-from-revenue-csv", 0.8],
   ...COMPETITORS.map((c): [string, number] => [`/compare/fiscallm-vs-${c.slug}`, 0.6]),
   ...TEXT_MODELS.map((m): [string, number] => [`/llm-pricing/${m.slug}`, 0.6]),
+  ...modelPairs().map(([a, b]): [string, number] => [`/llm-pricing/compare/${pairSlug(a.slug, b.slug)}`, 0.5]),
   ["/privacy", 0.3],
   ["/terms", 0.3],
 ];

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CostCalculator } from "@/components/cost-calculator";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
-import { breakEven, BUILT_MONTH, BUILT_ON, calcModels, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, usd } from "@/lib/models";
+import { breakEven, BUILT_MONTH, BUILT_ON, calcModels, modelPairs, pairSlug, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, usd } from "@/lib/models";
 
 const MONTH = BUILT_MONTH;
 const TITLE = `LLM API pricing compared: cost per message and per user (${MONTH})`;
@@ -117,6 +117,17 @@ export default function LlmPricing() {
           {PLAN.price} subscriber costs you everything you keep. Sources and audit:{" "}
           <a href="https://github.com/magna56/fiscallm/blob/main/ACCURACY.md">ACCURACY.md</a>.
         </p>
+
+        <h2 id="compare">Head-to-head comparisons</h2>
+        <ul className="!list-none !pl-0 grid gap-x-6 sm:grid-cols-2">
+          {modelPairs().map(([a, b]) => (
+            <li key={pairSlug(a.slug, b.slug)}>
+              <Link href={`/llm-pricing/compare/${pairSlug(a.slug, b.slug)}`}>
+                {a.name} vs {b.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
         <h2 id="averages">Why averages are not enough</h2>
         <p>

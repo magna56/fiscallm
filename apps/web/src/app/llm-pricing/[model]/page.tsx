@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CostCalculator } from "@/components/cost-calculator";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
-import { breakEven, BUILT_MONTH, BUILT_ON, calcModels, cheaperAlternatives, findModel, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, TIERS, usd } from "@/lib/models";
+import { breakEven, BUILT_MONTH, BUILT_ON, calcModels, cheaperAlternatives, pairSlug, pairsFor, findModel, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, TIERS, usd } from "@/lib/models";
 
 const MONTH = BUILT_MONTH;
 
@@ -170,6 +170,24 @@ export default async function ModelPricing({ params }: PageProps<"/llm-pricing/[
             </li>
           ))}
         </ul>
+
+        {pairsFor(m.slug).length > 0 && (
+          <>
+            <h2 id="compare">Compare {m.name} with</h2>
+            <ul>
+              {pairsFor(m.slug).map(([x, y]) => {
+                const other = x.slug === m.slug ? y : x;
+                return (
+                  <li key={other.slug}>
+                    <Link href={`/llm-pricing/compare/${pairSlug(x.slug, y.slug)}`}>
+                      {m.name} vs {other.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
 
         <h2 id="track">Track {m.name} cost per user</h2>
         <p>

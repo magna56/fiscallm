@@ -1,4 +1,5 @@
 import { type RevenueEvent, revenueEventSchema } from "../revenue/convert";
+import type { Settlement } from "./settlement";
 
 // Turns a Stripe webhook event into the revenue events FiscaLLM already
 // understands (the same ones the revenue API takes), so Stripe revenue flows
@@ -6,8 +7,10 @@ import { type RevenueEvent, revenueEventSchema } from "../revenue/convert";
 //
 // Handled: invoice.paid, customer.subscription.created (trialing),
 // customer.subscription.updated (auto-renew switched off),
-// customer.subscription.deleted, charge.refunded. Everything else is ignored.
-// USD only. Stripe's fee is estimated (see below); it is not read from Stripe.
+// customer.subscription.deleted, charge.refunded, charge.dispute.closed (lost).
+// Everything else is ignored. Without a Stripe key: USD only, and Stripe's fee
+// is estimated. With a read-only key (ctx.settle), the exact fee and the
+// settled USD amount are read from Stripe, so any currency settled in USD works.
 
 /** Which user an event belongs to: metadata first, then the Stripe customer. */
 export const USER_METADATA_KEYS = ["fiscallm_user_id", "user_id", "userId"] as const;
@@ -15,6 +18,8 @@ export const USER_METADATA_KEYS = ["fiscallm_user_id", "user_id", "userId"] as c
 // Stripe's standard US card price, used to estimate what you keep.
 export const STRIPE_FEE_PCT = 0.029;
 export const STRIPE_FEE_FIXED_USD = 0.3;
+
+type Rec = Record<string, unknown>;
 
 export interface StripeEvent {
   id?: unknown;
@@ -31,6 +36,12 @@ export interface MapContext {
   refundedSoFar(chargeId: string): Promise<number>;
   /** True if this invoice is already stored (by the webhook or the history import). */
   invoiceSeen?(invoiceId: string): Promise<boolean>;
+  /** Exact fee and USD amount from Stripe; only when the app has a read-only key. */
+  settle?(ref: { invoice?: Rec; chargeId?: string }): Promise<Settlement | null>;
+  /** The user of an already stored payment for this charge. */
+  userForCharge?(chargeId: string): Promise<string | null>;
+  /** Reads a charge's customer from Stripe; only with a key. */
+  customerOfCharge?(chargeId: string): Promise<{ customer?: string; metadata: Rec }>;
 }
 
 export interface Mapped {
@@ -41,7 +52,6 @@ export interface Mapped {
   ignored?: string;
 }
 
-type Rec = Record<string, unknown>;
 const rec = (v: unknown): Rec => (v && typeof v === "object" && !Array.isArray(v) ? (v as Rec) : {});
 const str = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined);
 const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
@@ -72,9 +82,22 @@ async function resolveUser(ctx: MapContext, customer: string | undefined, ...met
 
 const ignored = (reason: string): Mapped => ({ events: [], extra: {}, ignored: reason });
 
+/** The subscription line of an invoice: the one whose period ends last (proration lines end earlier). */
+function mainLine(invoice: Rec): Rec {
+  const lines = list(rec(invoice.lines).data).map(rec);
+  return lines.reduce<Rec>((best, l) => ((num(rec(l.period).end) ?? 0) > (num(rec(best.period).end) ?? -1) ? l : best), lines[0] ?? {});
+}
+
 function productOf(item: Rec): string {
   const priceDetails = rec(rec(item.pricing).price_details);
   return str(rec(item.price).id) ?? str(rec(item.plan).id) ?? str(priceDetails.price) ?? "stripe";
+}
+
+/** USD per smallest currency unit of a charge: 0.01 for USD, or read from Stripe. Null if unknown. */
+async function usdPerUnitOf(ctx: MapContext, chargeId: string, currency: string | undefined): Promise<number | null> {
+  const settled = await ctx.settle?.({ chargeId });
+  if (settled) return settled.usdPerUnit;
+  return currency?.toLowerCase() === "usd" ? 0.01 : null;
 }
 
 export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promise<Mapped> {
@@ -93,20 +116,23 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
 
   switch (type) {
     case "invoice.paid": {
-      if (str(obj.currency)?.toLowerCase() !== "usd") return ignored("only USD is supported");
+      const currency = str(obj.currency)?.toLowerCase();
       const paidCents = num(obj.amount_paid) ?? 0;
       if (paidCents <= 0) return ignored("zero amount");
       const invoiceId = str(obj.id);
       if (invoiceId && (await ctx.invoiceSeen?.(invoiceId))) return ignored("already counted");
       const customer = idOf(obj.customer);
       const parentSub = rec(rec(obj.parent).subscription_details);
-      const line = rec(list(rec(obj.lines).data)[0]);
+      const line = mainLine(obj);
       const userId = await resolveUser(ctx, customer, rec(obj.subscription_details).metadata, parentSub.metadata, obj.metadata, line.metadata);
       if (!userId) return ignored("no user: set metadata.user_id on the subscription or customer");
 
-      const gross = paidCents / 100;
+      // Exact numbers from Stripe when a key is connected; otherwise USD with the standard fee.
+      const settled = await ctx.settle?.({ invoice: obj });
+      if (!settled && currency !== "usd") return ignored("only USD is supported without a read-only Stripe key");
+      const gross = settled ? settled.grossUsd : paidCents / 100;
       const taxPct = clamp01((num(obj.tax) ?? 0) / paidCents);
-      const feePct = clamp01((gross * STRIPE_FEE_PCT + STRIPE_FEE_FIXED_USD) / gross);
+      const feePct = clamp01(settled ? settled.feeUsd / gross : (gross * STRIPE_FEE_PCT + STRIPE_FEE_FIXED_USD) / gross);
       const reason = str(obj.billing_reason) ?? "";
       const isSubscription = Boolean(idOf(obj.subscription) || idOf(parentSub.subscription) || reason.startsWith("subscription"));
       const renewal = reason === "subscription_cycle" || reason === "subscription_update" || reason === "subscription_threshold";
@@ -124,7 +150,13 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
           environment,
           ts: iso(rec(obj.status_transitions).paid_at) ?? eventTs,
         },
-        { stripeCustomer: customer, stripeInvoice: invoiceId, stripeCharge: idOf(obj.charge) },
+        {
+          stripeCustomer: customer,
+          stripeInvoice: invoiceId,
+          stripeCharge: settled?.chargeId ?? idOf(obj.charge),
+          stripeFee: settled ? "exact" : "estimated",
+          ...(currency !== "usd" ? { stripeCurrency: currency } : {}),
+        },
       );
     }
 
@@ -150,21 +182,45 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
     }
 
     case "charge.refunded": {
-      if (str(obj.currency)?.toLowerCase() !== "usd") return ignored("only USD is supported");
       const chargeId = str(obj.id);
-      const refundedCents = num(obj.amount_refunded) ?? 0;
-      if (!chargeId || refundedCents <= 0) return ignored("nothing refunded");
+      const refundedUnits = num(obj.amount_refunded) ?? 0;
+      if (!chargeId || refundedUnits <= 0) return ignored("nothing refunded");
+      const usdPerUnit = await usdPerUnitOf(ctx, chargeId, str(obj.currency));
+      if (usdPerUnit === null) return ignored("only USD is supported without a read-only Stripe key");
       const customer = idOf(obj.customer);
-      const userId = await resolveUser(ctx, customer, obj.metadata);
+      const userId = (await ctx.userForCharge?.(chargeId)) ?? (await resolveUser(ctx, customer, obj.metadata));
       if (!userId) return ignored("no user: set metadata.user_id on the subscription or customer");
       // amount_refunded is the running total for the charge; record only the new part.
-      const delta = round2(refundedCents / 100 - (await ctx.refundedSoFar(chargeId)));
+      const delta = round2(refundedUnits * usdPerUnit - (await ctx.refundedSoFar(chargeId)));
       if (delta <= 0) return ignored("already counted");
       // The refund returns the money the customer paid; the fee is not returned,
       // and the tax portion is not known here, so the whole amount comes off.
       return finish(
         { id, userId, type: "refund", amountUsd: delta, taxPct: 0, feePct: 0, environment, ts: eventTs },
-        { stripeCustomer: customer, stripeCharge: chargeId, stripeRefundCents: refundedCents },
+        { stripeCustomer: customer, stripeCharge: chargeId, stripeRefundCents: refundedUnits },
+      );
+    }
+
+    case "charge.dispute.closed": {
+      // Only a lost dispute takes money away for good; won ones change nothing.
+      if (obj.status !== "lost") return ignored("dispute not lost");
+      const chargeId = idOf(obj.charge);
+      const units = num(obj.amount) ?? 0;
+      if (!chargeId || units <= 0) return ignored("nothing disputed");
+      const usdPerUnit = await usdPerUnitOf(ctx, chargeId, str(obj.currency));
+      if (usdPerUnit === null) return ignored("only USD is supported without a read-only Stripe key");
+      let userId = await ctx.userForCharge?.(chargeId);
+      if (!userId && ctx.customerOfCharge) {
+        const c = await ctx.customerOfCharge(chargeId);
+        userId = await resolveUser(ctx, c.customer, c.metadata);
+      }
+      if (!userId) return ignored("no user for the disputed payment");
+      // Counted like a refund, against the same charge, so a refund after it is not counted twice.
+      const delta = round2(units * usdPerUnit - (await ctx.refundedSoFar(chargeId)));
+      if (delta <= 0) return ignored("already counted");
+      return finish(
+        { id, userId, type: "refund", amountUsd: delta, taxPct: 0, feePct: 0, environment, ts: eventTs },
+        { stripeCharge: chargeId, stripeDispute: str(obj.id) },
       );
     }
 

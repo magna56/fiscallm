@@ -5,6 +5,7 @@ import type { AnyDb } from "../ingest/db";
 import type { RowSource } from "../revenue/convert";
 import { storeRevenueEvents } from "../revenue/route";
 import { type MapContext, type Mapped, mapStripeEvent } from "./map";
+import { customerOfCharge, settle, type StripeRequest, stripeRequest } from "./settlement";
 import { verifyStripeSignature } from "./verify";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -12,10 +13,19 @@ const MAX_BODY_BYTES = 1024 * 1024;
 
 type App = { id: string; testMode: boolean };
 
-/** Lookups the mapper needs, against what is already stored for the app. */
-export function stripeContext(db: AnyDb, appId: string): MapContext {
+/** Lookups the mapper needs: what is already stored, and Stripe itself when a read-only key is connected. */
+export function stripeContext(db: AnyDb, appId: string, req?: StripeRequest): MapContext {
   const e = schema.rcEvents;
   return {
+    ...(req ? { settle: (ref) => settle(req, ref), customerOfCharge: (chargeId) => customerOfCharge(req, chargeId) } : {}),
+    async userForCharge(chargeId) {
+      const [row] = await db
+        .select({ u: e.appUserId })
+        .from(e)
+        .where(and(eq(e.appId, appId), sql`${e.raw}->>'stripeCharge' = ${chargeId}`, sql`${e.priceUsd} > 0`))
+        .limit(1);
+      return row?.u ?? null;
+    },
     async knownUser(customerId) {
       const [row] = await db
         .select({ u: e.appUserId })
@@ -70,7 +80,12 @@ export function stripeRoute(getDb: () => AnyDb) {
 
     const db = getDb();
     const [app] = await db
-      .select({ id: schema.apps.id, testMode: schema.apps.testMode, cipher: schema.apps.stripeWebhookSecretCipher })
+      .select({
+        id: schema.apps.id,
+        testMode: schema.apps.testMode,
+        cipher: schema.apps.stripeWebhookSecretCipher,
+        keyCipher: schema.apps.stripeApiKeyCipher,
+      })
       .from(schema.apps)
       .where(eq(schema.apps.id, appId))
       .limit(1);
@@ -91,7 +106,8 @@ export function stripeRoute(getDb: () => AnyDb) {
       return c.json({ error: "invalid json" }, 400);
     }
 
-    const mapped = await mapStripeEvent(event as Record<string, unknown>, stripeContext(db, app.id));
+    const apiKey = app.keyCipher ? await openSecret(serverSecret, app.keyCipher).catch(() => null) : null;
+    const mapped = await mapStripeEvent(event as Record<string, unknown>, stripeContext(db, app.id, apiKey ? stripeRequest(apiKey) : undefined));
     if (mapped.events.length === 0) return c.json({ received: true, ignored: mapped.ignored }, 200);
     const result = await storeStripeEvents(db, app, mapped);
     return c.json({ received: true, ...result }, 200);

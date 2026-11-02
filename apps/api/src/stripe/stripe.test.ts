@@ -149,6 +149,65 @@ describe("mapStripeEvent", () => {
   });
 });
 
+describe("mapStripeEvent with a read-only Stripe key", () => {
+  // €20 settled as $21.50 with a $0.95 Stripe fee.
+  const settled: MapContext["settle"] = async () => ({ chargeId: "ch_eur", grossUsd: 21.5, feeUsd: 0.95, usdPerUnit: 21.5 / 2000 });
+
+  it("uses Stripe's exact fee and the settled USD amount, in any currency", async () => {
+    const m = await mapStripeEvent(invoicePaid({}, { currency: "eur", amount_paid: 2000, tax: 400 }), { ...none, settle: settled });
+    expect(m.events[0]).toMatchObject({ amountUsd: 21.5 });
+    expect(m.events[0]!.feePct).toBeCloseTo(0.95 / 21.5, 5);
+    expect(m.events[0]!.taxPct).toBeCloseTo(0.2, 5);
+    expect(m.extra).toMatchObject({ stripeCharge: "ch_eur", stripeFee: "exact", stripeCurrency: "eur" });
+  });
+
+  it("falls back to the estimate for USD when Stripe cannot be read", async () => {
+    const m = await mapStripeEvent(invoicePaid(), { ...none, settle: async () => null });
+    expect(m.events[0]!.feePct).toBeCloseTo(0.059, 5);
+    expect(m.extra).toMatchObject({ stripeFee: "estimated" });
+  });
+
+  it("converts a refund in another currency at the payment's settled rate", async () => {
+    const ev = { id: "evt_re", type: "charge.refunded", created: sec(NOW), data: { object: { id: "ch_eur", customer: "cus_A", currency: "eur", amount_refunded: 1000, metadata: { user_id: "user-1" } } } };
+    expect((await mapStripeEvent(ev, none)).ignored).toMatch(/USD/);
+    const m = await mapStripeEvent(ev, { ...none, settle: settled });
+    expect(m.events[0]).toMatchObject({ type: "refund", amountUsd: 10.75 });
+  });
+
+  it("picks the subscription line, not an earlier proration line", async () => {
+    const lines = {
+      data: [
+        { price: { id: "price_old" }, period: { end: sec(NOW + DAY) } },
+        { price: { id: "price_new" }, period: { end: sec(NOW + 30 * DAY) } },
+      ],
+    };
+    const m = await mapStripeEvent(invoicePaid({}, { lines }), none);
+    expect(m.events[0]!.productId).toBe("price_new");
+    expect(m.events[0]!.periodEnd!.getTime()).toBe(sec(NOW + 30 * DAY) * 1000);
+  });
+});
+
+describe("mapStripeEvent disputes", () => {
+  const dispute = (status: string, amount = 1000) => ({ id: `evt_d_${status}`, type: "charge.dispute.closed", created: sec(NOW), data: { object: { id: "dp_1", charge: "ch_1", currency: "usd", amount, status } } });
+
+  it("counts a lost dispute as a refund for the user who paid", async () => {
+    const m = await mapStripeEvent(dispute("lost"), { ...none, userForCharge: async () => "user-1" });
+    expect(m.events[0]).toMatchObject({ type: "refund", userId: "user-1", amountUsd: 10 });
+    expect(m.extra).toMatchObject({ stripeCharge: "ch_1", stripeDispute: "dp_1" });
+  });
+
+  it("ignores won disputes and money already refunded on the charge", async () => {
+    expect((await mapStripeEvent(dispute("won"), { ...none, userForCharge: async () => "user-1" })).ignored).toMatch(/not lost/);
+    expect((await mapStripeEvent(dispute("lost"), { ...none, userForCharge: async () => "user-1", refundedSoFar: async () => 10 })).ignored).toMatch(/already/);
+  });
+
+  it("finds the customer through Stripe when the payment is not stored", async () => {
+    expect((await mapStripeEvent(dispute("lost"), none)).ignored).toMatch(/no user/);
+    const m = await mapStripeEvent(dispute("lost"), { ...none, customerOfCharge: async () => ({ customer: "cus_Z", metadata: {} }) });
+    expect(m.events[0]!.userId).toBe("cus_Z");
+  });
+});
+
 describe("POST /webhooks/stripe/:appId", () => {
   let db: AnyDb;
   let appId: string;

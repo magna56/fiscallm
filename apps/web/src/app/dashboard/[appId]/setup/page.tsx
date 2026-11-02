@@ -16,7 +16,7 @@ import { getDb, metricsDb } from "@/lib/db";
 import { keyCookie } from "@/lib/key-cookie";
 import { origin } from "@/lib/origin";
 import { accessToken, listProjects, oauthClient, type RcProject } from "@fiscallm/shared/rc-oauth";
-import { chooseRevenueCatProject, connectStripe, disconnectStripe, disconnectRevenueCat, dismissKey, rotateKey, startStripeImport, uploadRevenueCsv } from "../../actions";
+import { chooseRevenueCatProject, connectStripe, disconnectStripe, disconnectRevenueCat, dismissKey, removeStripeKey, rotateKey, saveStripeKey, startStripeImport, uploadRevenueCsv } from "../../actions";
 
 export default function SetupPage({ params, searchParams }: PageProps<"/dashboard/[appId]/setup">) {
   return (
@@ -215,8 +215,8 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
 
       <Card title={<span id="stripe" className="scroll-mt-24">Optional: connect Stripe</span>}>
         <p className="text-sm text-foreground/70">
-          If you bill through Stripe, FiscaLLM can read your payments, refunds and trials from a Stripe webhook. This is a beta: it is tested against sample
-          payloads, so check the first week of numbers against your Stripe dashboard. USD only for now.
+          If you bill through Stripe, FiscaLLM can read your payments, refunds, lost disputes and trials from a Stripe webhook. This is a beta: check the
+          first week of numbers against your Stripe dashboard. Without a key below, fees are estimated and only USD payments count.
         </p>
         <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5 text-sm">
           <li>
@@ -227,7 +227,7 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
           </li>
           <li>
             Choose these events: <Code>invoice.paid</Code>, <Code>customer.subscription.created</Code>, <Code>customer.subscription.updated</Code>,{" "}
-            <Code>customer.subscription.deleted</Code> and <Code>charge.refunded</Code>.
+            <Code>customer.subscription.deleted</Code>, <Code>charge.refunded</Code> and <Code>charge.dispute.closed</Code>.
           </li>
           <li>Copy the endpoint&apos;s signing secret (it starts with whsec_) and paste it here:</li>
         </ol>
@@ -252,12 +252,36 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
           send from your backend. Without it, FiscaLLM uses the Stripe customer ID (<Code>cus_…</Code>), so then report that as the <Code>userId</Code> in your
           SDK calls. What you keep is estimated as the payment minus tax minus Stripe&apos;s standard fee (2.9% + $0.30).
         </p>
+        <div id="stripe-key" className="mt-4 scroll-mt-24 border-t border-black/5 pt-4">
+          <p className="text-sm">
+            <strong>Exact fees and other currencies (recommended).</strong> Save a Stripe restricted key with <em>Read</em> access to Invoices, Charges
+            and Refunds, PaymentIntents, Balance transactions, and Subscriptions. FiscaLLM then reads Stripe&apos;s real fee and the USD amount each
+            payment settled for, so EUR, GBP and other currencies count too. It is stored encrypted and can only read.
+          </p>
+          {app.stripeApiKeyCipher ? (
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+              <span className="text-green-700">Key saved: exact fees, any currency settled in USD.</span>
+              <form action={removeStripeKey.bind(null, app.id)}>
+                <Button variant="secondary" type="submit">
+                  Remove key
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <form action={saveStripeKey.bind(null, app.id)} className="mt-2 flex flex-wrap items-center gap-2">
+              <Input name="stripeKey" type="password" autoComplete="off" placeholder="rk_live_…" className="min-w-[16rem] flex-1" />
+              <Button type="submit" variant="secondary">
+                Save key
+              </Button>
+            </form>
+          )}
+        </div>
         <div id="stripe-import" className="mt-4 scroll-mt-24 border-t border-black/5 pt-4">
           <p className="text-sm">
             <strong>Import the last 12 months.</strong> The webhook only sees new events. To include past payments, refunds, current trials and ended
             subscriptions, create a restricted key in Stripe (Developers → API keys → Create restricted key) with <em>Read</em> access to Invoices, Charges
-            and Refunds, and Subscriptions, and paste it here. It is used for this import only and never stored. Invoices already counted are skipped,
-            so running it again is safe.
+            and Refunds, and Subscriptions, and paste it here (or leave it empty to use the saved key). A key pasted here is used for this import only
+            and never stored. Invoices already counted are skipped, so running it again is safe.
           </p>
           <form action={startStripeImport.bind(null, app.id)} className="mt-2 flex flex-wrap items-center gap-2">
             <Input name="stripeKey" type="password" autoComplete="off" placeholder="rk_live_…" className="min-w-[16rem] flex-1" />

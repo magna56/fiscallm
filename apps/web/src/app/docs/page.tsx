@@ -248,7 +248,8 @@ meter.flush()   # or: await meter.aflush()`}</code>
         <p>
           If you bill through Stripe, connect it from your app&apos;s Setup page: add a Stripe webhook endpoint with the URL shown there, choose{" "}
           <code>invoice.paid</code>, <code>customer.subscription.created</code>, <code>customer.subscription.updated</code>,{" "}
-          <code>customer.subscription.deleted</code> and <code>charge.refunded</code>, then paste the endpoint&apos;s signing secret. Requests are
+          <code>customer.subscription.deleted</code>, <code>charge.refunded</code> and <code>charge.dispute.closed</code>, then paste the endpoint&apos;s
+          signing secret. Requests are
           verified with Stripe&apos;s signature, and the secret is stored encrypted.
         </p>
         <ul>
@@ -259,14 +260,20 @@ meter.flush()   # or: await meter.aflush()`}</code>
           </li>
           <li>
             <strong>What it counts.</strong> Paid invoices as purchases and renewals, trials and the first payment after one as a conversion, auto-renew
-            switched off as a cancellation, the end of a subscription, and refunds (only the new part of each partial refund).
+            switched off as a cancellation, the end of a subscription, refunds (only the new part of each partial refund), and lost disputes (as a
+            refund; won disputes change nothing). Plan changes mid-cycle count as renewals, and the product and period come from the
+            subscription line, not proration lines.
           </li>
           <li>
-            <strong>What you keep</strong> is the payment minus tax minus an estimate of Stripe&apos;s fee (2.9% + $0.30), not the exact fee.
+            <strong>What you keep</strong> is the payment minus tax minus Stripe&apos;s fee. Without a key, the fee is estimated (2.9% + $0.30) and
+            only USD payments count. Save a read-only restricted key on the Setup page (Read on Invoices, Charges and Refunds, PaymentIntents,
+            Balance transactions, Subscriptions) and FiscaLLM reads the exact fee and the USD amount each payment settled for, so payments in other
+            currencies count too, as long as your Stripe account settles in USD. The key is stored encrypted and can only read.
           </li>
           <li>
-            <strong>Limits.</strong> USD only. Zero-amount invoices and other event types are ignored. It is a beta, tested against sample payloads;
-            please check the first week against your Stripe dashboard and <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
+            <strong>Not counted.</strong> Credit notes that only add customer balance (they lower later invoices, which is counted), failed payments,
+            zero-amount invoices, the $15 dispute fee, and accounts that settle in a currency other than USD. It is a beta; please check the first
+            week against your Stripe dashboard and <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
           </li>
         </ul>
         <h3 id="stripe-import">Import past Stripe payments</h3>

@@ -35,6 +35,9 @@ export const apps = pgTable("apps", {
   // Stripe webhook signing secret (whsec_...), stored sealed. Set when the
   // owner connects Stripe; null means no Stripe connection.
   stripeWebhookSecretCipher: text("stripe_webhook_secret_cipher"),
+  // Optional read-only Stripe restricted key (rk_...), stored sealed. Lets the
+  // webhook read Stripe's exact fee and the settled USD amount of each payment.
+  stripeApiKeyCipher: text("stripe_api_key_cipher"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }).enableRLS();
 

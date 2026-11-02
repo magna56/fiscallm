@@ -1,6 +1,6 @@
 "use server";
 
-import { generateIngestKey, generateWebhookSecret, hashKey, schema, sealSecret } from "@fiscallm/shared";
+import { generateIngestKey, generateWebhookSecret, hashKey, openSecret, schema, sealSecret } from "@fiscallm/shared";
 import { ALERT_KINDS, type AlertKind } from "@fiscallm/shared/schema";
 import { describeAlert, isSlackWebhook, signWebhook, slackPayload, webhookPayload } from "@fiscallm/shared/alerts";
 import { and, eq } from "drizzle-orm";
@@ -411,6 +411,52 @@ export async function uploadRevenueCsv(appId: string, formData: FormData) {
   redirect(`${back}?${out.skipped && !out.accepted ? "error" : "done"}=${encodeURIComponent(msg)}#csv`);
 }
 
+const STRIPE_KEY = /^(rk|sk)_(live|test)_[A-Za-z0-9]{10,}$/;
+const STRIPE_READ_ACCESS = "Read access to Invoices, Charges and Refunds, PaymentIntents, Balance transactions, and Subscriptions";
+
+/** Checks a Stripe key can read each path; returns what is wrong, or null. */
+async function checkStripeKey(key: string, paths: string[]): Promise<string | null> {
+  for (const path of paths) {
+    const check = await fetch(`https://api.stripe.com${path}?limit=1`, {
+      headers: { authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(10_000),
+    }).catch(() => null);
+    if (!check) return "Could not reach Stripe; try again";
+    if (check.status === 401) return "Stripe refused the key";
+    if (check.status === 403) return `The key cannot read ${path.replace("/v1/", "").replace("_", " ")}. Give it ${STRIPE_READ_ACCESS}.`;
+    if (!check.ok) return `Stripe answered ${check.status}`;
+  }
+  return null;
+}
+
+/**
+ * Saves a read-only Stripe key (sealed). With it the webhook reads Stripe's
+ * exact fee and the settled USD amount, so other currencies work too.
+ */
+export async function saveStripeKey(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#stripe-key`);
+  const secret = process.env.CRON_SECRET;
+  if (!secret) fail("Stripe is not configured on this server yet");
+  const key = String(formData.get("stripeKey") ?? "").trim();
+  if (!STRIPE_KEY.test(key)) fail("Paste a Stripe restricted key; it starts with rk_live_ (or rk_test_ for test mode)");
+  if (key.startsWith("sk_")) fail("Use a restricted key (rk_…) with read access only, not your secret key");
+  const problem = await checkStripeKey(key, ["/v1/invoices", "/v1/charges", "/v1/payment_intents", "/v1/balance_transactions", "/v1/subscriptions"]);
+  if (problem) fail(problem);
+  await getDb().update(schema.apps).set({ stripeApiKeyCipher: await sealSecret(secret!, key) }).where(eq(schema.apps.id, app.id));
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent("Read-only Stripe key saved. New payments use Stripe's exact fee, in any currency your account settles in USD.")}#stripe-key`);
+}
+
+export async function removeStripeKey(appId: string) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/setup`;
+  await getDb().update(schema.apps).set({ stripeApiKeyCipher: null }).where(eq(schema.apps.id, app.id));
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent("Stripe key removed. Fees are estimated again, USD only. You can delete the key in Stripe.")}#stripe-key`);
+}
+
 /**
  * Imports the last 12 months of Stripe payments, refunds, trials and ended
  * subscriptions. The key is checked, then passed sealed to the import and
@@ -422,20 +468,12 @@ export async function startStripeImport(appId: string, formData: FormData) {
   const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#stripe-import`);
   const secret = process.env.CRON_SECRET;
   if (!secret) fail("Stripe import is not configured on this server yet");
-  const key = String(formData.get("stripeKey") ?? "").trim();
-  if (!/^(rk|sk)_(live|test)_[A-Za-z0-9]{10,}$/.test(key)) fail("Paste a Stripe restricted key; it starts with rk_live_ (or rk_test_ for test mode)");
-
-  // Check the key can read what the import needs before starting.
-  for (const path of ["/v1/invoices", "/v1/refunds", "/v1/subscriptions"]) {
-    const check = await fetch(`https://api.stripe.com${path}?limit=1`, {
-      headers: { authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(10_000),
-    }).catch(() => null);
-    if (!check) fail("Could not reach Stripe; try again");
-    if (check!.status === 401) fail("Stripe refused the key");
-    if (check!.status === 403) fail("The key cannot read invoices, refunds and subscriptions. Give it Read access to Invoices, Charges and Refunds, and Subscriptions.");
-    if (!check!.ok) fail(`Stripe answered ${check!.status}`);
-  }
+  // A key pasted here, or the saved read-only key.
+  let key = String(formData.get("stripeKey") ?? "").trim();
+  if (!key && app.stripeApiKeyCipher) key = await openSecret(secret!, app.stripeApiKeyCipher).catch(() => "");
+  if (!STRIPE_KEY.test(key)) fail("Paste a Stripe restricted key; it starts with rk_live_ (or rk_test_ for test mode)");
+  const problem = await checkStripeKey(key, ["/v1/invoices", "/v1/refunds", "/v1/subscriptions"]);
+  if (problem) fail(problem);
 
   const since = Math.floor(Date.now() / 1000) - 365 * 86_400;
   await fetch(`${await origin()}/api/import/stripe/run`, {

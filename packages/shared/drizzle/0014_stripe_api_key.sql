@@ -1,0 +1,1 @@
+ALTER TABLE "apps" ADD COLUMN "stripe_api_key_cipher" text;

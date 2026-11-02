@@ -99,6 +99,13 @@
       "when": 1792780204516,
       "tag": "0013_rc_connections",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793637563093,
+      "tag": "0014_stripe_api_key",
+      "breakpoints": true
     }
   ]
 }

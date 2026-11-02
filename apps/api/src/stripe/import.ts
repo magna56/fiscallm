@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import type { AnyDb } from "../ingest/db";
 import { mapStripeEvent, type StripeEvent } from "./map";
 import { stripeContext, storeStripeEvents } from "./route";
+import { type StripeRequest, stripeRequest } from "./settlement";
 
 // Imports past Stripe payments, refunds, current trials and ended
 // subscriptions through Stripe's API, so revenue from before the webhook was
@@ -25,23 +26,7 @@ export interface StripePage {
 }
 export type StripeGet = (path: string, params: Record<string, string>) => Promise<StripePage>;
 
-export class StripeApiError extends Error {
-  constructor(readonly status: number, message: string) {
-    super(message);
-  }
-}
-
-export function stripeApi(key: string): StripeGet {
-  return async (path, params) => {
-    const res = await fetch(`https://api.stripe.com${path}?${new URLSearchParams(params)}`, {
-      headers: { authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(20_000),
-    });
-    const body = (await res.json().catch(() => ({}))) as Rec;
-    if (!res.ok) throw new StripeApiError(res.status, String(rec(body.error).message ?? `Stripe answered ${res.status}`));
-    return body as unknown as StripePage;
-  };
-}
+export const stripeApi = (key: string): StripeGet => stripeRequest(key) as unknown as StripeGet;
 
 interface Phase {
   path: string;
@@ -92,7 +77,8 @@ export const importDone = (s: ImportState) => s.phase >= PHASES.length;
 /** Imports until done or the deadline; returns the totals and where to resume. */
 export async function runStripeImportChunk(db: AnyDb, app: { id: string; testMode: boolean }, get: StripeGet, state: ImportState, deadline: number): Promise<ImportState> {
   const s = { ...state };
-  const ctx = stripeContext(db, app.id);
+  // The import key can read balance transactions too, so imported payments get exact fees.
+  const ctx = stripeContext(db, app.id, get as unknown as StripeRequest);
   while (s.phase < PHASES.length) {
     if (Date.now() > deadline) return s;
     const phase = PHASES[s.phase]!;

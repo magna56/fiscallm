@@ -21,7 +21,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - **Jobs**: tag AI calls with a `jobId` and report each job as pending, captured or refunded; see the cost of refunded and unresolved jobs per user (SDKs 0.5.0)
 - **Slack alerts** and a **runaway-loop alert** (a user over N tokens in 5 minutes)
 - **Price audit** against OpenAI, Anthropic and Google pricing pages (all matched; eight legacy OpenAI models added) and a per-model CSV to check your own numbers (ACCURACY.md)
-- **Stripe connector (beta)**: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world reports welcome
+- **Stripe connector**: payments, trials, refunds and lost disputes from a Stripe webhook, a 12-month import, and exact fees in any currency with a read-only key; tested end to end with Stripe test clocks
 - Runnable examples: a sample-data script, Next.js and FastAPI starting points, and a deploy-to-Vercel button
 - Public roadmap and changelog pages
 

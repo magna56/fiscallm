@@ -40,8 +40,8 @@ export default function RoadmapPage() {
             CSV so you can check your own numbers
           </li>
           <li>
-            <strong>Stripe connector (beta)</strong>: payments, trials and refunds from a Stripe webhook, USD only; tested against sample payloads, real-world
-            reports welcome
+            <strong>Stripe connector</strong>: payments, trials, refunds and lost disputes from a Stripe webhook, a 12-month import, and exact fees in any
+            currency with a read-only key; tested end to end with Stripe test clocks
           </li>
           <li>Optional monthly event cap per app</li>
           <li>

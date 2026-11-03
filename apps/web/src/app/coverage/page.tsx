@@ -105,9 +105,9 @@ export default function CoveragePage() {
             aliases. Revenue is counted net of store fees and tax. Past subscribers can be imported once.
           </li>
           <li>
-            <strong>Stripe (beta)</strong> through a webhook: paid invoices, trials, auto-renew switched off, ended subscriptions and refunds. USD only,
-            and what you keep is estimated with Stripe&apos;s standard fee, not read from Stripe. Tested against sample payloads, not yet against many real
-            accounts.
+            <strong>Stripe</strong> through a webhook: paid invoices, trials, auto-renew switched off, ended subscriptions, refunds and lost disputes,
+            plus a 12-month history import. Without a saved read-only key, only USD counts and the fee is estimated; with one, the exact fee and any
+            currency your account settles in USD. Tested end to end against Stripe test clocks.
           </li>
           <li>
             <strong>Any other billing system</strong> (your own App Store or Play server notifications, Paddle and so on) through the revenue API, one call

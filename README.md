@@ -80,7 +80,7 @@ Stack: TypeScript, Next.js, Hono, Postgres (Supabase) with Drizzle, hosted on Ve
 ## Limits
 
 - It needs a backend between your app and the AI provider. Apps that call a provider straight from the phone are not covered yet.
-- Revenue comes from RevenueCat, Stripe (beta, USD only) or the revenue API. Direct App Store and Google Play connections are not built yet.
+- Revenue comes from RevenueCat, Stripe (any currency with a read-only key, otherwise USD) or the revenue API. Direct App Store and Google Play connections are not built yet.
 
 ## Try it in ten minutes
 

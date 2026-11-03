@@ -244,7 +244,7 @@ meter.flush()   # or: await meter.aflush()`}</code>
           stored encrypted only while the import runs.
         </p>
 
-        <h2 id="stripe">Stripe (beta)</h2>
+        <h2 id="stripe">Stripe</h2>
         <p>
           If you bill through Stripe, connect it from your app&apos;s Setup page: add a Stripe webhook endpoint with the URL shown there, choose{" "}
           <code>invoice.paid</code>, <code>customer.subscription.created</code>, <code>customer.subscription.updated</code>,{" "}
@@ -272,8 +272,7 @@ meter.flush()   # or: await meter.aflush()`}</code>
           </li>
           <li>
             <strong>Not counted.</strong> Credit notes that only add customer balance (they lower later invoices, which is counted), failed payments,
-            zero-amount invoices, the $15 dispute fee, and accounts that settle in a currency other than USD. It is a beta; please check the first
-            week against your Stripe dashboard and <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
+            zero-amount invoices, the $15 dispute fee, and accounts that settle in a currency other than USD. If a number doesn&apos;t match your Stripe dashboard, <a href="https://github.com/magna56/fiscallm/issues">report anything off</a>.
           </li>
         </ul>
         <h3 id="stripe-import">Import past Stripe payments</h3>

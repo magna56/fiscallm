@@ -135,8 +135,8 @@ export default function Guide() {
 // Setup → Connect Stripe (webhook) → Import the last 12 months (restricted key)`}</code>
       </pre>
       <p>
-        It&apos;s free and open source (MIT), and you can self-host it so your revenue data never leaves your servers. The Stripe connector is in beta
-        and USD only. <Link href="/demo">Open the demo dashboard</Link> (sample data, no sign-up), read <Link href="/docs#stripe">the Stripe docs</Link>,
+        It&apos;s free and open source (MIT), and you can self-host it so your revenue data never leaves your servers. Payments in other currencies
+        count once you save a read-only Stripe key. <Link href="/demo">Open the demo dashboard</Link> (sample data, no sign-up), read <Link href="/docs#stripe">the Stripe docs</Link>,
         or <Link href="/login">start free</Link>. Not on Stripe? See <Link href="/guides/ai-margin-from-revenue-csv">margin from a revenue CSV</Link> or{" "}
         <Link href="/guides/ai-margin-per-user-revenuecat">RevenueCat</Link>.
       </p>

@@ -110,7 +110,7 @@ export default function HowItWorksPage() {
           <Link href="/docs#revenuecat">imported from RevenueCat</Link> once.
         </p>
 
-        <h3 id="stripe">Stripe (beta)</h3>
+        <h3 id="stripe">Stripe</h3>
         <p>
           Add a Stripe webhook endpoint pointing at your app&apos;s FiscaLLM URL and paste its signing secret into the Setup page. We store the secret
           encrypted, and every request must carry a valid <code>Stripe-Signature</code>: an HMAC of the raw body with a timestamp, checked in constant
@@ -130,11 +130,13 @@ export default function HowItWorksPage() {
             <tr><td><code>customer.subscription.updated</code></td><td>Auto-renew switched off is a cancellation</td></tr>
             <tr><td><code>customer.subscription.deleted</code></td><td>Subscription ended</td></tr>
             <tr><td><code>charge.refunded</code></td><td>Only the new part of the refund is subtracted, so partial refunds are not counted twice</td></tr>
+            <tr><td><code>charge.dispute.closed</code></td><td>A lost dispute is subtracted like a refund; a won one changes nothing</td></tr>
           </tbody>
         </table>
         <p>
           The user is read from <code>metadata.user_id</code> on the subscription or customer, or else the Stripe customer ID is used. What you keep is
-          the payment minus tax minus an <em>estimate</em> of Stripe&apos;s fee (2.9% + $0.30), not the exact fee. USD only for now. See{" "}
+          the payment minus tax minus Stripe&apos;s fee. With a saved read-only key the fee is Stripe&apos;s exact fee and any currency settled in USD
+          counts; without one the fee is estimated (2.9% + $0.30) and only USD counts. See{" "}
           <Link href="/docs#stripe">the docs</Link>.
         </p>
 

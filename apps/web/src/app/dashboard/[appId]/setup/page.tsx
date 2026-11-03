@@ -215,8 +215,7 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
 
       <Card title={<span id="stripe" className="scroll-mt-24">Optional: connect Stripe</span>}>
         <p className="text-sm text-foreground/70">
-          If you bill through Stripe, FiscaLLM can read your payments, refunds, lost disputes and trials from a Stripe webhook. This is a beta: check the
-          first week of numbers against your Stripe dashboard. Without a key below, fees are estimated and only USD payments count.
+          If you bill through Stripe, FiscaLLM can read your payments, refunds, lost disputes and trials from a Stripe webhook. Without a key below, fees are estimated and only USD payments count.
         </p>
         <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5 text-sm">
           <li>

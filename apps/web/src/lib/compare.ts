@@ -21,7 +21,7 @@ export const FISCALLM = {
   pricing: "Free. Hosted with fair use (100,000 events per app per month), or self-hosted with no limit",
   hosting: "Hosted or self-hosted",
   openSource: "Yes, MIT (server, dashboard and SDKs)",
-  revenue: "Real revenue from RevenueCat (one-click connect and import), Stripe (webhook and 12-month import, beta, USD), CSV upload, or a revenue API",
+  revenue: "Real revenue from RevenueCat (one-click connect and import), Stripe (webhook and 12-month import), CSV upload, or a revenue API",
 };
 
 export const COMPETITORS: Competitor[] = [

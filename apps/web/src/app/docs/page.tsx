@@ -261,7 +261,7 @@ meter.flush()   # or: await meter.aflush()`}</code>
           <li>
             <strong>What it counts.</strong> Paid invoices as purchases and renewals, trials and the first payment after one as a conversion, auto-renew
             switched off as a cancellation, the end of a subscription, refunds (only the new part of each partial refund), and lost disputes (as a
-            refund; won disputes change nothing). Plan changes mid-cycle count as renewals, and the product and period come from the
+            refund; won disputes change nothing; needs the read-only key below, since Stripe&apos;s dispute event doesn&apos;t say who paid). Plan changes mid-cycle count as renewals, and the product and period come from the
             subscription line, not proration lines.
           </li>
           <li>

@@ -131,7 +131,9 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
       const settled = await ctx.settle?.({ invoice: obj });
       if (!settled && currency !== "usd") return ignored("only USD is supported without a read-only Stripe key");
       const gross = settled ? settled.grossUsd : paidCents / 100;
-      const taxPct = clamp01((num(obj.tax) ?? 0) / paidCents);
+      // Older API versions send tax; newer ones list it in total_taxes.
+      const taxCents = num(obj.tax) ?? list(obj.total_taxes).reduce<number>((s, t) => s + (num(rec(t).amount) ?? 0), 0);
+      const taxPct = clamp01(taxCents / paidCents);
       const feePct = clamp01(settled ? settled.feeUsd / gross : (gross * STRIPE_FEE_PCT + STRIPE_FEE_FIXED_USD) / gross);
       const reason = str(obj.billing_reason) ?? "";
       const isSubscription = Boolean(idOf(obj.subscription) || idOf(parentSub.subscription) || reason.startsWith("subscription"));
@@ -215,7 +217,8 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
         const c = await ctx.customerOfCharge(chargeId);
         userId = await resolveUser(ctx, c.customer, c.metadata);
       }
-      if (!userId) return ignored("no user for the disputed payment");
+      // Newer Stripe invoices leave out the charge, so without a key the payment can't be traced.
+      if (!userId) return ignored("no user for the disputed payment: save a read-only Stripe key so FiscaLLM can look it up");
       // Counted like a refund, against the same charge, so a refund after it is not counted twice.
       const delta = round2(units * usdPerUnit - (await ctx.refundedSoFar(chargeId)));
       if (delta <= 0) return ignored("already counted");

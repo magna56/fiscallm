@@ -125,6 +125,11 @@ describe("mapStripeEvent", () => {
     expect(m.events[0]!.ts.getTime()).toBe((NOW - DAY) - ((NOW - DAY) % 1000));
   });
 
+  it("reads tax from total_taxes on newer API versions", async () => {
+    const m = await mapStripeEvent(invoicePaid({}, { tax: undefined, amount_paid: 1200, total_taxes: [{ amount: 150 }, { amount: 50 }] }), none);
+    expect(m.events[0]!.taxPct).toBeCloseTo(200 / 1200, 5);
+  });
+
   it("marks test-mode events as sandbox", async () => {
     const m = await mapStripeEvent(invoicePaid({ livemode: false }), none);
     expect(m.events[0]!.environment).toBe("sandbox");

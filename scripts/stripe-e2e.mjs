@@ -125,7 +125,7 @@ async function main() {
   console.log(`
 Expected in FiscaLLM (Users page, once webhooks arrive):
   ${a}: 2 payments of $20 (trial conversion, renewal) → kept ≈ $${(2 * (20 - fee(20)) - 5).toFixed(2)} after a $5 refund (exact if a key is saved), trial converted, state expired
-  ${b}: 2 payments of $20, both disputes lost → kept ≈ $${(2 * (20 - fee(20) - 20)).toFixed(2)}, state paid (the subscription is still active)
+  ${b}: 2 payments of $20, both disputes lost → kept ≈ $${(2 * (20 - fee(20) - 20)).toFixed(2)} with a saved read-only key (without one, disputes can't be traced: $${(2 * (20 - fee(20))).toFixed(2)}), state paid
   ${c}: 2 payments of €20 → counted only with a saved read-only key, at the USD amount Stripe settled
 The app must be in test mode (Setup → Test mode) for these sandbox payments to count.
 Stripe objects: product ${product.id}, test clock ${clock.id} (delete the clock to clean up).`);

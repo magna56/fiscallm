@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <SiteHeader />
       <Prose>
         <h1>Privacy policy</h1>
-        <p>Last updated: 17 October 2026</p>
+        <p>Last updated: 3 November 2026</p>
         <p>
           FiscaLLM helps app developers (&quot;customers&quot;) compare the AI cost of each of their users with the subscription revenue from that user.
           This policy explains what we collect, why, and what you can do about it. Questions: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
@@ -55,6 +55,11 @@ export default function PrivacyPage() {
         <p>
           On our public pages we use Vercel Web Analytics to count page views and see which pages and countries visitors come from. It does not use
           cookies and does not track you across sites. We do not run it on signed-in pages.
+        </p>
+        <p>
+          If you arrive by clicking one of our Google ads, the page loads Google&apos;s ad tag, which keeps the ad click ID in a cookie, and we set a
+          cookie of our own for 90 days. If you then create an account, Google is told that the ad led to a sign-up. Your email and account details
+          are never sent to Google, and nothing is loaded for visitors who did not come from an ad.
         </p>
 
         <h2>Retention and deletion</h2>

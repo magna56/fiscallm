@@ -3,6 +3,7 @@ import { schema } from "@fiscallm/shared";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { SignupConversion } from "@/components/ad-conversion";
 import { AuthShell } from "@/components/auth-shell";
 import { Notice } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -32,6 +33,7 @@ async function Welcome({ searchParams }: PageProps<"/welcome">) {
       {typeof error === "string" && <Notice tone="error">{error}</Notice>}
       <ProfileForm action={completeWelcome} submit="Continue" />
       <p className="text-xs text-muted">Signed in as {user.email}</p>
+      <SignupConversion />
     </div>
   );
 }

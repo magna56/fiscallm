@@ -72,6 +72,7 @@ export function SiteFooter() {
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/integrations" className="hover:text-foreground">Integrations</Link>
+          <Link href="/stripe" className="hover:text-foreground">Stripe</Link>
           <Link href="/coverage" className="hover:text-foreground">What&apos;s covered</Link>
           <Link href="/guides" className="hover:text-foreground">Guides</Link>
           <Link href="/llm-pricing" className="hover:text-foreground">LLM pricing</Link>

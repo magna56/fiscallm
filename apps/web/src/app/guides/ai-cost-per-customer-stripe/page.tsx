@@ -59,6 +59,7 @@ export default function Guide() {
           <tr><td><code>customer.subscription.updated</code></td><td>Auto-renew switched off when <code>cancel_at_period_end</code> turns true</td></tr>
           <tr><td><code>customer.subscription.deleted</code></td><td>Access ended: no more revenue, cost may continue</td></tr>
           <tr><td><code>charge.refunded</code></td><td>Money back out. <code>amount_refunded</code> is a running total, so count only the new part</td></tr>
+          <tr><td><code>charge.dispute.closed</code></td><td>A lost dispute takes the money back like a refund; count it against the same charge</td></tr>
         </tbody>
       </table>
       <p>
@@ -72,7 +73,8 @@ export default function Guide() {
       </pre>
       <p>
         On a $20 invoice that is about $19.12 before tax, and less if you collect sales tax or VAT. The exact fee is on the balance transaction; the
-        standard rate is close enough for margin unless you have negotiated pricing or many international cards.
+        standard rate is close enough for margin unless you have negotiated pricing or many international cards. Newer Stripe API versions list tax
+        in <code>total_taxes</code> instead of <code>tax</code>, so read both.
       </p>
 
       <h2 id="ai-cost">4. Record AI cost under the same ID</h2>
@@ -136,7 +138,7 @@ export default function Guide() {
       </pre>
       <p>
         It&apos;s free and open source (MIT), and you can self-host it so your revenue data never leaves your servers. Payments in other currencies
-        count once you save a read-only Stripe key. <Link href="/demo">Open the demo dashboard</Link> (sample data, no sign-up), read <Link href="/docs#stripe">the Stripe docs</Link>,
+        count once you save a read-only Stripe key. <Link href="/stripe">See what FiscaLLM does with Stripe</Link>, <Link href="/demo">open the demo dashboard</Link> (sample data, no sign-up), read <Link href="/docs#stripe">the Stripe docs</Link>,
         or <Link href="/login">start free</Link>. Not on Stripe? See <Link href="/guides/ai-margin-from-revenue-csv">margin from a revenue CSV</Link> or{" "}
         <Link href="/guides/ai-margin-per-user-revenuecat">RevenueCat</Link>.
       </p>

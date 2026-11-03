@@ -25,7 +25,7 @@
    meter.trackOpenAI(res, { userId, feature: "chat" });
    ```
 
-3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), connect Stripe (webhook, plus a 12-month history import with a read-only key), upload a CSV from any billing system, or send payments yourself with the revenue API.
+3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), connect [Stripe](https://fiscallm.com/stripe) (webhook, plus a 12-month history import; with a read-only key, Stripe's exact fee, any currency and lost disputes), upload a CSV from any billing system, or send payments yourself with the revenue API.
 
 No AI key handy? `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills a test app with sample users so you can see it working.
 

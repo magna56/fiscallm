@@ -12,6 +12,8 @@ export interface Competitor {
   hosting: string;
   openSource: string;
   revenue: string;
+  /** What it does with Stripe. */
+  stripe: string;
   strengths: string[];
   /** When this one is the better choice, said plainly. */
   pickThemIf: string;
@@ -22,6 +24,7 @@ export const FISCALLM = {
   hosting: "Hosted or self-hosted",
   openSource: "Yes, MIT (server, dashboard and SDKs)",
   revenue: "Real revenue from RevenueCat (one-click connect and import), Stripe (webhook and 12-month import), CSV upload, or a revenue API",
+  stripe: "Per end user: payments, trials, cancellations, refunds and lost disputes from a webhook, 12 months of history, Stripe's exact fee and any currency with a read-only key",
 };
 
 export const COMPETITORS: Competitor[] = [
@@ -34,6 +37,7 @@ export const COMPETITORS: Competitor[] = [
     hosting: "Hosted",
     openSource: "SDKs are MIT; the service is hosted",
     revenue: "Margin uses plan prices you set in the SDK; its site does not mention importing payments from Stripe or RevenueCat",
+    stripe: "Not mentioned on its site",
     strengths: ["Spending caps that block or downgrade to a cheaper model", "Runaway-loop detection with Slack alerts", "MCP server and integration guides for LangChain, CrewAI and the Vercel AI SDK"],
     pickThemIf: "you want a hosted product and are happy to estimate revenue from plan prices rather than real payments.",
   },
@@ -46,6 +50,7 @@ export const COMPETITORS: Competitor[] = [
     hosting: "Hosted",
     openSource: "No",
     revenue: "Stripe, or revenue events sent through its SDK",
+    stripe: "Stripe connection with a per-customer P&L",
     strengths: ["Stripe connection with a per-customer P&L", "Per-feature and per-model breakdown", "A simulator that shows savings from swapping a feature's model"],
     pickThemIf: "you bill through Stripe and want a hosted product with a model-swap simulator.",
   },
@@ -58,6 +63,7 @@ export const COMPETITORS: Competitor[] = [
     hosting: "Hosted",
     openSource: "Not stated",
     revenue: "Stripe balance transactions, net of refunds, disputes and tax, through a read-only key",
+    stripe: "Read-only key; company-level margin from balance transactions, net of refunds, disputes and tax",
     strengths: ["Net revenue from Stripe balance transactions", "Budgets, spend-anomaly and margin-floor alerts", "Cost by provider, model and project"],
     pickThemIf: "you want company-level gross margin across AI providers from Stripe, rather than margin per end user.",
   },
@@ -70,6 +76,7 @@ export const COMPETITORS: Competitor[] = [
     hosting: "Hosted or self-hosted",
     openSource: "Yes",
     revenue: "Tracks cost per user ID, but does not import subscription revenue to compute margin",
+    stripe: "No",
     strengths: ["Full traces of prompts and responses for debugging", "Evals and prompt management", "Large community"],
     pickThemIf: "you need tracing, evals and prompt debugging. Many teams use it alongside FiscaLLM, which adds revenue and margin.",
   },
@@ -82,6 +89,7 @@ export const COMPETITORS: Competitor[] = [
     hosting: "Hosted or self-hosted",
     openSource: "Yes",
     revenue: "Tracks cost per user through request headers, but does not import subscription revenue to compute margin",
+    stripe: "No",
     strengths: ["Gateway with caching, retries and rate limits", "Request logging and dashboards", "One-line proxy setup"],
     pickThemIf: "you want a gateway in front of your AI provider with logging and caching. FiscaLLM needs no proxy and adds revenue and margin per user.",
   },

@@ -34,6 +34,7 @@ export default async function VsPage({ params }: PageProps<"/compare/[slug]">) {
     ["Hosting", FISCALLM.hosting, c.hosting],
     ["Open source", FISCALLM.openSource, c.openSource],
     ["Revenue used for margin", FISCALLM.revenue, c.revenue],
+    ["Stripe", FISCALLM.stripe, c.stripe],
   ];
   const faq: [string, string][] = [
     [`Is FiscaLLM a free ${c.name} alternative?`, `Yes. FiscaLLM is free and open source (MIT): use the hosted service at fiscallm.com or run your own copy. ${c.name}: ${c.pricing}.`],
@@ -90,7 +91,7 @@ export default async function VsPage({ params }: PageProps<"/compare/[slug]">) {
         <ul>
           <li><strong>Free and open source.</strong> MIT, with the server, dashboard and SDKs in one repository. No per-event or per-seat price.</li>
           <li><strong>Self-hostable.</strong> Run it on your own Vercel and Postgres so revenue and usage data never leave your infrastructure.</li>
-          <li><strong>Real revenue, from where you bill.</strong> One-click RevenueCat for App Store and Google Play apps, Stripe with 12 months of history, CSV upload, or a revenue API.</li>
+          <li><strong>Real revenue, from where you bill.</strong> One-click RevenueCat for App Store and Google Play apps, <Link href="/stripe">Stripe</Link> with 12 months of history, exact fees and any currency, CSV upload, or a revenue API.</li>
           <li><strong>Margin per user, plan and free trial,</strong> with alerts when a paying user starts losing you money, and optional per-user caps.</li>
           <li><strong>Never sees prompts.</strong> Only user IDs, model names and token counts. Reporting never blocks or slows your app.</li>
         </ul>

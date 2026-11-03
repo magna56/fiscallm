@@ -11,6 +11,7 @@ export const PAGES: [string, number][] = [
   ["/how-it-works", 0.8],
   ["/docs", 0.8],
   ["/integrations", 0.7],
+  ["/stripe", 0.9],
   ["/coverage", 0.7],
   ["/compare", 0.7],
   ["/changelog", 0.4],

@@ -148,7 +148,8 @@ export async function mapStripeEvent(event: StripeEvent, ctx: MapContext): Promi
           periodEnd: isSubscription ? iso(rec(line.period).end) : undefined,
           oneTime: isSubscription ? undefined : true,
           environment,
-          ts: iso(rec(obj.status_transitions).paid_at) ?? eventTs,
+          // Test clocks date payments in the simulated future; never later than the event itself.
+          ts: [iso(rec(obj.status_transitions).paid_at) ?? eventTs, eventTs].sort()[0],
         },
         {
           stripeCustomer: customer,

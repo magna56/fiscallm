@@ -111,11 +111,12 @@ async function main() {
   console.log("Refunding $5 of A's latest payment…");
   await stripe("POST", "/v1/refunds", { charge: await latestCharge(subA.id), amount: 500 });
 
-  console.log("Losing B's dispute…");
-  const disputes = await stripe("GET", `/v1/disputes?limit=10`);
-  const dispute = disputes.data.find((d) => d.evidence_details && d.status !== "lost" && d.status !== "won");
-  if (dispute) await stripe("POST", `/v1/disputes/${dispute.id}`, { evidence: { uncategorized_text: "losing_evidence" }, submit: true });
-  else console.log("  (no open dispute found yet; check Stripe → Disputes)");
+  // B paid at signup and again at the day-30 renewal; every payment is disputed.
+  console.log("Losing B's disputes…");
+  const charges = new Set((await stripe("GET", `/v1/charges?customer=${custB.id}&limit=10`)).data.map((ch) => ch.id));
+  const open = (await stripe("GET", `/v1/disputes?limit=100`)).data.filter((d) => charges.has(d.charge) && d.status !== "lost" && d.status !== "won");
+  for (const d of open) await stripe("POST", `/v1/disputes/${d.id}`, { evidence: { uncategorized_text: "losing_evidence" }, submit: true });
+  if (open.length !== 2) console.log(`  expected 2 open disputes, found ${open.length}; check Stripe → Disputes`);
 
   console.log("Cancelling A…");
   await stripe("DELETE", `/v1/subscriptions/${subA.id}`);
@@ -123,9 +124,10 @@ async function main() {
   const fee = (x) => x * 0.029 + 0.3;
   console.log(`
 Expected in FiscaLLM (Users page, once webhooks arrive):
-  ${a}: 2 payments of $20 → kept ≈ $${(2 * (20 - fee(20)) - 5).toFixed(2)} after a $5 refund (exact if a key is saved), trial converted, state expired
-  ${b}: 1 payment of $20 then a lost dispute → kept ≈ $${(20 - fee(20) - 20).toFixed(2)}, state expired
-  ${c}: 1 payment of €20 → counted only with a saved read-only key, at the USD amount Stripe settled
+  ${a}: 2 payments of $20 (trial conversion, renewal) → kept ≈ $${(2 * (20 - fee(20)) - 5).toFixed(2)} after a $5 refund (exact if a key is saved), trial converted, state expired
+  ${b}: 2 payments of $20, both disputes lost → kept ≈ $${(2 * (20 - fee(20) - 20)).toFixed(2)}, state paid (the subscription is still active)
+  ${c}: 2 payments of €20 → counted only with a saved read-only key, at the USD amount Stripe settled
+The app must be in test mode (Setup → Test mode) for these sandbox payments to count.
 Stripe objects: product ${product.id}, test clock ${clock.id} (delete the clock to clean up).`);
 }
 

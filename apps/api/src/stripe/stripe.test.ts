@@ -119,6 +119,12 @@ describe("mapStripeEvent", () => {
     expect((await mapStripeEvent({}, none)).ignored).toMatch(/not a Stripe event/);
   });
 
+  it("dates a test-clock payment from the simulated future at the event's own time", async () => {
+    const m = await mapStripeEvent(invoicePaid({}, { status_transitions: { paid_at: sec(NOW + 40 * DAY) } }), none);
+    expect(m.ignored).toBeUndefined();
+    expect(m.events[0]!.ts.getTime()).toBe((NOW - DAY) - ((NOW - DAY) % 1000));
+  });
+
   it("marks test-mode events as sandbox", async () => {
     const m = await mapStripeEvent(invoicePaid({ livemode: false }), none);
     expect(m.events[0]!.environment).toBe("sandbox");

@@ -80,6 +80,11 @@ export default async function ModelPricing({ params }: PageProps<"/llm-pricing/[
           {perM(p.output)} per million output tokens. A typical chat message costs about <strong>{usd(msg)}</strong>, so a user on a ${PLAN.price}{" "}
           plan can send about <strong>{be.toLocaleString("en-US")} messages a month</strong> before they cost you more than they pay.
         </p>
+        <p>
+          That is an average. To see which of your own users cost more than they pay,{" "}
+          <Link href="/login">track {m.name} cost per user with FiscaLLM</Link>: free and open source, one line per call. Or{" "}
+          <Link href="/demo">open the demo</Link> first.
+        </p>
 
         <h2 id="prices">Price per million tokens</h2>
         <table>

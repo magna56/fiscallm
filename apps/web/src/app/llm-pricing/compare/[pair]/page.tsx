@@ -113,6 +113,10 @@ export default async function PairPage({ params }: PageProps<"/llm-pricing/compa
           {breakEven(s.cheap.price).toLocaleString("en-US")} messages a month on {s.cheap.name} before they cost more than they pay, versus{" "}
           {breakEven(s.dear.price).toLocaleString("en-US")} on {s.dear.name}.
         </p>
+        <p>
+          Those are averages. To see which of your own users cost more than they pay, <Link href="/login">track AI cost per user with FiscaLLM</Link>
+          : free and open source, one line per call. Or <Link href="/demo">open the demo</Link> first.
+        </p>
 
         <h2 id="prices">Price per million tokens</h2>
         <table>

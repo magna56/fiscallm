@@ -562,7 +562,7 @@ class Meter:
     def _send(self, batch: List[Dict[str, Any]], url: Optional[str] = None, field: str = "events") -> None:
         url = url or self._endpoint
         body = json.dumps({field: batch}).encode()
-        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.6.0"}
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._api_key}", "user-agent": "fiscallm-python/0.6.1"}
         for attempt in range(2):
             try:
                 status = self._post(url, headers, body)

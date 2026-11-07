@@ -1,6 +1,6 @@
 # fiscallm
 
-Track the AI cost of each user of your app against their subscription revenue.
+Track the AI cost of each user of your app against their subscription revenue from RevenueCat, Stripe or any billing system.
 Zero dependencies. Runs on Node 20+, Cloudflare Workers, Vercel, Supabase Edge Functions (Deno), Bun and Firebase.
 
 The SDK never sits in the path of your AI calls: it reports token counts in the background, never throws, and gives up after one retry. Prompts and responses are never sent.
@@ -18,7 +18,8 @@ const meter = createMeter({
   waitUntil,
 });
 
-// userId must be the user's RevenueCat app user ID.
+// userId: the same ID your billing knows the user by (RevenueCat app user ID,
+// or metadata.user_id on the Stripe subscription).
 const res = await openai.chat.completions.create({ model, messages });
 meter.trackOpenAI(res, { userId, feature: "chat" });
 
@@ -41,7 +42,7 @@ meter.track({ userId, provider: "google", model: "veo-3.1-fast-generate-preview"
 // Anything else: the exact cost
 meter.track({ userId, provider: "fal", model: "flux", costUsd: 0.04 });
 
-// No RevenueCat? Report payments yourself:
+// Not on RevenueCat or Stripe? Report payments yourself:
 meter.trackRevenue({ id: invoice.id, userId, type: "renewal", amountUsd: 9.99, feePct: 0.15 });
 
 // Pay-per-job apps (credits held, then charged or returned): tag the job's

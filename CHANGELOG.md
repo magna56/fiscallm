@@ -2,6 +2,10 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-07
+- **SDKs 0.6.1**: README and package descriptions cover Stripe and other billing, not only RevenueCat. No code changes.
+- **Vercel AI SDK example**: `examples/vercel-ai-sdk` reports usage from `generateText` and `streamText`. Thanks to [@virginiamwega2-svg](https://github.com/virginiamwega2-svg).
+
 ## 2026-11-02
 - **Stripe is out of beta**: tested end to end against Stripe test clocks (trial, conversion, renewal, partial refund, lost disputes, cancellation). Saving a read-only key now gives Stripe's exact fee and counts payments in any currency your account settles in USD; lost disputes are subtracted like refunds. Fixed: tax on Stripe's newest API version (it moved to `total_taxes`) and test-clock payments dated in the simulated future.
 - **Stripe history import**: paste a read-only Stripe restricted key on the Setup page to import the last 12 months of paid invoices, refunds, current trials and ended subscriptions. The key is used for the import only and never stored. An invoice is counted once whether it arrives by webhook or import, so re-running is safe.

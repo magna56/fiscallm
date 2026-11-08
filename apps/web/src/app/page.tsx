@@ -50,7 +50,13 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       logo: "https://fiscallm.com/icon.svg",
       email: CONTACT,
-      sameAs: ["https://github.com/magna56/fiscallm", "https://www.linkedin.com/in/mayur-agnani/"],
+      sameAs: [
+        "https://github.com/magna56/fiscallm",
+        "https://www.npmjs.com/package/fiscallm",
+        "https://pypi.org/project/fiscallm/",
+        "https://www.producthunt.com/products/fiscallm",
+        "https://www.linkedin.com/in/mayur-agnani/",
+      ],
     },
     {
       "@type": "SoftwareApplication",

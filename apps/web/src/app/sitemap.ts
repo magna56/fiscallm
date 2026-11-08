@@ -8,6 +8,7 @@ export const PAGES: [string, number][] = [
   ["/", 1],
   ["/demo", 0.9],
   ["/llm-pricing", 0.9],
+  ["/llm-pricing/report", 0.8],
   ["/how-it-works", 0.8],
   ["/docs", 0.8],
   ["/integrations", 0.7],

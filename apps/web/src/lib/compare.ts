@@ -17,6 +17,8 @@ export interface Competitor {
   strengths: string[];
   /** When this one is the better choice, said plainly. */
   pickThemIf: string;
+  /** Set when this entry was checked on a different day than CHECKED. */
+  checked?: string;
 }
 
 export const FISCALLM = {
@@ -92,6 +94,48 @@ export const COMPETITORS: Competitor[] = [
     stripe: "No",
     strengths: ["Gateway with caching, retries and rate limits", "Request logging and dashboards", "One-line proxy setup"],
     pickThemIf: "you want a gateway in front of your AI provider with logging and caching. FiscaLLM needs no proxy and adds revenue and margin per user.",
+  },
+  {
+    slug: "litellm",
+    name: "LiteLLM",
+    url: "https://docs.litellm.ai/docs/proxy/cost_tracking",
+    kind: "Open-source LLM gateway (proxy) that calls 100+ providers through one API and logs spend per key, user, team and end customer",
+    pricing: "Free self-hosted; Enterprise license (SSO, audit logs, spend reports) through sales",
+    hosting: "Self-hosted proxy",
+    openSource: "Yes, MIT core; Enterprise features need a license",
+    revenue: "Tracks spend per end customer, but does not import subscription revenue to compute margin",
+    stripe: "No",
+    strengths: ["One OpenAI-style API for 100+ providers", "Spend logs per key, user, team and end customer", "Per-customer budgets and rate limits on the proxy"],
+    pickThemIf: "you want one gateway for many providers with budgets enforced at the proxy. FiscaLLM needs no proxy and puts each user's cost next to what they paid.",
+    checked: "2026-11-08",
+  },
+  {
+    slug: "portkey",
+    name: "Portkey",
+    url: "https://portkey.ai/pricing",
+    kind: "AI gateway with observability, guardrails, prompt management and budgets on virtual keys",
+    pricing: "Developer free (10k logs a month), Production $49 a month (100k logs), Enterprise custom",
+    hosting: "Hosted; the open-source gateway can be self-hosted; Enterprise adds VPC",
+    openSource: "The gateway is MIT; the hosted platform is not",
+    revenue: "Logs cost with custom metadata such as user, but does not import subscription revenue to compute margin",
+    stripe: "No",
+    strengths: ["Routing, retries, fallbacks and load balancing across providers", "Guardrails and prompt management", "Budgets and rate limits on virtual keys"],
+    pickThemIf: "you want a hosted AI gateway with guardrails and routing. FiscaLLM needs no gateway and adds revenue and margin per user.",
+    checked: "2026-11-08",
+  },
+  {
+    slug: "openmeter",
+    name: "OpenMeter",
+    url: "https://openmeter.io",
+    kind: "Open-source usage metering and billing (now part of Kong): meters events such as tokens per customer and bills for them",
+    pricing: "Free self-hosted; hosted through Kong Konnect, see its pricing",
+    hosting: "Hosted or self-hosted",
+    openSource: "Yes, Apache 2.0",
+    revenue: "Turns usage into invoices for your customers; does not compare your AI cost with what each customer paid",
+    stripe: "Syncs usage to Stripe to create invoices",
+    strengths: ["Real-time usage metering at scale", "Usage limits and entitlements", "Usage-based invoicing through Stripe"],
+    pickThemIf: "you want to charge customers per token or per use. FiscaLLM is for the other side: whether what they pay covers what they cost you. They work well together.",
+    checked: "2026-11-08",
   },
 ];
 

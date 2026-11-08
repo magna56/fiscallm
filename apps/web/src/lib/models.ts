@@ -119,12 +119,14 @@ const POPULAR = [
   "gemini-4-argon", "gemini-3.8-flash", "gemini-2.5-pro", "gemini-2.5-flash",
 ];
 
+export const popularModels = () => POPULAR.map(findModel).filter((m): m is TextModel => Boolean(m));
+
 const PAIR_SEP = "-vs-";
 export const pairSlug = (a: string, b: string) => [a, b].sort().join(PAIR_SEP);
 
 /** Every comparison page, each pair once (slugs in alphabetical order). */
 export function modelPairs(): [TextModel, TextModel][] {
-  const list = POPULAR.map(findModel).filter((m): m is TextModel => Boolean(m));
+  const list = popularModels();
   const out: [TextModel, TextModel][] = [];
   for (let i = 0; i < list.length; i++)
     for (let j = i + 1; j < list.length; j++) {

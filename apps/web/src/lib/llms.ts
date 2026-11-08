@@ -38,13 +38,14 @@ Key facts:
 
 ## Tools and data
 - [LLM API pricing compared](${BASE}/llm-pricing): price per million tokens, cost per chat message and break-even messages per user for ${TEXT_MODELS.length} OpenAI, Anthropic and Google models, with a calculator
+- [LLM pricing report](${BASE}/llm-pricing/report): monthly summary of what one chat message and one subscriber cost across all models, which models lose money on heavy users, and caching savings
 - [Demo dashboard](${BASE}/demo): sample data, no sign-up
 
 ## Guides
 ${GUIDE_LINKS.map(([p, t, d]) => `- [${t}](${BASE}${p}): ${d}`).join("\n")}
 
 ## Optional
-- [Compare FiscaLLM with alternatives](${BASE}/compare)
+- [Compare FiscaLLM with alternatives](${BASE}/compare): Langfuse, Helicone, LiteLLM, Portkey, OpenMeter, Weckr, MarginDash, MarginMeter
 - [Roadmap](${BASE}/roadmap)
 - [Changelog](${BASE}/changelog)
 - [Full text for LLMs](${BASE}/llms-full.txt): this file plus the price table and setup steps

@@ -57,7 +57,7 @@ export default async function VsPage({ params }: PageProps<"/compare/[slug]">) {
         <h1>FiscaLLM vs {c.name}</h1>
         <p>
           Both help you see what AI costs per user. The difference is what they compare it with, what they cost, and where your data lives. Checked on{" "}
-          {CHECKED} from <a href={c.url} rel="nofollow noopener">{c.name}&apos;s public page</a>; we make FiscaLLM, so <a href={`mailto:${CONTACT}`}>tell us</a>{" "}
+          {c.checked ?? CHECKED} from <a href={c.url} rel="nofollow noopener">{c.name}&apos;s public page</a>; we make FiscaLLM, so <a href={`mailto:${CONTACT}`}>tell us</a>{" "}
           if anything about {c.name} is out of date.
         </p>
         <table>

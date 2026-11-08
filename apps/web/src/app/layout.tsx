@@ -19,6 +19,7 @@ const DESCRIPTION = "See what each user costs you in AI, against what they pay. 
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),
+  verification: { other: { "msvalidate.01": "45DBEA58E8AD4145DC54FC72D77D244C" } },
   keywords: ["AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
   title: TITLE,
   description: DESCRIPTION,

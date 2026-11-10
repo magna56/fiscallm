@@ -44,8 +44,8 @@ export const PRICE_META = {
   license: "MIT",
 };
 
-const count = (v: string | undefined) => {
-  const n = Number(v ?? 0);
+const count = (v: string | undefined, missing = 0) => {
+  const n = v?.trim() ? Number(v) : missing;
   return Number.isFinite(n) && n >= 0 ? Math.min(Math.round(n), 1e12) : undefined;
 };
 
@@ -74,8 +74,10 @@ export function pricesRoute() {
     const output = count(c.req.query("output"));
     const cached = count(c.req.query("cached"));
     const cacheWrite = count(c.req.query("cache_write"));
-    const calls = count(c.req.query("calls") ?? "1");
-    if (!model || input === undefined || output === undefined || cached === undefined || cacheWrite === undefined || calls === undefined) {
+    const calls = count(c.req.query("calls"), 1);
+    // No token count at all is a misspelled parameter, not a $0 call.
+    const none = !c.req.query("input")?.trim() && !c.req.query("output")?.trim();
+    if (none || !model || input === undefined || output === undefined || cached === undefined || cacheWrite === undefined || calls === undefined) {
       return c.json({ error: "send ?model=<id>&input=<prompt tokens>&output=<reply tokens>, optionally &cached=, &cache_write= and &calls=" }, 400);
     }
     const e = estimateCost({ model, inputTokens: input, outputTokens: output, cachedTokens: cached, cacheWriteTokens: cacheWrite, calls });

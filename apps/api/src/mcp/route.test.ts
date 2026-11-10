@@ -96,6 +96,9 @@ describe("MCP server", () => {
     expect(list.data.models.some((m: { id: string }) => m.id === "gpt-4o")).toBe(true);
     expect((await call("get_llm_price", { model: "gpt-4o" })).data.model).toMatchObject({ inputPerMtok: 2.5, outputPerMtok: 10 });
     expect((await call("estimate_llm_cost", { model: "gpt-4o", inputTokens: 1_000_000, outputTokens: 100_000, calls: 2 })).data).toMatchObject({ costUsd: 3.5, totalUsd: 7 });
+    const misnamed = await call("estimate_llm_cost", { model: "gpt-4o", input_tokens: 1000, output_tokens: 500 });
+    expect(misnamed.isError).toBe(true);
+    expect(misnamed.text).toContain("inputTokens");
     const unknown = await call("get_llm_price", { model: "gpt-nope" });
     expect(unknown.isError).toBe(true);
     expect(unknown.text).toContain("list_llm_prices");

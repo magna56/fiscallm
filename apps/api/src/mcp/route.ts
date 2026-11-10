@@ -302,6 +302,10 @@ export function mcpRoute(getDb: () => AnyDb) {
         const tool = TOOLS.find((t) => t.name === msg.params?.name);
         if (!tool) return fail(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}`);
         const args = (msg.params?.arguments && typeof msg.params.arguments === "object" ? msg.params.arguments : {}) as Args;
+        // A misnamed argument would otherwise be read as 0 and give a wrong answer.
+        const required: string[] = (tool.inputSchema as { required?: string[] }).required ?? [];
+        const missing = required.filter((name) => args[name] === undefined || args[name] === null);
+        if (missing.length) return ok(toolText(`Missing argument: ${missing.join(", ")}. Arguments are ${Object.keys(tool.inputSchema.properties ?? {}).join(", ")}.`, true));
         try {
           let appId: string | undefined;
           if (tool.needsKey) {

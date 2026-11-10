@@ -44,7 +44,9 @@ describe("public prices API", () => {
   });
 
   it("explains a bad estimate request", async () => {
-    expect((await get("/v1/estimate?model=gpt-4o")).res.status).toBe(200);
+    expect((await get("/v1/estimate?model=gpt-4o")).res.status).toBe(400);
+    expect((await get("/v1/estimate?model=gpt-4o&input_tokens=5")).res.status).toBe(400);
+    expect((await get("/v1/estimate?model=gpt-4o&output=5")).res.status).toBe(200);
     expect((await get("/v1/estimate?input=5")).res.status).toBe(400);
     expect((await get("/v1/estimate?model=gpt-4o&input=-5")).res.status).toBe(400);
     expect((await get("/v1/estimate?model=nope&input=5&output=5")).res.status).toBe(404);

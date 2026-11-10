@@ -74,7 +74,8 @@ export default function LlmPricing() {
           List prices for {TEXT_MODELS.length} text models from OpenAI, Anthropic and Google, turned into numbers you can price a subscription with:
           what one chat message costs ({MESSAGE.input.toLocaleString("en-US")} tokens in, {MESSAGE.output} out), and how many messages a user on a $
           {PLAN.price} plan can send each month before their AI cost uses up what you keep after a 15% store fee. Prices are the ones FiscaLLM uses to
-          cost real usage, audited against each provider&apos;s pricing page. Summary: <Link href="/llm-pricing/report">{MONTH} pricing report</Link>.
+          cost real usage, audited against each provider&apos;s pricing page. Summary: <Link href="/llm-pricing/report">{MONTH} pricing report</Link>. The same prices are a{" "}
+          <Link href="/llm-pricing/api">free JSON API</Link> and an <Link href="/mcp">MCP server</Link> for AI agents.
         </p>
 
         <h2 id="calculator">AI cost per user calculator</h2>

@@ -86,6 +86,14 @@ export default async function VsPage({ params }: PageProps<"/compare/[slug]">) {
           ))}
         </ul>
         <p>Pick {c.name} if {c.pickThemIf}</p>
+        {c.together && (
+          <>
+            <h2 id="together">Using {c.name} and FiscaLLM together</h2>
+            <p>
+              {c.together.text} <Link href={c.together.href}>{c.together.label}</Link>.
+            </p>
+          </>
+        )}
 
         <h2 id="us">Why teams pick FiscaLLM</h2>
         <ul>

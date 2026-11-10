@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-11-10",
+    items: [
+      "OpenTelemetry: point an OTLP/HTTP trace exporter at https://fiscallm.com/api/v1/otel and AI call spans that follow the GenAI conventions (Vercel AI SDK, OpenLLMetry, OpenInference) become cost per user. No FiscaLLM SDK needed. JSON or protobuf, with or without gzip.",
+      "LiteLLM: one generic_api callback in the proxy config posts to https://fiscallm.com/api/v1/litellm. LiteLLM's own cost figure is stored as is.",
+      "MCP server at https://fiscallm.com/api/mcp for AI assistants: LLM prices, cost estimates, model comparison and subscription break-even with no key; your app's cost and margin per user, plan, model and feature with its key. Read-only.",
+      "Free LLM pricing API: GET /api/v1/prices, /api/v1/prices/<model> and /api/v1/estimate. No key.",
+      "Read API: GET /api/v1/metrics/overview, /users, /plans and /breakdown return the dashboard's numbers as JSON. The HTTP API is described in /openapi.json.",
+    ],
+  },
+  {
     date: "2026-11-02",
     items: [
       "Stripe is out of beta: tested end to end against Stripe test clocks (trial, conversion, renewal, partial refund, lost disputes, cancellation). Saving a read-only key now gives Stripe's exact fee and counts payments in any currency your account settles in USD; lost disputes are subtracted like refunds. Fixed: tax on Stripe's newest API version and test-clock payments dated in the simulated future.",

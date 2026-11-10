@@ -2,6 +2,14 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-10
+- **OpenTelemetry**: point an OTLP/HTTP trace exporter at `https://fiscallm.com/api/v1/otel` with the ingest key in the `Authorization` header, and AI call spans that follow the GenAI semantic conventions (Vercel AI SDK, OpenLLMetry, OpenInference) become cost per user. No FiscaLLM SDK needed. JSON or protobuf, with or without gzip. The user comes from `user.id` on the span, a parent span or the resource. Tested end to end with AI SDK 7 and the official OTLP exporters. [Guide](https://fiscallm.com/integrations/opentelemetry), [Vercel AI SDK guide](https://fiscallm.com/integrations/vercel-ai-sdk).
+- **LiteLLM**: a `generic_api` callback in the proxy config posts to `https://fiscallm.com/api/v1/litellm`. LiteLLM's own cost is stored as is; the user is the request's `user`. Tested with the open-source proxy 1.83.9. [Guide](https://fiscallm.com/integrations/litellm).
+- **MCP server** at `https://fiscallm.com/api/mcp` (remote, Streamable HTTP, read-only). No key: `list_llm_prices`, `get_llm_price`, `estimate_llm_cost`, `compare_llm_costs`, `subscription_break_even`, `fiscallm_setup_guide`. With the app's key: `get_margin_overview`, `list_users_by_margin`, `get_plan_margins`, `get_cost_breakdown`. [Details](https://fiscallm.com/mcp).
+- **LLM pricing API**, free and with no key: `GET /api/v1/prices`, `/api/v1/prices/<model>` and `/api/v1/estimate`. [Details](https://fiscallm.com/llm-pricing/api).
+- **Read API**: `GET /api/v1/metrics/overview`, `/users`, `/plans` and `/breakdown` return the dashboard's numbers as JSON with the app's key. The HTTP API is described in [openapi.json](https://fiscallm.com/openapi.json).
+- The `Authorization` header may carry the key with or without `Bearer`.
+
 ## 2026-11-07
 - **SDKs 0.6.1**: README and package descriptions cover Stripe and other billing, not only RevenueCat. No code changes.
 - **Vercel AI SDK example**: `examples/vercel-ai-sdk` reports usage from `generateText` and `streamText`. Thanks to [@virginiamwega2-svg](https://github.com/virginiamwega2-svg).

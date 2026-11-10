@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.magna56/fiscallm",
+  "title": "FiscaLLM",
+  "description": "LLM prices, cost estimates and break-even, plus your app's AI cost and margin per user.",
+  "version": "1.0.0",
+  "websiteUrl": "https://fiscallm.com/mcp",
+  "repository": {
+    "url": "https://github.com/magna56/fiscallm",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://fiscallm.com/api/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. \"Bearer <ingest key>\" of a FiscaLLM app, for the tools that read that app's cost and margins. The price and estimate tools need no key.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

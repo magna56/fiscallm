@@ -17,6 +17,8 @@ export interface Competitor {
   strengths: string[];
   /** When this one is the better choice, said plainly. */
   pickThemIf: string;
+  /** How to run both, when FiscaLLM can take usage from this tool's setup. */
+  together?: { text: string; href: string; label: string };
   /** Set when this entry was checked on a different day than CHECKED. */
   checked?: string;
 }
@@ -81,6 +83,11 @@ export const COMPETITORS: Competitor[] = [
     stripe: "No",
     strengths: ["Full traces of prompts and responses for debugging", "Evals and prompt management", "Large community"],
     pickThemIf: "you need tracing, evals and prompt debugging. Many teams use it alongside FiscaLLM, which adds revenue and margin.",
+    together: {
+      text: "If your traces reach Langfuse through OpenTelemetry, add FiscaLLM as a second OTLP exporter. The same spans then give you cost per user next to revenue, with no second SDK.",
+      href: "/integrations/opentelemetry",
+      label: "OpenTelemetry setup",
+    },
   },
   {
     slug: "helicone",
@@ -107,6 +114,11 @@ export const COMPETITORS: Competitor[] = [
     stripe: "No",
     strengths: ["One OpenAI-style API for 100+ providers", "Spend logs per key, user, team and end customer", "Per-customer budgets and rate limits on the proxy"],
     pickThemIf: "you want one gateway for many providers with budgets enforced at the proxy. FiscaLLM needs no proxy and puts each user's cost next to what they paid.",
+    together: {
+      text: "Keep the proxy and add one callback to its config. LiteLLM sends each request's cost to FiscaLLM, which puts it next to what that user paid.",
+      href: "/integrations/litellm",
+      label: "LiteLLM setup",
+    },
     checked: "2026-11-08",
   },
   {

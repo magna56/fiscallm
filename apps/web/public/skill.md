@@ -29,6 +29,26 @@ List each call with its file, provider, whether it streams, and how the response
 
 Language: if the backend is TypeScript or JavaScript, use the npm package below. If it is Python, use `pip install fiscallm` (see the Python section). For anything else, use the HTTP API in the docs.
 
+## 1b. Is usage already recorded? Then skip the SDK
+
+Check for these before installing anything. If one is present, use it and skip steps 2, 3 and 5 (still do step 4: the user ID must be the one billing knows).
+
+- **OpenTelemetry tracing of AI calls** (`@opentelemetry/*`, `@vercel/otel`, `@ai-sdk/otel`, `experimental_telemetry`, OpenLLMetry / `traceloop`, OpenInference): add one more OTLP/HTTP trace exporter with URL `https://fiscallm.com/api/v1/otel/v1/traces` and header `Authorization: Bearer ${FISCALLM_KEY}` (in the OpenTelemetry Collector: an `otlphttp` exporter with endpoint `https://fiscallm.com/api/v1/otel`). Keep the existing exporter. Make sure every AI call span carries a `user.id` attribute; with the Vercel AI SDK 7 use `new OpenTelemetry({ enrichSpan: ({ runtimeContext }) => ({ "user.id": runtimeContext?.userId }) })` and pass `runtimeContext: { userId }` with `telemetry: { includeRuntimeContext: { userId: true } }` on each call. Details: https://fiscallm.com/integrations/opentelemetry and https://fiscallm.com/integrations/vercel-ai-sdk
+- **A LiteLLM proxy** (`config.yaml` with `model_list`): add this to the config, and make sure requests send `user`. Details: https://fiscallm.com/integrations/litellm
+
+  ```yaml
+  litellm_settings:
+    callbacks: ["fiscallm"]
+  callback_settings:
+    fiscallm:
+      callback_type: generic_api
+      endpoint: https://fiscallm.com/api/v1/litellm
+      headers:
+        Authorization: os.environ/FISCALLM_KEY
+  ```
+
+Spans and logs with no user ID are skipped, and the response says how many.
+
 ## 2. Install and create the meter
 
 ```sh
@@ -157,6 +177,10 @@ meter.trackJob({ jobId, userId, status: "captured" });  // or "refunded" when cr
 ```
 
 Python: `job_id=` on `track`/`track_openai`/etc., and `meter.track_job(job_id=..., user_id=..., status=...)`. If a failed job was still billed by the provider, track its cost anyway (units or `costUsd`) before reporting "refunded". Needs SDK 0.5.0 or later.
+
+## 5d. Optional: read the numbers back
+
+With the same key, `GET https://fiscallm.com/api/v1/metrics/overview`, `/users`, `/plans` and `/breakdown` (`?days=30`) return cost, revenue and margin as JSON. Assistants can use the read-only MCP server at `https://fiscallm.com/api/mcp` (send the key as `Authorization: Bearer <key>` for the margin tools; the price tools need no key). Never write the key into an MCP config file that is committed.
 
 ## 6. Finish
 

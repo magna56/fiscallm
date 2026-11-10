@@ -6,7 +6,7 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 export const metadata: Metadata = {
   title: "Integrations · FiscaLLM",
   description:
-    "What FiscaLLM connects to: AI providers, revenue sources (RevenueCat, Stripe, any billing system), runtimes, alerts and AI coding assistants, with the status of each.",
+    "What FiscaLLM connects to: OpenTelemetry, LiteLLM, the Vercel AI SDK, AI providers, revenue sources (RevenueCat, Stripe, any billing system), an MCP server for agents, runtimes and alerts, with the status of each.",
   alternates: { canonical: "/integrations" },
 };
 
@@ -62,9 +62,35 @@ export default function IntegrationsPage() {
         </p>
 
         <Group
+          id="usage"
+          title="Ways to send AI usage"
+          intro="Use what you already run. None of these put a proxy between you and the AI provider, and none send prompts or responses."
+          rows={[
+            ["OpenTelemetry", "Supported", <>Point an OTLP/HTTP trace exporter at FiscaLLM. Spans that follow the GenAI conventions become cost per user. No SDK. See <Link href="/integrations/opentelemetry">the guide</Link>.</>],
+            ["Vercel AI SDK", "Supported", <>Through the AI SDK&apos;s built-in telemetry: generateText, streamText, tools and agents. See <Link href="/integrations/vercel-ai-sdk">the guide</Link>.</>],
+            ["LiteLLM", "Supported", <>One callback in the proxy config. Uses LiteLLM&apos;s own cost figure. See <Link href="/integrations/litellm">the guide</Link>.</>],
+            ["OpenLLMetry and OpenInference", "Supported", <>Their spans are read through the <Link href="/integrations/opentelemetry">OpenTelemetry endpoint</Link>.</>],
+            ["FiscaLLM SDK", "Supported", <>One line after each AI call, in TypeScript or Python. See <Link href="/docs#sdk">the docs</Link>.</>],
+            ["HTTP API", "Supported", <>Send events from any language. See <Link href="/docs#api">the docs</Link>.</>],
+          ]}
+        />
+
+        <Group
+          id="agents"
+          title="AI agents and APIs"
+          intro="Read prices and your margins from an assistant, a script or another tool."
+          rows={[
+            ["MCP server", "Supported", <>A remote, read-only MCP server at <code>https://fiscallm.com/api/mcp</code>: LLM prices and cost estimates with no key, your app&apos;s margins with its key. See <Link href="/mcp">MCP</Link>.</>],
+            ["LLM pricing API", "Supported", <>Free JSON API for model prices and cost estimates. No key. See <Link href="/llm-pricing/api">the pricing API</Link>.</>],
+            ["Read API", "Supported", <>Cost, revenue and margin per app, user, plan, model and feature as JSON. See <Link href="/docs#read-api">the docs</Link>.</>],
+            ["OpenAPI", "Supported", <>The HTTP API is described in <a href="/openapi.json">openapi.json</a>.</>],
+          ]}
+        />
+
+        <Group
           id="ai"
           title="AI providers"
-          intro="One line after each call reads only the model name and token counts from the response."
+          intro="With the SDK, one line after each call reads only the model name and token counts from the response."
           rows={[
             ["OpenAI", "Supported", "Chat Completions and Responses, including streaming. Cached input is priced separately."],
             ["Anthropic", "Supported", "Messages, including streaming. Cache reads and writes are priced separately."],

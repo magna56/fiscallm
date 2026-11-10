@@ -32,6 +32,8 @@ const STEPS = [
 const FAQ: [string, string][] = [
   ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
+  ["I already use OpenTelemetry, LiteLLM or the Vercel AI SDK. Do I need another SDK?", "No. Point an OpenTelemetry trace exporter at FiscaLLM, or add one callback to your LiteLLM config, and the usage you already record becomes cost per user. The SDK is for apps that have neither."],
+  ["Can an AI agent use it?", "Yes. A read-only MCP server at fiscallm.com/api/mcp gives assistants current LLM prices and cost estimates with no key, and your app's cost and margin per user with its key. The same data is a JSON API."],
   ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe with one webhook, or upload a CSV from Paddle, Lemon Squeezy or a spreadsheet, or send payments with one SDK call."],
   ["Does it include revenue from before I connected?", "Yes. Connect RevenueCat imports past subscribers, the Stripe import brings in the last 12 months with a read-only key that is never stored, and a CSV upload covers anything else. Re-running an import never counts a payment twice."],
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check lets calls through, except for users it already refused. You can make it refuse instead, and add a local limit that stops runaway loops with no network at all."],
@@ -65,6 +67,14 @@ const JSON_LD = {
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Web",
       description: "Matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial.",
+      featureList: [
+        "AI cost per user, plan and free trial next to revenue",
+        "Usage from OpenTelemetry traces, LiteLLM, the Vercel AI SDK, or TypeScript and Python SDKs",
+        "Revenue from RevenueCat, Stripe, CSV or an API",
+        "Alerts and per-user spending caps",
+        "MCP server and JSON API for AI agents",
+        "Free LLM pricing API",
+      ],
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       license: "https://opensource.org/licenses/MIT",
       codeRepository: "https://github.com/magna56/fiscallm",
@@ -443,7 +453,14 @@ function CodeSection() {
             </li>
           ))}
         </ul>
-        <Link href="/docs" className="mt-8 inline-block font-medium text-accent hover:underline">
+        <p className="mt-6 text-sm text-muted">
+          Already tracing? Skip the SDK and send usage from{" "}
+          <Link href="/integrations/opentelemetry" className="text-accent hover:underline">OpenTelemetry</Link>,{" "}
+          <Link href="/integrations/vercel-ai-sdk" className="text-accent hover:underline">the Vercel AI SDK</Link> or{" "}
+          <Link href="/integrations/litellm" className="text-accent hover:underline">LiteLLM</Link>. Agents can read prices and margins through{" "}
+          <Link href="/mcp" className="text-accent hover:underline">the MCP server</Link>.
+        </p>
+        <Link href="/docs" className="mt-6 inline-block font-medium text-accent hover:underline">
           Read the docs →
         </Link>
       </div>

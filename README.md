@@ -25,9 +25,18 @@
    meter.trackOpenAI(res, { userId, feature: "chat" });
    ```
 
+   **Already tracing or using a gateway? Skip the SDK.** Point an OpenTelemetry trace exporter at `https://fiscallm.com/api/v1/otel` ([guide](https://fiscallm.com/integrations/opentelemetry), [Vercel AI SDK](https://fiscallm.com/integrations/vercel-ai-sdk)), or add one callback to your LiteLLM config ([guide](https://fiscallm.com/integrations/litellm)).
+
 3. **Connect revenue**: press **Connect RevenueCat** (one click: adds the webhook and imports past subscribers), connect [Stripe](https://fiscallm.com/stripe) (webhook, plus a 12-month history import; with a read-only key, Stripe's exact fee, any currency and lost disputes), upload a CSV from any billing system, or send payments yourself with the revenue API.
 
 No AI key handy? `FISCALLM_KEY=fsk_... node examples/send-sample-data.mjs` fills a test app with sample users so you can see it working.
+
+## For AI agents
+
+- **MCP server** (remote, read-only): `https://fiscallm.com/api/mcp`. Current LLM prices, cost estimates, model comparison and subscription break-even with no key; your app's cost and margin per user, plan, model and feature with its key. `claude mcp add --transport http fiscallm https://fiscallm.com/api/mcp` · [details](https://fiscallm.com/mcp)
+- **Free LLM pricing API** (no key): `GET https://fiscallm.com/api/v1/prices`, `/api/v1/prices/<model>`, `/api/v1/estimate?model=&input=&output=` · [details](https://fiscallm.com/llm-pricing/api)
+- **Read API**: `GET /api/v1/metrics/overview`, `/users`, `/plans`, `/breakdown` with the app's key · [openapi.json](https://fiscallm.com/openapi.json)
+- **Setup skill** for coding assistants: [fiscallm.com/skill.md](https://fiscallm.com/skill.md)
 
 ## The problem
 

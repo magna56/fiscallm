@@ -13,6 +13,11 @@ import { stripeRoute } from "./stripe/route";
 import { stripeImportRoute } from "./stripe/import";
 import { checkRoute } from "./check/route";
 import { jobsRoute } from "./jobs/route";
+import { otelRoute } from "./otel/route";
+import { litellmRoute } from "./litellm/route";
+import { pricesRoute } from "./prices/route";
+import { metricsRoute } from "./metrics/route";
+import { mcpRoute } from "./mcp/route";
 
 // Vercel routes /api/* to this service and passes the path through unchanged.
 export const app = new Hono().basePath("/api");
@@ -22,6 +27,14 @@ app.route("/v1/events", eventsRoute(getDb));
 app.route("/v1/revenue", revenueRoute(getDb));
 app.route("/v1/check", checkRoute(getDb));
 app.route("/v1/jobs", jobsRoute(getDb));
+// Usage from tools people already run, with no FiscaLLM SDK.
+app.route("/v1/otel", otelRoute(getDb));
+app.route("/v1/litellm", litellmRoute(getDb));
+// Reading: an app's numbers (with its key), public list prices, and both as
+// tools for AI agents.
+app.route("/v1/metrics", metricsRoute(getDb));
+app.route("/v1", pricesRoute());
+app.route("/mcp", mcpRoute(getDb));
 app.route("/webhooks/rc", revenueCatRoute(getDb));
 app.route("/webhooks/stripe", stripeRoute(getDb));
 app.route("/cron/retention", retentionRoute(getDb));

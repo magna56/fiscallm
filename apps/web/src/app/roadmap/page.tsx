@@ -29,6 +29,14 @@ export default function RoadmapPage() {
 
         <h2>Done recently</h2>
         <ul>
+          <li>
+            No second SDK: usage from <Link href="/integrations/opentelemetry">OpenTelemetry traces</Link> (including the{" "}
+            <Link href="/integrations/vercel-ai-sdk">Vercel AI SDK</Link>) and from a <Link href="/integrations/litellm">LiteLLM callback</Link>
+          </li>
+          <li>
+            For AI agents: a read-only <Link href="/mcp">MCP server</Link>, a free <Link href="/llm-pricing/api">LLM pricing API</Link> and a read API
+            for margins
+          </li>
           <li>Open source (MIT), self-hosting guide, contributing guide</li>
           <li>Kill switch in both SDKs</li>
           <li>CSV export of Users, Plans and Trials</li>

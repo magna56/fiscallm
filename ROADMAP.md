@@ -1,6 +1,6 @@
 # Roadmap
 
-FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-10-18. Shipped changes are in [CHANGELOG.md](CHANGELOG.md). Follow progress on the [public roadmap board](https://github.com/users/magna56/projects/1), vote with a 👍 on the [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap), or suggest something in [Ideas](https://github.com/magna56/fiscallm/discussions/categories/ideas). This file is the source of truth; the board mirrors it.
+FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-11-10. Shipped changes are in [CHANGELOG.md](CHANGELOG.md). Follow progress on the [public roadmap board](https://github.com/users/magna56/projects/1), vote with a 👍 on the [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap), or suggest something in [Ideas](https://github.com/magna56/fiscallm/discussions/categories/ideas). This file is the source of truth; the board mirrors it.
 
 ## What is free, and stays free
 - The SDKs (TypeScript and Python), MIT licensed.
@@ -8,6 +8,8 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - The hosted service at fiscallm.com is free under fair use (up to 100,000 events per app per month), run by the maintainer on a best-effort basis.
 
 ## Done recently
+- **No second SDK**: usage from OpenTelemetry traces (GenAI conventions, including the Vercel AI SDK) and from a LiteLLM callback
+- **For AI agents**: a read-only MCP server (LLM prices, cost estimates, your app's margins), a free LLM pricing API, a read API for margins, and an OpenAPI description
 - **Stripe history import**: the last 12 months of Stripe payments, refunds, trials and ended subscriptions, with a read-only key that is never stored
 - **Revenue CSV upload** for any billing system
 - Open source (MIT), self-hosting guide, contributing guide

@@ -1,4 +1,4 @@
-import { MODEL_PRICES, type ModelPrice } from "@fiscallm/shared";
+import { isTextModel, MODEL_PRICES, type ModelPrice } from "@fiscallm/shared";
 import type { CalcModel } from "@/components/cost-calculator";
 
 // Text models from FiscaLLM's price table, for the public pricing pages.
@@ -15,9 +15,6 @@ export interface TextModel {
 }
 
 const PROVIDER_NAMES = { openai: "OpenAI", anthropic: "Anthropic", google: "Google" } as const;
-// Dated snapshots ("gpt-4-0613", "gpt-4o-2024-05-13") would be near-duplicate pages.
-const MEDIA = /image|tts|transcribe|whisper|realtime|audio|live|veo|davinci|babbage|instruct|-\d{4}$|-\d{4}-\d{2}-\d{2}$/;
-
 /** "gpt-4o-mini" → "GPT-4o mini", "claude-sonnet-4-5" → "Claude Sonnet 4.5", "gemini-2.5-flash" → "Gemini 2.5 Flash". */
 export function displayName(model: string): string {
   if (model.startsWith("gpt-")) {
@@ -43,7 +40,7 @@ export const BUILT_MONTH = new Date().toLocaleString("en-US", { month: "long", y
 function build(today = BUILT_ON): TextModel[] {
   const byModel = new Map<string, ModelPrice[]>();
   for (const p of MODEL_PRICES) {
-    if (!["openai", "anthropic", "google"].includes(p.provider) || p.units || MEDIA.test(p.model) || p.input <= 0) continue;
+    if (!isTextModel(p)) continue;
     byModel.set(p.model, [...(byModel.get(p.model) ?? []), p]);
   }
   const out: TextModel[] = [];

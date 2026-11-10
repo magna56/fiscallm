@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SKILL_INSTALL, SKILL_PROMPT } from "@/components/ai-setup";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
@@ -31,6 +32,23 @@ export default function DocsPage() {
           <li>Add the webhook URL from the app&apos;s Setup page to RevenueCat (below).</li>
         </ol>
         <p>The Setup page shows when the first event and the first webhook arrive, and how many of your AI users it could match to RevenueCat. No RevenueCat? <a href="#revenue-api">Send revenue with the API</a>.</p>
+
+        <h2 id="no-sdk">Already tracing or using a gateway?</h2>
+        <p>You can skip the SDK. Step 2 of the quickstart becomes one of these:</p>
+        <ul>
+          <li>
+            <a href="/integrations/opentelemetry">OpenTelemetry</a>: point an OTLP/HTTP trace exporter at <code>https://fiscallm.com/api/v1/otel</code>{" "}
+            with <code>Authorization: Bearer &lt;FISCALLM_KEY&gt;</code> and set <code>user.id</code> on your spans.
+          </li>
+          <li>
+            <a href="/integrations/vercel-ai-sdk">Vercel AI SDK</a>: the same endpoint, fed by the AI SDK&apos;s built-in telemetry.
+          </li>
+          <li>
+            <a href="/integrations/litellm">LiteLLM</a>: a <code>generic_api</code> callback in the proxy config that posts to{" "}
+            <code>https://fiscallm.com/api/v1/litellm</code>.
+          </li>
+        </ul>
+        <p>Revenue, alerts and the dashboard work the same whichever way usage arrives.</p>
 
         <h2 id="ai-setup">Set up with an AI assistant</h2>
         <p>
@@ -518,6 +536,26 @@ Content-Type: application/json
         <p>
           Up to 100 events per request. The response is <code>202</code> with <code>{`{ accepted, duplicates, unpriced }`}</code>. Events with an
           <code>id</code> already received are counted as duplicates and ignored, so retrying is safe. Timestamps may be up to 90 days old.
+        </p>
+
+        <h2 id="read-api">Read API</h2>
+        <p>
+          The dashboard&apos;s numbers as JSON, for scripts, internal tools and AI agents. Send the same key. Each takes <code>?days=</code> (1 to 365,
+          default 30).
+        </p>
+        <pre>
+          <code>{`GET https://fiscallm.com/api/v1/metrics/overview     cost, revenue, margin, AI's share of revenue, daily series
+GET https://fiscallm.com/api/v1/metrics/users        per user, worst margin first   (&limit=50, &losing=1 for only users losing money)
+GET https://fiscallm.com/api/v1/metrics/plans        per plan or product
+GET https://fiscallm.com/api/v1/metrics/breakdown    cost by model and by feature
+Authorization: Bearer <FISCALLM_KEY>`}</code>
+        </pre>
+        <pre>
+          <code>{`curl -H "Authorization: Bearer $FISCALLM_KEY" "https://fiscallm.com/api/v1/metrics/users?days=30&losing=1"`}</code>
+        </pre>
+        <p>
+          AI assistants can read the same numbers through the <a href="/mcp">MCP server</a>. Model prices and cost estimates are a separate{" "}
+          <Link href="/llm-pricing/api">public API</Link> that needs no key. Everything is described in <a href="/openapi.json">openapi.json</a>.
         </p>
 
         <h2 id="kill-switch">Kill switch</h2>

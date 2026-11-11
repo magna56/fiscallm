@@ -4,7 +4,8 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 
 const money = (n: number) => `$${n.toFixed(n !== 0 && Math.abs(n) < 10 ? 2 : 0)}`;
 
-export function CostChart({ data }: { data: { day: string; costUsd: number; revenueUsd: number }[] }) {
+/** Daily AI cost, with net revenue behind it unless `revenue` is false. */
+export function CostChart({ data, revenue = true }: { data: { day: string; costUsd: number; revenueUsd: number }[]; revenue?: boolean }) {
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer>
@@ -13,8 +14,8 @@ export function CostChart({ data }: { data: { day: string; costUsd: number; reve
           <XAxis dataKey="day" tickFormatter={(d: string) => d.slice(5)} tick={{ fontSize: 11 }} stroke="currentColor" strokeOpacity={0.4} minTickGap={16} />
           <YAxis tickFormatter={money} tick={{ fontSize: 11 }} stroke="currentColor" strokeOpacity={0.4} width={48} />
           <Tooltip formatter={(v) => money(Number(v))} contentStyle={{ fontSize: 12 }} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="revenueUsd" name="Net revenue" fill="#16a34a" fillOpacity={0.55} />
+          {revenue && <Legend wrapperStyle={{ fontSize: 12 }} />}
+          {revenue && <Bar dataKey="revenueUsd" name="Net revenue" fill="#16a34a" fillOpacity={0.55} />}
           <Line dataKey="costUsd" name="AI cost" stroke="#dc2626" strokeWidth={2} dot={false} type="monotone" />
         </ComposedChart>
       </ResponsiveContainer>

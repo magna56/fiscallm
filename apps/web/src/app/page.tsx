@@ -6,7 +6,7 @@ import { LogoMark } from "@/components/logo-mark";
 import { FlowDemo } from "@/components/flow-demo";
 import { CONTACT, SiteFooter, SiteHeader } from "@/components/site";
 
-const RUNTIMES = ["OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
+const RUNTIMES = ["Claude Code", "OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
 
 const STEPS = [
   {
@@ -30,11 +30,17 @@ const STEPS = [
 ];
 
 const FAQ: [string, string][] = [
+  ["How do I see Claude Code spend per developer?", "Create an app in FiscaLLM, copy its key, and add five settings to Claude Code, as environment variables or in the settings file your admin distributes. Claude Code then reports each model call with the developer, the model, the tokens and the cost. There is no proxy and nothing to install."],
+  ["Does FiscaLLM see our prompts or code?", "No. It reads one kind of event, the model call: the model, the token counts, Claude Code's cost figure and who made the call. Every other event Claude Code sends is discarded on arrival."],
+  ["Doesn't Anthropic already show this?", "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan, and with Pro or Max seats, cost per developer comes from Claude Code's OpenTelemetry export, which needs somewhere to go. FiscaLLM is that place, with budget alerts."],
+  ["We pay per seat (Pro, Max or Team). What does the cost mean?", "It is Claude Code's own estimate of what each call costs at API prices. On a subscription you pay per seat, so read it as what the usage would have cost on the API: good for comparing developers and teams and for deciding who needs a bigger plan, not a copy of your invoice."],
+  ["Does it work with Cursor, Codex or GitHub Copilot?", "Not yet. Only Claude Code is read today. If you need another agent, open an issue on GitHub and say which."],
+  ["How big a team does the free hosted service cover?", "It accepts 100,000 events per app per month, and one model call is one event. An agent makes many model calls per task, so the hosted service suits a small team or a trial. A larger team should self-host, which is free and has no limit."],
   ["How do I give each plan its own AI limit?", "On the Limits page, add a row per plan: free, trial, paid or a product ID, with a number of AI calls or dollars per day, per month or in total. Your backend calls meter.check(userId) before each AI call. FiscaLLM knows the user's plan from RevenueCat or Stripe and answers with allow or refuse and how much is left."],
   ["Can my app show how many AI messages are left?", "Yes. Every check returns the limit, the amount used, the amount remaining and when it resets. Send it to your app to show \"3 left today\", and open your paywall when the answer is no."],
   ["How exact are the limits?", "Usage counts once a call is tracked, so calls made at the same moment can pass a limit by one or two. The SDK counts each tracked call at once, and the server follows within seconds. It is built for plan allowances and paywalls, not for billing by the unit."],
-  ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
-  ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
+  ["What does FiscaLLM store?", "User IDs, token counts, models, cost and, for a product, your revenue events (RevenueCat or Stripe). Never prompts or responses."],
+  ["Who is it for?", "Engineering teams that want to see Claude Code spend per developer, and subscription apps that call AI from their own backend, in TypeScript or Python."],
   ["I already use OpenTelemetry, LiteLLM or the Vercel AI SDK. Do I need another SDK?", "No. Point an OpenTelemetry trace exporter at FiscaLLM, or add one callback to your LiteLLM config, and the usage you already record becomes cost per user. The SDK is for apps that have neither."],
   ["Can an AI agent use it?", "Yes. A read-only MCP server at fiscallm.com/api/mcp gives assistants current LLM prices and cost estimates with no key, and your app's cost and margin per user with its key. The same data is a JSON API."],
   ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe with one webhook, or upload a CSV from Paddle, Lemon Squeezy or a spreadsheet, or send payments with one SDK call."],
@@ -69,8 +75,11 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Web",
-      description: "Limits AI usage by subscription plan, tells your app how much each user has left, and shows each user's AI cost against what they pay.",
+      description: "Shows what each developer and team spends in Claude Code, with budget alerts and no proxy. For AI products, limits AI usage by subscription plan and shows each user's AI cost against what they pay.",
       featureList: [
+        "Claude Code spend per developer and per team, from Claude Code's OpenTelemetry export",
+        "Budget alerts per developer and a warning when an agent loops",
+        "No proxy or wrapper; prompts and code are never stored",
         "AI usage limits per free, trial and paid plan, in AI calls or dollars, per day, month or in total",
         "Remaining allowance for every user, for in-app counters and paywalls",
         "Plans read from RevenueCat or Stripe",
@@ -100,6 +109,9 @@ export default function Home() {
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />
+        <ClaudeCode />
+        <Already />
+        <Products />
         <PlanLimits />
         <Problem />
         <Solution />
@@ -128,23 +140,23 @@ function Hero() {
       <div className="dot-grid" aria-hidden />
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pt-20 text-center sm:pt-28">
         <Link
-          href="/docs"
+          href="/integrations/claude-code"
           className="fade-up glass inline-flex items-center gap-2 rounded-full border border-black/5 px-3 py-1 text-xs text-muted shadow-sm"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          Free and open source<span className="hidden sm:inline"> · SDKs for TypeScript &amp; Python</span>
+          Free and open source<span className="hidden sm:inline"> · No proxy, nothing to install</span>
           <span aria-hidden>→</span>
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="AI limits for" start={0} /> <Words text="every plan you sell." start={3} gradient />
+          <Words text="See what every developer" start={0} /> <Words text="spends in Claude Code." start={4} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          Free gets 10 AI messages a day, Pro gets 500 a month. FiscaLLM knows each user&apos;s plan from RevenueCat or Stripe, tells your app how many
-          are left, and shows what every user costs you.
+          Spend per developer and per team, and an alert when someone passes a budget or an agent loops. Five settings in Claude Code. No proxy, and
+          prompts are never stored.
         </p>
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link
@@ -153,48 +165,282 @@ function Hero() {
           >
             Start free
           </Link>
-          <Link href="/demo" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
-            View live demo
+          <Link href="/integrations/claude-code" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
+            See the setup
           </Link>
         </div>
-        <p className="fade-up delay-3 mt-4 text-sm text-muted">10-minute setup · No prompts leave your backend</p>
+        <p className="fade-up delay-3 mt-4 text-sm text-muted">5-minute setup · Only the model, tokens and cost are stored</p>
 
         <div className="relative mt-16 w-full max-w-5xl">
           <div className="glow" aria-hidden />
-          <Link
-            href="/demo"
-            aria-label="Open the live demo dashboard"
-            className="product-frame group relative block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl shadow-indigo-500/10 transition hover:-translate-y-0.5 hover:shadow-indigo-500/20"
-          >
+          <div className="product-frame relative overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl shadow-indigo-500/10">
             <div className="flex items-center gap-2 border-b border-black/5 bg-[#fafafc] px-4 py-3">
               <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
               <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
               <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/demo</span>
+              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/dashboard</span>
             </div>
-            <DashboardPreview />
-            <span className="absolute right-3 top-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-white shadow-md transition group-hover:scale-105 sm:text-sm">
-              Try it live →
-            </span>
-          </Link>
+            <ClaudeCodePreview />
+          </div>
 
-          <FloatCard className="float -left-4 top-[16%] hidden md:block xl:-left-44">
-            <div className="text-xs text-muted">Free plan · today</div>
-            <div className="mt-1 font-mono text-sm">7 of 10 AI messages</div>
+          <FloatCard className="float -left-48 top-[16%] hidden xl:block">
+            <div className="text-xs text-muted">Budget alert · Slack</div>
+            <div className="mt-1 font-mono text-sm">alice · $52.10 today</div>
             <div className="mt-2 h-1.5 w-40 rounded-full bg-black/[0.05]">
-              <div className="h-1.5 w-[70%] rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
+              <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
             </div>
-            <div className="mt-1 text-xs text-muted">3 left · resets 00:00 UTC</div>
+            <div className="mt-1 text-xs text-muted">over the $50 daily budget</div>
           </FloatCard>
-          <FloatCard className="float-slow -right-4 top-[46%] hidden md:block xl:-right-44">
-            <div className="text-xs text-muted">Paying user losing you money</div>
+          <FloatCard className="float-slow -right-44 top-[46%] hidden xl:block">
+            <div className="text-xs text-muted">Runaway session</div>
             <div className="mt-1 flex items-center justify-between gap-6 font-mono text-sm">
-              <span>user_k3x9…</span>
-              <span className="font-semibold text-red-600">−$16.41</span>
+              <span>ben</span>
+              <span className="font-semibold text-red-600">3.1M tokens</span>
             </div>
-            <div className="mt-1 text-xs text-muted">pays $7.49 · costs $23.90</div>
+            <div className="mt-1 text-xs text-muted">in 5 minutes · alert sent</div>
           </FloatCard>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// Sample numbers for the hero: one team's Claude Code usage over 30 days.
+const DEVS: [string, string, number, number][] = [
+  ["alice@example.com", "platform", 2310, 412.6],
+  ["ben@example.com", "platform", 1804, 268.15],
+  ["chen@example.com", "mobile", 1522, 201.4],
+  ["dana@example.com", "mobile", 1190, 148.9],
+  ["eli@example.com", "data", 1034, 119.75],
+  ["farah@example.com", "data", 870, 77.3],
+  ["gus@example.com", "platform", 452, 38.2],
+  ["hana@example.com", "mobile", 230, 17.9],
+];
+
+/** The hero's product shot: the spend-only dashboard a Claude Code team sees, on sample data. */
+function ClaudeCodePreview() {
+  const money = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const total = DEVS.reduce((t, d) => t + d[3], 0);
+  const calls = DEVS.reduce((t, d) => t + d[2], 0);
+  const teams = [...new Set(DEVS.map((d) => d[1]))]
+    .map((team): [string, number] => [team, DEVS.filter((d) => d[1] === team).reduce((t, d) => t + d[3], 0)])
+    .sort((x, y) => y[1] - x[1]);
+  const stats: [string, string, string][] = [
+    ["AI cost", money(total), `${calls.toLocaleString("en-US")} model calls`],
+    ["Developers", String(DEVS.length), "with usage"],
+    ["Cost per developer", money(total / DEVS.length), "last 30 days"],
+  ];
+  return (
+    <div className="select-none bg-[#f7f7fb] p-4 text-left sm:p-5" aria-label="Example FiscaLLM dashboard for a team's Claude Code spend, on sample data">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-lg font-semibold tracking-tight">Claude Code · Engineering</p>
+          <p className="mt-0.5 text-xs text-black/50">Last 30 days</p>
+        </div>
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">Sample data</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {stats.map(([label, value, hint]) => (
+          <div key={label} className="rounded-2xl border border-black/[0.06] bg-white p-3 sm:p-4">
+            <div className="text-xs font-medium text-muted">{label}</div>
+            <div className="mt-1 text-base font-semibold tracking-tight tabular-nums sm:text-xl">{value}</div>
+            <div className="mt-1 hidden text-xs text-black/45 sm:block">{hint}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-[1.7fr_1fr]">
+        <div className="rounded-2xl border border-black/[0.06] bg-white p-4">
+          <p className="text-sm font-semibold">Developers, biggest spend first</p>
+          <ul className="mt-3 space-y-2.5 text-xs">
+            {DEVS.slice(0, 6).map(([email, team, n, cost]) => (
+              <li key={email}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate font-mono">{email}</span>
+                  <span className="shrink-0 tabular-nums">
+                    <span className="hidden text-black/45 sm:inline">
+                      {team} · {n.toLocaleString("en-US")} calls ·{" "}
+                    </span>
+                    <span className="font-medium">{money(cost)}</span>
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 rounded bg-black/[0.05]">
+                  <div className="h-1.5 rounded bg-[#6d5dfc]/70" style={{ width: `${(cost / DEVS[0][3]) * 100}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="hidden rounded-2xl border border-black/[0.06] bg-white p-4 md:block">
+          <p className="text-sm font-semibold">Cost by team</p>
+          <ul className="mt-3 space-y-2.5 text-xs">
+            {teams.map(([team, cost]) => (
+              <li key={team}>
+                <div className="flex justify-between">
+                  <span className="font-mono">{team}</span>
+                  <span className="tabular-nums">{money(cost)}</span>
+                </div>
+                <div className="mt-1 h-1.5 rounded bg-black/[0.05]">
+                  <div className="h-1.5 rounded bg-black/40" style={{ width: `${(cost / total) * 100}%` }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 border-t border-black/5 pt-3 text-xs text-black/50">
+            Cost is Claude Code&apos;s own estimate at API prices.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const CC_SETTINGS = `{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT":
+      "https://fiscallm.com/api/v1/otel/v1/logs",
+    "OTEL_EXPORTER_OTLP_LOGS_HEADERS":
+      "Authorization=Bearer <FISCALLM_KEY>"
+  }
+}`;
+
+function ClaudeCode() {
+  const get: [string, string][] = [
+    ["Spend per developer", "Model calls and cost for each person, biggest first, with a CSV export."],
+    ["Spend per team", "Add team.id to the settings and cost is grouped by team."],
+    ["Budget alerts", "Email or Slack when a developer passes an amount in a day or in 30 days, or the whole team passes a daily amount."],
+    ["Runaway warning", "An alert when someone uses more tokens in 5 minutes than you allow, which is how a looping agent shows up."],
+    ["Ask Claude", "The same numbers through an MCP server and a JSON API, so you can ask who spent the most this week."],
+  ];
+  const points: [string, string][] = [
+    ["Nothing in the request path", "Claude Code talks to Anthropic as before and reports usage on the side. If FiscaLLM is down, nobody notices."],
+    ["Counts, not code", "Only the model-call event is read: the model, the tokens, the cost and who. Prompts, code and tool output are never stored."],
+    ["Yours to run", "MIT licensed. Try it on the free hosted service; self-host for a larger team, with no limit."],
+  ];
+  return (
+    <section id="claude-code" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead
+        eyebrow="How it works"
+        title={
+          <>
+            Five settings. <span className="text-gradient">No proxy.</span>
+          </>
+        }
+        body="Claude Code can already export its usage with OpenTelemetry. FiscaLLM is somewhere to send it."
+      />
+      <div className="reveal mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-2">
+        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+          <h3 className="font-semibold">1. Add this to Claude Code&apos;s settings</h3>
+          <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0f0f1a] p-4 text-xs leading-relaxed text-white/90">
+            <code>{CC_SETTINGS}</code>
+          </pre>
+          <p className="mt-3 text-xs text-muted">
+            In the managed settings your admin distributes, or each developer&apos;s <code>~/.claude/settings.json</code>. Environment variables work too.
+          </p>
+        </div>
+        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+          <h3 className="font-semibold">2. See who spends what</h3>
+          <ul className="mt-4 divide-y divide-black/5 text-sm">
+            {get.map(([t, b]) => (
+              <li key={t} className="py-2.5">
+                <strong>{t}.</strong> <span className="text-muted">{b}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <Spotlight className="mt-4 grid gap-4 md:grid-cols-3">
+        {points.map(([t, b]) => (
+          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+            <h3 className="font-semibold">{t}</h3>
+            <p className="mt-1.5 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </Spotlight>
+      <p className="mt-6 text-center text-sm">
+        <Link href="/integrations/claude-code" className="font-medium text-accent hover:underline">
+          Full setup: teams, names and what is stored →
+        </Link>
+      </p>
+    </section>
+  );
+}
+
+function Already() {
+  const rows: [string, string, string][] = [
+    ["API keys, in the Claude Console", "The Console has a Claude Code page with estimated spend per user.", "Start there. FiscaLLM adds alerts per developer and your own team grouping."],
+    ["Enterprise plan", "An admin dashboard with usage and cost by group and by user, with spend limits.", "You probably don't need FiscaLLM."],
+    ["Team plan", "The analytics dashboard shows usage and contribution, not cost per developer. Cost comes from the OpenTelemetry export or a CSV spend report.", "This is where FiscaLLM helps: a place to send that export, with no collector or Grafana to run."],
+    ["Pro or Max seats, one per developer", "Each seat is its own account, so there is no shared view.", "FiscaLLM puts the team on one page."],
+    ["Only you", "The /cost command, or a local tool such as ccusage.", "Use those. They are free and need no account."],
+    ["Amazon Bedrock or Google Vertex AI", "The same OpenTelemetry export.", "Not tested with FiscaLLM yet. If you try it, tell us what you see."],
+  ];
+  return (
+    <section id="already" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead
+        eyebrow="Before you sign up"
+        title={
+          <>
+            What Anthropic <span className="text-gradient">already gives you</span>
+          </>
+        }
+        body="You may not need this. It depends on how your team pays for Claude Code."
+      />
+      <div className="reveal mx-auto mt-10 max-w-5xl overflow-x-auto rounded-2xl border border-black/5 bg-white">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-black/5 text-xs text-muted">
+              <th className="px-5 py-3 font-medium">You use</th>
+              <th className="px-5 py-3 font-medium">What you get without FiscaLLM</th>
+              <th className="px-5 py-3 font-medium">Our advice</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-black/5">
+            {rows.map(([use, have, advice]) => (
+              <tr key={use} className="align-top">
+                <td className="px-5 py-3.5 font-medium">{use}</td>
+                <td className="px-5 py-3.5 text-muted">{have}</td>
+                <td className="px-5 py-3.5">{advice}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-4 text-center text-xs text-muted">
+        As of November 2026. Plans change, so check{" "}
+        <a href="https://code.claude.com/docs/en/analytics" className="underline hover:text-foreground">
+          Anthropic&apos;s analytics documentation
+        </a>
+        . FiscaLLM is not affiliated with Anthropic.
+      </p>
+    </section>
+  );
+}
+
+function Products() {
+  return (
+    <section id="products" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
+      <div className="reveal rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f3ff] via-white to-[#fdf2f8] p-8 text-center md:p-12">
+        <p className="shimmer text-sm font-medium">Building an AI product?</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          The same meter, <span className="text-gradient">for your own users</span>
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">
+          FiscaLLM also counts what each user of your app costs you in AI, limits it by plan, and sets it next to what they pay. Works with
+          RevenueCat, Stripe or a CSV.
+        </p>
+        <Link
+          href="/demo"
+          aria-label="Open the live demo dashboard"
+          className="product-frame group relative mx-auto mt-8 block max-w-4xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl shadow-indigo-500/10 transition hover:-translate-y-0.5"
+        >
+          <DashboardPreview />
+          <span className="absolute bottom-3 right-3 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-white shadow-md transition group-hover:scale-105 sm:text-sm">
+            Try it live →
+          </span>
+        </Link>
       </div>
     </section>
   );
@@ -330,7 +576,7 @@ function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNo
 function Problem() {
   const points: [string, string][] = [
     ["Flat price, variable cost", "Everyone pays $9.99. One user costs you $0.20 in AI, another $25."],
-    ["Two bills that never meet", "Your AI bill shows tokens. RevenueCat shows payments. Neither shows the user."],
+    ["Two bills that never meet", "Your AI bill shows tokens. Your billing system shows payments. Neither shows the user."],
     ["You find out too late", "All you see is one big AI bill at the end of the month."],
   ];
   return (
@@ -466,7 +712,7 @@ function Actions() {
 function HowItWorks() {
   return (
     <section id="how" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead eyebrow="How it works" title="Watch one request" body="Nothing sits between your app and the AI. Usage and revenue are reported on the side." />
+      <SectionHead eyebrow="For your product" title="Watch one request" body="Nothing sits between your app and the AI. Usage and revenue are reported on the side." />
       <div className="reveal mt-12">
         <FlowDemo />
       </div>
@@ -569,7 +815,8 @@ function Privacy() {
           <p className="shimmer text-sm font-medium">Privacy by design</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">Counts, not conversations</h2>
           <p className="mt-2 max-w-xl text-muted">
-            Only a user ID, the model and token counts leave your backend. Never prompts or responses. Delete any app&apos;s data in one click.
+            Only an ID for the person, the model, token counts and cost are stored. Never prompts, code or responses. Delete any app&apos;s data
+            in one click.
           </p>
         </div>
         <a href="/privacy" className="shrink-0 font-medium text-accent hover:underline">
@@ -634,10 +881,10 @@ function FinalCta() {
           <span />
           <span />
         </div>
-        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Stop guessing your AI margins.</h2>
-        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Connect your backend and your billing in ten minutes. Free and open source.</p>
+        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know who spends what in Claude Code.</h2>
+        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Five settings and about five minutes. Free and open source.</p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
-          We&apos;re looking for our first 10 apps. Tell us what you build and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
+          We&apos;re looking for our first 10 teams. Tell us how you use Claude Code and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
           <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">
             {CONTACT}
           </a>
@@ -646,8 +893,8 @@ function FinalCta() {
           <Link href="/login" className="rounded-full bg-white px-6 py-3 font-medium text-[#0f0f1a] transition hover:-translate-y-0.5">
             Start free
           </Link>
-          <Link href="/demo" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
-            View live demo
+          <Link href="/integrations/claude-code" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
+            See the setup
           </Link>
         </div>
       </div>

@@ -40,7 +40,7 @@ async function Apps({ searchParams }: Pick<PageProps<"/dashboard">, "searchParam
   const firstName = profile.name.split(" ")[0];
   const create = (
     <form action={createApp} className="flex flex-col gap-2 sm:flex-row">
-      <Input name="name" required maxLength={100} placeholder="App name, e.g. PhotoAI" className="flex-1" />
+      <Input name="name" required maxLength={100} placeholder="Name, e.g. Platform team or PhotoAI" className="flex-1" />
       <Button type="submit">Create app</Button>
     </form>
   );
@@ -54,9 +54,9 @@ async function Apps({ searchParams }: Pick<PageProps<"/dashboard">, "searchParam
         <Card>
           <ol className="grid gap-4 md:grid-cols-3">
             {[
-              ["Create an app", "One per mobile app. You get a key and a webhook URL."],
-              ["Connect it", "One line in your backend, and RevenueCat or the revenue API."],
-              ["See your margins", "Cost against revenue for every user, plan and trial."],
+              ["Create an app", "One for your team's Claude Code usage, or one per product. You get a key."],
+              ["Connect it", "Five settings in Claude Code. For a product: one line in your backend, plus your billing."],
+              ["See who spends what", "Spend per developer and team, or cost against revenue for every user and plan."],
             ].map(([t, b], i) => (
               <li key={t} className="rounded-xl bg-[#f7f7fb] p-4">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-[#6d5dfc] text-sm font-semibold text-white">{i + 1}</span>
@@ -88,6 +88,22 @@ async function Apps({ searchParams }: Pick<PageProps<"/dashboard">, "searchParam
                 </div>
                 {empty ? (
                   <p className="mt-5 text-sm text-muted">No data yet. Finish setup →</p>
+                ) : o.revenueUsd === 0 ? (
+                  // No revenue in the period: spend only, not a red margin.
+                  <dl className="mt-5 grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted">AI cost</dt>
+                      <dd className="font-semibold tabular-nums">{usd(o.costUsd)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Users</dt>
+                      <dd className="font-semibold tabular-nums">{o.usersWithCost.toLocaleString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Requests</dt>
+                      <dd className="font-semibold tabular-nums">{o.requests.toLocaleString()}</dd>
+                    </div>
+                  </dl>
                 ) : (
                   <dl className="mt-5 grid grid-cols-3 gap-2 text-sm">
                     <div>
@@ -109,7 +125,7 @@ async function Apps({ searchParams }: Pick<PageProps<"/dashboard">, "searchParam
           })}
           <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 p-5">
             <div className="font-semibold">New app</div>
-            <p className="mb-3 mt-1 text-sm text-muted">One per mobile app.</p>
+            <p className="mb-3 mt-1 text-sm text-muted">One per team or product.</p>
             {create}
           </div>
         </div>

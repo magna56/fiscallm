@@ -10,6 +10,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 ## Done recently
 - **Limits by plan** (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per product, in AI calls or dollars, per day, month or in total; `meter.check` returns what is left and when it resets; a Limits page lists users at a limit
 - **Claude Code spend per developer and team** (beta): from Claude Code's own OpenTelemetry export, with no proxy; prompts never stored
+- **Spend-only dashboard** for apps with no revenue, such as a team's Claude Code usage: no empty revenue or margin columns
 - **Price table in the TypeScript SDK**: `fiscallm/prices`, list prices and call cost with no network request
 - **No second SDK**: usage from OpenTelemetry traces (GenAI conventions, including the Vercel AI SDK) and from a LiteLLM callback
 - **For AI agents**: a read-only MCP server (LLM prices, cost estimates, your app's margins), a free LLM pricing API, a read API for margins, and an OpenAPI description
@@ -47,6 +48,7 @@ If we introduce paid hosted plans, existing free users get advance notice, and a
 ## Ideas, roughly in order
 - **Credits and top-ups**: a balance per user that plans refill and packs add to, spent by AI calls. Limits by plan covers "N per period" today; a credit ledger (roll-over, top-up packs, refunds) is a bigger build and comes only if people ask for it
 - Spend from other coding agents (Cursor, Codex), next to Claude Code
+- Claude Code on Amazon Bedrock and Google Vertex AI: test and document
 - The price table for Python (`fiscallm.prices`)
 - Spread annual-plan revenue across the months it covers
 - Adapty and Superwall webhooks

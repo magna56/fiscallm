@@ -140,6 +140,7 @@ export default function RoadmapPage() {
             &quot;N per period&quot; today; a credit ledger (roll-over, top-up packs, refunds) is a bigger build and comes only if people ask for it
           </li>
           <li>Spend from other coding agents (Cursor, Codex), next to Claude Code</li>
+          <li>Claude Code on Amazon Bedrock and Google Vertex AI: test and document</li>
           <li>
             The price table for Python (<code>fiscallm.prices</code>)
           </li>

@@ -16,6 +16,10 @@ export const metadata: Metadata = {
 
 const FAQ: [string, string][] = [
   [
+    "Doesn't Anthropic already show Claude Code spend per developer?",
+    "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan, and with Pro or Max seats, cost per developer comes from Claude Code's OpenTelemetry export, which needs somewhere to go. FiscaLLM is that place, with budget alerts.",
+  ],
+  [
     "Does FiscaLLM see our prompts or code?",
     "No. It reads one kind of event, the model call (api_request): the model, the token counts, Claude Code's cost figure and who made the call. Every other event Claude Code sends is discarded on arrival. Claude Code also redacts prompt text in its telemetry unless you turn that on yourself.",
   ],
@@ -46,14 +50,14 @@ export default function Page() {
         passes an amount, and a warning when a session runs away. Nothing is installed on top of Claude Code and no traffic is proxied.
       </p>
       <p>
-        Anthropic&apos;s console shows spend per API key or workspace. It doesn&apos;t tell you that one developer&apos;s agent looped overnight, or
-        which team used half the budget. That is what this is for.
+        It suits a small team on the Team plan, or on Pro and Max seats, that wants one page and an alert without running a collector and
+        Grafana. Some teams already have this from Anthropic; see <a href="#anthropic">what Anthropic already gives you</a> before you sign up.
       </p>
 
       <h2 id="setup">1. Turn on the export</h2>
       <p>
-        <Link href="/login">Create an app</Link> for your team&apos;s Claude Code usage and copy its key. Use a separate app, not the one for your
-        product. Then set these wherever Claude Code runs:
+        <Link href="/login">Create an app</Link> for your team&apos;s Claude Code usage and copy its key. Its Setup page shows the settings below
+        with the key filled in. Use a separate app, not the one for a product. Then set these wherever Claude Code runs:
       </p>
       <pre>
         <code>{`export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -138,7 +142,8 @@ export OTEL_EXPORTER_OTLP_LOGS_HEADERS="Authorization=Bearer <FISCALLM_KEY>"`}</
           <strong>Users:</strong> model calls and spend per developer over the range you pick, biggest spender first, with a CSV export.
         </li>
         <li>
-          <strong>Overview:</strong> spend per day, cost by model, and cost by team (shown as &quot;Cost by feature&quot;).
+          <strong>Overview:</strong> total spend, cost per developer, spend per day, cost by model, and cost by team (shown as &quot;Cost by
+          feature or team&quot;).
         </li>
         <li>
           <strong>Budgets and alerts:</strong> an email or Slack message when a developer passes an amount in a day or in 30 days, when the whole
@@ -150,6 +155,59 @@ export OTEL_EXPORTER_OTLP_LOGS_HEADERS="Authorization=Bearer <FISCALLM_KEY>"`}</
           <Link href="/mcp">the MCP server</Link>, so you can ask Claude who spent the most this week.
         </li>
       </ul>
+
+      <h2 id="anthropic">What Anthropic already gives you</h2>
+      <p>You may not need FiscaLLM. It depends on how your team pays for Claude Code.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>You use</th>
+            <th>Without FiscaLLM</th>
+            <th>Our advice</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>API keys, in the Claude Console</td>
+            <td>The Console has a Claude Code page with estimated spend per user</td>
+            <td>Start there. FiscaLLM adds alerts per developer and your own team grouping</td>
+          </tr>
+          <tr>
+            <td>Enterprise plan</td>
+            <td>An admin dashboard with usage and cost by group and by user, with spend limits</td>
+            <td>You probably don&apos;t need FiscaLLM</td>
+          </tr>
+          <tr>
+            <td>Team plan</td>
+            <td>
+              The analytics dashboard shows usage and contribution, not cost per developer. Cost comes from the OpenTelemetry export or a CSV
+              spend report
+            </td>
+            <td>This is where FiscaLLM helps: a place to send that export, with no collector or Grafana to run</td>
+          </tr>
+          <tr>
+            <td>Pro or Max seats, one per developer</td>
+            <td>Each seat is its own account, so there is no shared view</td>
+            <td>FiscaLLM puts the team on one page</td>
+          </tr>
+          <tr>
+            <td>Only you</td>
+            <td>
+              The <code>/cost</code> command, or a local tool such as <a href="https://github.com/ryoppippi/ccusage">ccusage</a>
+            </td>
+            <td>Use those. They are free and need no account</td>
+          </tr>
+          <tr>
+            <td>Amazon Bedrock or Google Vertex AI</td>
+            <td>The same OpenTelemetry export</td>
+            <td>Not tested with FiscaLLM yet. If you try it, tell us what you see</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        As of November 2026. Plans change, so check <a href="https://code.claude.com/docs/en/analytics">Anthropic&apos;s analytics documentation</a>.
+        FiscaLLM is not affiliated with Anthropic.
+      </p>
 
       <h2 id="collector">Sending to two places</h2>
       <p>Claude Code has one logs endpoint. To keep your current backend, put an OpenTelemetry Collector in between:</p>
@@ -177,8 +235,8 @@ service:
           <strong>No productivity numbers.</strong> Lines of code, commits, pull requests and accepted edits are not read. This is about spend.
         </li>
         <li>
-          <strong>Revenue and margin stay empty.</strong> FiscaLLM was built to set an app&apos;s AI cost against what its users pay. A team has no
-          revenue per developer, so those columns show nothing. Ignore them.
+          <strong>No revenue or margin.</strong> FiscaLLM can also set a product&apos;s AI cost against what its users pay. An app with no
+          revenue connected shows spend only, so those columns are hidden.
         </li>
         <li>
           <strong>The key sits on every developer&apos;s machine.</strong> Anyone who has it can send events and read the app&apos;s totals through
@@ -190,6 +248,9 @@ service:
         </li>
         <li>
           <strong>Only Claude Code.</strong> Cursor, Codex and Copilot are not read.
+        </li>
+        <li>
+          <strong>Tested with a signed-in Claude account.</strong> Not yet on Amazon Bedrock or Google Vertex AI.
         </li>
       </ul>
 

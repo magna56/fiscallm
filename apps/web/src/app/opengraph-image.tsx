@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "FiscaLLM: AI limits for every plan you sell";
+export const alt = "FiscaLLM: see what every developer spends in Claude Code";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -39,15 +39,15 @@ export default function OgImage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", flexWrap: "wrap", fontSize: 88, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
-            <span>AI limits for&nbsp;</span>
-            <span style={{ color: "#8b5cf6" }}>every plan you sell.</span>
+            <span>Claude Code spend,&nbsp;</span>
+            <span style={{ color: "#8b5cf6" }}>per developer.</span>
           </div>
-          <div style={{ fontSize: 34, color: "#55556a" }}>Limits by plan, a remaining count for your paywall, and AI cost per user.</div>
+          <div style={{ fontSize: 34, color: "#55556a" }}>Per developer and team, with budget alerts. No proxy. Free and open source.</div>
         </div>
 
         <div style={{ display: "flex", gap: 16, fontSize: 28 }}>
           <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: "white", border: "1px solid #e5e5ef" }}>
-            free plan: 7 of 10 AI messages today
+            alice: $52.10 today, over the $50 budget
           </div>
           <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: "#0b0b14", color: "white" }}>fiscallm.com</div>
         </div>

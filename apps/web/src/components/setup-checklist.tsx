@@ -14,20 +14,20 @@ export function SetupChecklist({ appId, state, compact = false }: { appId: strin
   const steps = [
     {
       done: state.aiEvents > 0,
-      title: "Send AI usage from your backend",
-      detail: state.aiEvents > 0 ? `${state.aiEvents.toLocaleString()} events, last ${ago(state.lastAi!)}` : "Add the SDK and one line after each AI call.",
+      title: "Send AI usage",
+      detail: state.aiEvents > 0 ? `${state.aiEvents.toLocaleString()} events, last ${ago(state.lastAi!)}` : "From Claude Code, or one line after each AI call in your backend.",
       href: "#usage",
     },
     {
       done: state.revenueEvents > 0,
       title: "Connect revenue",
-      detail: state.revenueEvents > 0 ? `${state.revenueEvents.toLocaleString()} purchase events received` : "Press Connect RevenueCat, or send payments with the API.",
+      detail: state.revenueEvents > 0 ? `${state.revenueEvents.toLocaleString()} purchase events received` : "For products you sell: RevenueCat, Stripe, a CSV or the API. Not needed for Claude Code.",
       href: "#revenue",
     },
     {
       done: state.complete,
       title: "See your margins",
-      detail: state.complete ? "Cost and revenue are matched per user." : "Appears as soon as both are connected.",
+      detail: state.complete ? "Cost and revenue are matched per user." : "Appears as soon as both are connected. Spend shows without revenue.",
       href: "",
     },
   ];

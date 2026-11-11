@@ -15,7 +15,7 @@ export const PAGES: [string, number][] = [
   ["/integrations/opentelemetry", 0.8],
   ["/integrations/litellm", 0.8],
   ["/integrations/vercel-ai-sdk", 0.8],
-  ["/integrations/claude-code", 0.8],
+  ["/integrations/claude-code", 0.9],
   ["/mcp", 0.8],
   ["/llm-pricing/api", 0.8],
   ["/stripe", 0.9],

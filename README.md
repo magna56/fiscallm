@@ -2,7 +2,21 @@
 
 [![CI](https://github.com/magna56/fiscallm/actions/workflows/ci.yml/badge.svg)](https://github.com/magna56/fiscallm/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/fiscallm)](https://www.npmjs.com/package/fiscallm) [![PyPI](https://img.shields.io/pypi/v/fiscallm)](https://pypi.org/project/fiscallm/)
 
-**AI limits for every plan you sell, and the AI cost of every user.** Give free, trial and paid plans their own AI allowance (10 messages a day on free, 500 a month on Pro, $8 of AI a month on any paid plan). FiscaLLM knows each user's plan from RevenueCat or Stripe, counts their usage, and answers one call from your backend: allow or refuse, and how much is left. It also adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
+**See what every developer spends in Claude Code, and what every user of your AI product costs you.**
+
+**For engineering teams:** add five settings to Claude Code and its built-in OpenTelemetry export sends each model call to FiscaLLM: spend per developer and per team, budget alerts, and a warning when an agent loops. No proxy, nothing to install, prompts and code never stored. [Setup and what Anthropic already gives you](https://fiscallm.com/integrations/claude-code)
+
+```json
+{ "env": {
+  "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+  "OTEL_LOGS_EXPORTER": "otlp",
+  "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/json",
+  "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "https://fiscallm.com/api/v1/otel/v1/logs",
+  "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "Authorization=Bearer <FISCALLM_KEY>"
+} }
+```
+
+**For AI products:** give free, trial and paid plans their own AI allowance (10 messages a day on free, 500 a month on Pro, $8 of AI a month on any paid plan). FiscaLLM knows each user's plan from RevenueCat or Stripe, counts their usage, and answers one call from your backend: allow or refuse, and how much is left. It also adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
 
 ```ts
 const { allow, plan, limits } = await meter.check(userId);
@@ -21,7 +35,9 @@ Limits are settings on the app's **Limits** page, not code. [How to limit AI usa
 
 *Sample data from the demo, not a real customer.*
 
-## Get started in three steps
+## Get started with a product in three steps
+
+For Claude Code, the five settings above are the whole setup. For a product you sell:
 
 1. **Create an app** at [fiscallm.com](https://fiscallm.com) (or your own copy) and copy the ingest key.
 2. **Add one line after each AI call** (it reads only the model name and token counts, never prompts or answers):

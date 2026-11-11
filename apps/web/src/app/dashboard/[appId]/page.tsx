@@ -30,17 +30,28 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
 
   const state = await setupState(app.id);
   const empty = o.usersWithCost === 0 && o.revenueUsd === 0;
+  // No revenue has ever arrived: a team's Claude Code usage, or an app
+  // that has not connected billing yet. Show spend, not a margin of -100%.
+  const spendOnly = state.revenueEvents === 0;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={app.name} subtitle={`Last ${days} days`} action={<RangePicker base={base} days={days} />} />
-      {!state.complete && <SetupChecklist appId={app.id} state={state} compact />}
+      {!state.complete && !(spendOnly && state.aiEvents > 0) && <SetupChecklist appId={app.id} state={state} compact />}
       {empty ? (
         <Notice>
           Nothing in the last {days} days yet. Data shows here within seconds of your first event. <Link href={`${base}/setup`} className="underline">Open setup</Link>
         </Notice>
       ) : (
       <>
+      {spendOnly ? (
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label="AI cost" value={usd(o.costUsd)} hint={`${o.requests.toLocaleString()} requests`} />
+        <Stat label="Users" value={o.usersWithCost.toLocaleString()} hint="with AI usage" />
+        <Stat label="Cost per user" value={usd(o.usersWithCost ? o.costUsd / o.usersWithCost : 0)} />
+        <Stat label="Cost per request" value={o.requests ? `$${(o.costUsd / o.requests).toFixed(4)}` : usd(0)} />
+      </div>
+      ) : (
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="AI cost" value={usd(o.costUsd)} hint={`${o.requests.toLocaleString()} requests`} />
         <Stat label="Net revenue" value={usd(o.revenueUsd)} hint="after store fees and tax" />
@@ -57,22 +68,29 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
           hint={o.matchRate === null ? undefined : `${pct(o.matchRate)} of users matched`}
         />
       </div>
+      )}
 
-      <Card title="Daily AI cost and net revenue">
-        <CostChart data={o.daily} />
+      <Card title={spendOnly ? "Daily AI cost" : "Daily AI cost and net revenue"}>
+        <CostChart data={o.daily} revenue={!spendOnly} />
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card title="Cost by model" action={<DownloadCsv href={`/dashboard/${app.id}/export/models?days=${days}`} />}>
           <Shares rows={b.byModel.map((m) => ({ key: m.key, cost: m.costUsd, note: m.unpriced ? `${m.unpriced} unpriced` : "" }))} />
         </Card>
-        <Card title="Cost by feature">
+        <Card title={spendOnly ? "Cost by feature or team" : "Cost by feature"}>
           <Shares rows={b.byFeature.map((f) => ({ key: f.key || "(no feature)", cost: f.costUsd, note: "" }))} />
         </Card>
       </div>
       {b.range.from !== range.from ? (
         <p className="text-xs text-foreground/50">Model and feature breakdowns cover the last 90 days at most.</p>
       ) : null}
+      {spendOnly && (
+        <p className="text-xs text-foreground/50">
+          Showing spend only, because no revenue is connected. That is all a team&apos;s Claude Code usage needs. Selling a product?{" "}
+          <Link href={`${base}/setup#revenue`} className="underline">Connect revenue</Link> to see margin per user.
+        </p>
+      )}
       </>
       )}
     </div>

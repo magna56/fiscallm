@@ -35,6 +35,7 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
   const stripeUrl = `${base}/api/webhooks/stripe/${app.id}`;
   const snippet = sdkSnippet(newKey ?? "fsk_your_key", base);
   const pySnippet = pythonSnippet(newKey ?? "fsk_your_key", base);
+  const ccSnippet = claudeCodeSnippet(newKey ?? "fsk_your_key", base);
 
   const state = await setupState(app.id);
   const o = state.complete ? await overview(metricsDb(), app.id, lastDays(30)) : null;
@@ -67,7 +68,7 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
     <div className="flex flex-col gap-6">
       {!done && <AutoRefresh />}
 
-      <PageHeader title={`Set up ${app.name}`} subtitle="Three steps. This page updates by itself as data arrives." />
+      <PageHeader title={`Set up ${app.name}`} subtitle="Claude Code needs step 1 only. This page updates by itself as data arrives." />
       <SetupChecklist appId={app.id} state={state} />
 
       {typeof error === "string" && <Notice tone="error">{error}</Notice>}
@@ -97,7 +98,7 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
         <AiSetup />
       </Card>
 
-      <Card title={<span id="usage" className="scroll-mt-24">1. Send AI usage from your backend</span>}>
+      <Card title={<span id="usage" className="scroll-mt-24">1. Send AI usage: from Claude Code, or from your backend</span>}>
         {newKey ? (
           <div className="mb-4 flex flex-col gap-2">
             <Notice tone="ok">Your ingest key. It is shown only now; store it as FISCALLM_KEY on your backend.</Notice>
@@ -119,8 +120,22 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
             <span className="text-xs">(the old one stops working)</span>
           </div>
         )}
-        <p className="mb-2 text-sm">
-          <strong>TypeScript:</strong> <Code>npm install fiscallm</Code>, then after each AI call:
+        <p id="claude-code" className="mb-2 scroll-mt-24 text-sm">
+          <strong>Claude Code</strong> (spend per developer and team): add this to Claude Code&apos;s settings file, the managed settings your admin
+          distributes or each developer&apos;s <Code>~/.claude/settings.json</Code>. Nothing else on this page is needed.{" "}
+          <Link href="/integrations/claude-code" className="underline">
+            Teams, names and what is stored
+          </Link>
+          .
+        </p>
+        <div className="relative">
+          <pre className="overflow-x-auto rounded bg-foreground/5 p-3 font-mono text-xs leading-relaxed">{ccSnippet}</pre>
+          <div className="absolute right-2 top-2">
+            <CopyButton value={ccSnippet} />
+          </div>
+        </div>
+        <p className="mb-2 mt-6 border-t border-black/5 pt-4 text-sm">
+          <strong>Your own product, TypeScript:</strong> <Code>npm install fiscallm</Code>, then after each AI call:
         </p>
         <div className="relative">
           <pre className="overflow-x-auto rounded bg-foreground/5 p-3 font-mono text-xs leading-relaxed">{snippet}</pre>
@@ -138,12 +153,12 @@ async function Setup({ params, searchParams }: Pick<PageProps<"/dashboard/[appId
           </div>
         </div>
         <p className="mt-3 text-sm text-foreground/70">
-          <strong>userId must be the RevenueCat app user ID.</strong> If your app uses RevenueCat&apos;s anonymous IDs,
+          <strong>userId must be the ID your billing knows the user by</strong> (with RevenueCat, the app user ID). If your app uses RevenueCat&apos;s anonymous IDs,
           send <Code>Purchases.shared.appUserID</Code> from the app to your backend with each request.
         </p>
       </Card>
 
-      <Card title={<span id="revenue" className="scroll-mt-24">2. Connect revenue: RevenueCat, or send it yourself</span>}>
+      <Card title={<span id="revenue" className="scroll-mt-24">2. Connect revenue (products only): RevenueCat, or send it yourself</span>}>
         {rcConn?.projectId ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-green-500/10 p-3 text-sm">
             <span>
@@ -325,6 +340,18 @@ const CSV_EXAMPLE = `id,user_id,type,ts,amount_usd,net_usd,product_id,period_end
 in_001,user_42,purchase,2026-10-01,20,17.12,pro_monthly,2026-11-01
 in_002,user_42,renewal,2026-11-01,20,17.12,pro_monthly,2026-12-01
 re_001,user_7,refund,2026-10-12,20,20,pro_monthly,`;
+
+function claudeCodeSnippet(key: string, base: string) {
+  return `{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "${base}/api/v1/otel/v1/logs",
+    "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "Authorization=Bearer ${key}"
+  }
+}`;
+}
 
 function pythonSnippet(key: string, base: string) {
   const endpoint = base === "https://fiscallm.com" ? "" : `, endpoint="${base}/api/v1/events"`;

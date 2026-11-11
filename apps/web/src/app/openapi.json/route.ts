@@ -204,6 +204,27 @@ const SPEC = {
         },
       },
     },
+    "/v1/otel/v1/logs": {
+      post: {
+        ...keyed,
+        tags: ["Usage"],
+        operationId: "sendOtlpLogs",
+        summary: "Send Claude Code usage (OTLP/HTTP logs)",
+        description:
+          'Point Claude Code\'s OpenTelemetry logs exporter here for spend per developer and team. Only "claude_code.api_request" events are read (model, tokens, Claude Code\'s cost, the developer); every other log record is dropped. JSON or protobuf, gzip allowed. Guide: https://fiscallm.com/integrations/claude-code',
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object" } }, "application/x-protobuf": { schema: { type: "string", format: "binary" } } },
+        },
+        responses: {
+          "200": ok("Stored. partialSuccess lists model call events that were skipped, for example for having no user.", {
+            type: "object",
+            properties: { partialSuccess: { type: "object", properties: { rejectedLogRecords: { type: "integer" }, errorMessage: { type: "string" } } } },
+          }),
+          "401": error("Missing or invalid key."),
+        },
+      },
+    },
     "/v1/litellm": {
       post: {
         ...keyed,

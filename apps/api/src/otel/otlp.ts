@@ -198,7 +198,85 @@ export function parseOtlpProto(body: Uint8Array): OtelSpan[] {
   return spans;
 }
 
-/** ExportTraceServiceResponse with a partial_success, as protobuf bytes. */
+// ---- Logs ----
+// ExportLogsServiceRequest, in the same two encodings. Field numbers are
+// from opentelemetry-proto (logs/v1/logs.proto).
+
+export interface OtelLog {
+  /** When the event happened, or when it was observed if no time was set. */
+  at?: Date;
+  /** LogRecord.event_name, when the exporter sets it. */
+  name?: string;
+  /** The body, when it is a string. */
+  body?: string;
+  attrs: Attrs;
+  resource: Attrs;
+}
+
+export function parseOtlpLogsJson(body: unknown): OtelLog[] {
+  const logs: OtelLog[] = [];
+  for (const rl of list((body as Json | null)?.resourceLogs)) {
+    const resource = jsonAttrs((rl.resource as Json | undefined)?.attributes);
+    for (const sl of list(rl.scopeLogs)) {
+      for (const r of list(sl.logRecords)) {
+        const text = jsonValue(r.body);
+        logs.push({
+          at: nanosToDate(r.timeUnixNano) ?? nanosToDate(r.observedTimeUnixNano),
+          name: typeof r.eventName === "string" && r.eventName ? r.eventName : undefined,
+          body: typeof text === "string" ? text : undefined,
+          attrs: jsonAttrs(r.attributes),
+          resource,
+        });
+      }
+    }
+  }
+  return logs;
+}
+
+function protoLog(buf: Uint8Array, resource: Attrs): OtelLog {
+  let time = 0n;
+  let observed = 0n;
+  let name: string | undefined;
+  let body: string | undefined;
+  const attrs: Attrs = {};
+  for (const f of fields(buf)) {
+    if (f.wire === 1) {
+      if (f.no === 1) time = view(f.bytes).getBigUint64(0, true);
+      else if (f.no === 11) observed = view(f.bytes).getBigUint64(0, true);
+    } else if (f.wire === 2) {
+      if (f.no === 5) {
+        const v = protoValue(f.bytes);
+        if (typeof v === "string") body = v;
+      } else if (f.no === 6) protoKeyValue(f.bytes, attrs);
+      else if (f.no === 12) name = utf8.decode(f.bytes) || undefined;
+    }
+  }
+  const nanos = time || observed;
+  return { at: nanos === 0n ? undefined : new Date(Number(nanos / 1_000_000n)), name, body, attrs, resource };
+}
+
+export function parseOtlpLogsProto(body: Uint8Array): OtelLog[] {
+  const logs: OtelLog[] = [];
+  for (const rl of fields(body)) {
+    if (rl.no !== 1 || rl.wire !== 2) continue; // resource_logs
+    const resource: Attrs = {};
+    const scopes: Uint8Array[] = [];
+    for (const f of fields(rl.bytes)) {
+      if (f.wire !== 2) continue;
+      if (f.no === 1) {
+        for (const r of fields(f.bytes)) if (r.no === 1 && r.wire === 2) protoKeyValue(r.bytes, resource);
+      } else if (f.no === 2) scopes.push(f.bytes);
+    }
+    for (const scope of scopes) {
+      for (const f of fields(scope)) {
+        if (f.no === 2 && f.wire === 2) logs.push(protoLog(f.bytes, resource)); // log_records
+      }
+    }
+  }
+  return logs;
+}
+
+/** An Export*ServiceResponse with a partial_success (traces and logs share the shape), as protobuf bytes. */
 export function protoPartialSuccess(rejected: number, message: string): Uint8Array {
   const varint = (n: number) => {
     const out: number[] = [];

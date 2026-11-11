@@ -90,7 +90,9 @@ service:
     traces:
       exporters: [otlphttp/fiscallm, your-existing-exporter]`}</code>
       </pre>
-      <p>JSON and protobuf are both accepted, with or without gzip. Metrics and logs sent to the same endpoint are accepted and dropped.</p>
+      <p>JSON and protobuf are both accepted, with or without gzip. Metrics sent to the same endpoint are accepted and dropped. Logs are
+        read only for <Link href="/integrations/claude-code">Claude Code&apos;s model call events</Link>; other log records are dropped.
+      </p>
 
       <h2 id="user">2. Say who the user is</h2>
       <p>
@@ -195,6 +197,9 @@ langsmith.metadata.user_id, session.user.id`}</code>
         </li>
         <li>
           <Link href="/integrations/litellm">LiteLLM</Link>: one callback in the proxy config
+        </li>
+        <li>
+          <Link href="/integrations/claude-code">Claude Code</Link>: spend per developer and team from Claude Code&apos;s own telemetry
         </li>
         <li>
           <Link href="/compare">FiscaLLM next to Langfuse, Helicone and others</Link>

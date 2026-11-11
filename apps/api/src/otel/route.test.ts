@@ -5,7 +5,7 @@ import { gzipSync } from "node:zlib";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { AnyDb } from "../ingest/db";
 import { freshApp, testDb } from "../test/app";
-import { parseOtlpProto } from "./otlp";
+import { parseOtlpLogsProto, parseOtlpProto } from "./otlp";
 import { otelRoute } from "./route";
 
 let db: AnyDb;
@@ -165,9 +165,141 @@ describe("POST /v1/otel/v1/traces", () => {
     expect(bad.status).toBe(400);
   });
 
-  it("accepts metrics and logs without storing anything", async () => {
+  it("accepts metrics without storing anything", async () => {
     expect((await api().request("/v1/otel/v1/metrics", { method: "POST", body: "{}" })).status).toBe(200);
-    expect((await api().request("/v1/otel/v1/logs", { method: "POST", body: "{}" })).status).toBe(200);
+  });
+});
+
+// The attributes of a "claude_code.api_request" event, as Claude Code 2.1 exports
+// them with OTEL_LOGS_EXPORTER=otlp (shape taken from a real export).
+const apiRequest = (over: Record<string, Value> = {}) => ({
+  "user.id": "f3a9installid",
+  "session.id": "sess-1",
+  "organization.id": "org-1",
+  "user.email": "dev@example.com",
+  "user.account_uuid": "7c1e6f0a-0000-4000-8000-000000000001",
+  "user.account_id": "user_01Test",
+  "terminal.type": "Apple_Terminal",
+  "event.name": "api_request",
+  "event.timestamp": new Date().toISOString(),
+  "event.sequence": 4,
+  model: "claude-sonnet-4-5-20250929",
+  input_tokens: 1200,
+  output_tokens: 350,
+  cache_read_tokens: 40000,
+  cache_creation_tokens: 2000,
+  cache_creation_5m_tokens: 0,
+  cache_creation_1h_tokens: 2000,
+  cost_usd: 0.04210015,
+  cost_usd_micros: 42100,
+  duration_ms: 843,
+  request_id: "req_011CTest",
+  client_request_id: "aa38cce9-110a-49a4-97d0-8809c394e853",
+  speed: "normal",
+  ...over,
+});
+const logRecord = (attrs: Record<string, Value>, over: Record<string, unknown> = {}) => ({
+  timeUnixNano: nanos(),
+  observedTimeUnixNano: nanos(),
+  body: { stringValue: "claude_code.api_request" },
+  attributes: Object.entries(attrs).map(([k, v]) => attr(k, v)),
+  ...over,
+});
+const logsBody = (records: unknown[], resource: Record<string, Value> = { "service.name": "claude-code" }) => ({
+  resourceLogs: [{ resource: { attributes: Object.entries(resource).map(([k, v]) => attr(k, v)) }, scopeLogs: [{ scope: { name: "com.anthropic.claude_code.events" }, logRecords: records }] }],
+});
+const postLogs = (payload: unknown, headers: Record<string, string> = {}) =>
+  api().request("/v1/otel/v1/logs", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${key}`, ...headers },
+    body: JSON.stringify(payload),
+  });
+
+describe("POST /v1/otel/v1/logs (Claude Code)", () => {
+  it("rejects a missing or wrong key", async () => {
+    expect((await api().request("/v1/otel/v1/logs", { method: "POST", body: "{}" })).status).toBe(401);
+    expect((await postLogs(logsBody([]), { authorization: "Bearer fsk_nope" })).status).toBe(401);
+  });
+
+  it("stores a model call under the developer's email with Claude Code's own cost", async () => {
+    const res = await postLogs(logsBody([logRecord(apiRequest())]));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({});
+    const [e] = await events();
+    expect(e).toMatchObject({
+      userId: "dev@example.com",
+      provider: "anthropic",
+      model: "claude-sonnet-4-5-20250929",
+      inputTokens: 1200,
+      outputTokens: 350,
+      cachedTokens: 40000,
+      cacheWriteTokens: 2000,
+      feature: "claude-code",
+    });
+    expect(Number(e!.costUsd)).toBeCloseTo(0.04210015, 8);
+    expect(e!.costSource).toBe("client");
+  });
+
+  it("reads numbers sent as JSON numbers or as strings", async () => {
+    const asNumbers = logRecord(apiRequest({ request_id: "req_n" }));
+    for (const a of asNumbers.attributes) if ("intValue" in a.value) (a.value as { intValue: unknown }).intValue = Number(a.value.intValue);
+    const asStrings = logRecord(apiRequest({ request_id: "req_s", input_tokens: "1200", output_tokens: "350", cache_read_tokens: "40000", cache_creation_tokens: "2000", cost_usd: "0.0421", cost_usd_micros: "42100" }));
+    await postLogs(logsBody([asNumbers, asStrings]));
+    const stored = await events();
+    expect(stored).toHaveLength(2);
+    for (const e of stored) expect(e).toMatchObject({ inputTokens: 1200, outputTokens: 350, cachedTokens: 40000, cacheWriteTokens: 2000 });
+  });
+
+  it("does not count a resent event twice, with or without a request ID", async () => {
+    const noId = apiRequest({ model: "claude-haiku-4-5" });
+    delete (noId as Record<string, unknown>).request_id;
+    for (let i = 0; i < 2; i++) await postLogs(logsBody([logRecord(apiRequest()), logRecord(noId)]));
+    expect(await events()).toHaveLength(2);
+  });
+
+  it("falls back to the account, then the install ID, and lets the resource name the user and team", async () => {
+    const anon = apiRequest({ request_id: "req_a" });
+    delete (anon as Record<string, unknown>)["user.email"];
+    const install = apiRequest({ request_id: "req_b" });
+    for (const k of ["user.email", "user.account_uuid", "user.account_id"]) delete (install as Record<string, unknown>)[k];
+    await postLogs(logsBody([logRecord(anon), logRecord(install)]));
+    await postLogs(logsBody([logRecord(apiRequest({ request_id: "req_c" }))], { "fiscallm.user_id": "alice", "team.id": "platform" }));
+    const users = (await events()).map((e) => [e.userId, e.feature]).sort();
+    expect(users).toEqual([
+      ["7c1e6f0a-0000-4000-8000-000000000001", "claude-code"],
+      ["alice", "platform"],
+      ["f3a9installid", "claude-code"],
+    ]);
+  });
+
+  it("leaves pricing to the table when no cost is sent, and uses micros when that is all there is", async () => {
+    const noCost = apiRequest({ request_id: "req_d", model: "claude-sonnet-4-5" });
+    for (const k of ["cost_usd", "cost_usd_micros"]) delete (noCost as Record<string, unknown>)[k];
+    const micros = apiRequest({ request_id: "req_e", cost_usd_micros: 1500 });
+    delete (micros as Record<string, unknown>).cost_usd;
+    await postLogs(logsBody([logRecord(noCost), logRecord(micros)]));
+    const byCost = (await events()).map((e) => [e.costSource, e.costUsd === null ? null : Number(e.costUsd)]).sort();
+    // The test database only has the gpt-4o price row, so the table has no price here.
+    expect(byCost).toEqual([
+      ["client", 0.0015],
+      ["table", null],
+    ]);
+  });
+
+  it("ignores other events and reports model calls it could not store", async () => {
+    const nobody = apiRequest({ request_id: "req_f" });
+    for (const k of ["user.email", "user.account_uuid", "user.account_id", "user.id"]) delete (nobody as Record<string, unknown>)[k];
+    const res = await postLogs(
+      logsBody([
+        logRecord({ "event.name": "user_prompt", prompt_length: "40", "user.email": "dev@example.com" }, { body: { stringValue: "claude_code.user_prompt" } }),
+        logRecord({ "event.name": "tool_result", tool_name: "Bash", "user.email": "dev@example.com" }, { body: { stringValue: "claude_code.tool_result" } }),
+        logRecord(nobody),
+      ]),
+    );
+    expect(await res.json()).toMatchObject({ partialSuccess: { rejectedLogRecords: 1 } });
+    expect(await events()).toHaveLength(0);
+    const bad = await api().request("/v1/otel/v1/logs", { method: "POST", headers: { authorization: `Bearer ${key}` }, body: "not json" });
+    expect(bad.status).toBe(400);
   });
 });
 
@@ -216,6 +348,46 @@ function protoBody(spans: { spanId: string; parent?: string; name: string; attrs
   const scope = len(2, [...len(1, len(1, utf8("ai"))), ...encoded]);
   return new Uint8Array(len(1, [...res, ...scope]));
 }
+
+function protoLogsBody(records: { attrs: Record<string, Value>; body?: string; name?: string }[], resource: Record<string, Value> = {}) {
+  const now = BigInt(Date.now()) * 1_000_000n;
+  const encoded = records.flatMap((r) =>
+    len(2, [
+      ...fixed64(1, now),
+      ...[0x10, 9], // severity_number (varint), skipped by the reader
+      ...(r.body ? len(5, len(1, utf8(r.body))) : []),
+      ...Object.entries(r.attrs).flatMap(([k, v]) => len(6, kv(k, v))),
+      ...fixed64(11, now),
+      ...(r.name ? len(12, utf8(r.name)) : []),
+    ]),
+  );
+  const res = len(1, Object.entries(resource).flatMap(([k, v]) => len(1, kv(k, v))));
+  const scope = len(2, [...len(1, len(1, utf8("events"))), ...encoded]);
+  return new Uint8Array(len(1, [...res, ...scope]));
+}
+
+describe("protobuf logs", () => {
+  it("reads log records, their body, event name and attributes", () => {
+    const logs = parseOtlpLogsProto(protoLogsBody([{ attrs: { model: "claude-haiku-4-5", input_tokens: 12 }, body: "claude_code.api_request", name: "api_request" }], { "team.id": "web" }));
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toMatchObject({ body: "claude_code.api_request", name: "api_request", attrs: { model: "claude-haiku-4-5", input_tokens: 12 }, resource: { "team.id": "web" } });
+    expect(Math.abs(logs[0]!.at!.getTime() - Date.now())).toBeLessThan(5000);
+  });
+
+  it("stores model calls from a protobuf export, by event name alone", async () => {
+    const attrs = apiRequest();
+    delete (attrs as Record<string, unknown>)["event.name"];
+    const res = await api().request("/v1/otel/v1/logs", {
+      method: "POST",
+      headers: { "content-type": "application/x-protobuf", authorization: `Bearer ${key}` },
+      body: protoLogsBody([{ attrs, name: "claude_code.api_request" }]),
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("application/x-protobuf");
+    const [e] = await events();
+    expect(e).toMatchObject({ userId: "dev@example.com", inputTokens: 1200, cachedTokens: 40000 });
+  });
+});
 
 describe("protobuf", () => {
   it("reads spans, parents and typed attributes", () => {

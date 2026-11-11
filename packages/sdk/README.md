@@ -72,4 +72,18 @@ return { reply, remaining: limits?.[0]?.remaining }; // "3 left today"
 
 Each entry of `limits` has `period` (`"day"`, `"month"` or `"total"`), `unit` (`"requests"` or `"usd"`), `limit`, `used`, `remaining` and `resetsAt`. Your own plan names: `meter.check(userId, { plan: "team" })`. The answer is cached for 5 seconds, and each tracked call is counted against it at once. [Docs](https://fiscallm.com/docs#plan-limits)
 
+## Prices without a network call
+
+The price table FiscaLLM uses (OpenAI, Anthropic and Google list prices, USD per million tokens) is in the package:
+
+```ts
+import { estimateCost, listPrices, priceOf } from "fiscallm/prices";
+
+priceOf("gpt-4o"); // { provider: "openai", model: "gpt-4o", input: 2.5, cached: 1.25, output: 10, … }
+estimateCost({ model: "claude-sonnet-4-5", inputTokens: 12_000, outputTokens: 800, cachedTokens: 10_000 })?.costUsd;
+listPrices(); // every current text model, cheapest input first
+```
+
+`inputTokens` is the whole prompt, including cached tokens. `"openai/gpt-4o"` and dated snapshots match too; an unknown model returns `undefined` or `null`. The table is as current as the version you installed (`PRICES_CHECKED` is the date of the last audit); for prices that are always current, call the free [pricing API](https://fiscallm.com/llm-pricing/api).
+
 OpenAI-compatible APIs work with `trackOpenAI(res, { userId, provider: "groq" })`.

@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./prices": {
+      "types": "./dist/prices/index.d.ts",
+      "import": "./dist/prices/index.js"
     }
   },
   "files": [
@@ -22,7 +26,8 @@
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "prepublishOnly": "npm test && npm run build"
+    "prepublishOnly": "npm test && npm run build",
+    "sync-prices": "node scripts/sync-prices.mjs"
   },
   "devDependencies": {
     "typescript": "^5",

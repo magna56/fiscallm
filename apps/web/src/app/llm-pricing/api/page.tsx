@@ -163,6 +163,19 @@ export default function Page() {
         </tbody>
       </table>
 
+      <h2 id="npm">As an npm package</h2>
+      <p>
+        The same table ships in the <code>fiscallm</code> package (0.7.0 and later, MIT, no dependencies) for code that should not make a network
+        call. It is as current as the version you installed; this API is always current.
+      </p>
+      <pre>
+        <code>{`import { estimateCost, listPrices, priceOf } from "fiscallm/prices";
+
+priceOf("openai/gpt-4o");        // USD per 1M tokens: { input: 2.5, cached: 1.25, output: 10, … }
+estimateCost({ model: "claude-sonnet-4-5", inputTokens: 12_000, outputTokens: 800, cachedTokens: 10_000 });
+listPrices();                    // every current text model, cheapest input first`}</code>
+      </pre>
+
       <h2 id="agents">For AI agents</h2>
       <p>
         The same data is available to assistants as tools through the <Link href="/mcp">FiscaLLM MCP server</Link> at{" "}

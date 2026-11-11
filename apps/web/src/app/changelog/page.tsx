@@ -9,9 +9,16 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
-    date: "2026-11-10",
+    date: "2026-11-11",
     items: [
       "Limits by plan (SDKs 0.7.0): give free, trial and paid plans, or a single product, their own AI allowance in AI calls or dollars, per day, per month or in total. meter.check(userId) now answers with the user's plan and, for each limit, the amount used, the amount remaining and when it resets, so your app can show \"3 left today\" and open the paywall at zero. Plans come from RevenueCat or Stripe, or pass your own. The new Limits page sets the limits and lists the users who are at one. Also POST /api/v1/check.",
+      "Claude Code spend per developer and team (beta): point Claude Code's built-in OpenTelemetry logs export at https://fiscallm.com/api/v1/otel/v1/logs and each model call is stored with the developer, the model, the tokens and Claude Code's own cost figure. Set a team with OTEL_RESOURCE_ATTRIBUTES. Only model call events are read; prompts are never stored. On subscription seats the cost is what the usage would cost at API prices, not your invoice. Claude Code only. Guide: /integrations/claude-code.",
+      "Price table in the TypeScript SDK (0.7.0): import { priceOf, estimateCost, listPrices } from \"fiscallm/prices\" for list prices and the cost of a call with no network request. As current as the installed version; the pricing API is always current.",
+    ],
+  },
+  {
+    date: "2026-11-10",
+    items: [
       "OpenTelemetry: point an OTLP/HTTP trace exporter at https://fiscallm.com/api/v1/otel and AI call spans that follow the GenAI conventions (Vercel AI SDK, OpenLLMetry, OpenInference) become cost per user. No FiscaLLM SDK needed. JSON or protobuf, with or without gzip.",
       "LiteLLM: one generic_api callback in the proxy config posts to https://fiscallm.com/api/v1/litellm. LiteLLM's own cost figure is stored as is.",
       "MCP server at https://fiscallm.com/api/mcp for AI assistants: LLM prices, cost estimates, model comparison and subscription break-even with no key; your app's cost and margin per user, plan, model and feature with its key. Read-only.",

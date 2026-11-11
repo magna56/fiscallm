@@ -51,6 +51,10 @@ export default function DocsPage() {
           </li>
         </ul>
         <p>Revenue, alerts and the dashboard work the same whichever way usage arrives.</p>
+        <p>
+          Tracking a team&apos;s coding agents instead of an app&apos;s users? <a href="/integrations/claude-code">Claude Code</a> can send its
+          usage straight to <code>https://fiscallm.com/api/v1/otel/v1/logs</code>, for spend per developer and team.
+        </p>
 
         <h2 id="ai-setup">Set up with an AI assistant</h2>
         <p>
@@ -356,6 +360,19 @@ re_001,user_7,refund,2026-10-12,20,20,pro_monthly,`}</code>
           Cost is calculated on our side from the providers&apos; public list prices, including cached tokens, cache writes and long-prompt pricing, and
           the price that applied on the day of each call. If you pay less, add a discount for a provider or your own prices for a model under Settings
           → Your AI prices. Models without a price are listed there too; their cost counts as zero until you add one or send <code>costUsd</code>.
+        </p>
+        <p>
+          The same table ships in the TypeScript SDK (0.7.0 and later) for your own code, with no network call:
+        </p>
+        <pre>
+          <code>{`import { estimateCost, priceOf } from "fiscallm/prices";
+
+priceOf("gpt-4o"); // { provider: "openai", input: 2.5, cached: 1.25, output: 10, … } USD per 1M tokens
+estimateCost({ model: "claude-sonnet-4-5", inputTokens: 12_000, outputTokens: 800 })?.costUsd;`}</code>
+        </pre>
+        <p>
+          It is as current as the package version you installed. For prices that are always current, use the{" "}
+          <Link href="/llm-pricing/api">pricing API</Link>.
         </p>
 
         <h2 id="alerts">Budgets and alerts</h2>

@@ -16,7 +16,7 @@ export default function RoadmapPage() {
         <h1>Roadmap</h1>
         <p>
           FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later.
-          Last updated: 10 November 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
+          Last updated: 11 November 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
           <a href="https://github.com/magna56/fiscallm">repo</a> too. Follow progress on the <a href="https://github.com/users/magna56/projects/1">public board</a>.
         </p>
 
@@ -33,6 +33,13 @@ export default function RoadmapPage() {
             <strong><Link href="/docs#plan-limits">Limits by plan</Link></strong> (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per
             product, in AI calls or dollars, per day, month or in total; <code>meter.check</code> returns what is left and when it resets; a Limits page
             lists users at a limit
+          </li>
+          <li>
+            <strong><Link href="/integrations/claude-code">Claude Code spend per developer and team</Link></strong> (beta): from Claude Code&apos;s
+            own OpenTelemetry export, with no proxy; prompts never stored
+          </li>
+          <li>
+            <strong>Price table in the TypeScript SDK</strong>: <code>fiscallm/prices</code>, list prices and call cost with no network request
           </li>
           <li>
             No second SDK: usage from <Link href="/integrations/opentelemetry">OpenTelemetry traces</Link> (including the{" "}
@@ -128,6 +135,14 @@ export default function RoadmapPage() {
 
         <h2>Ideas, roughly in order</h2>
         <ul>
+          <li>
+            <strong>Credits and top-ups</strong>: a balance per user that plans refill and packs add to, spent by AI calls. Limits by plan covers
+            &quot;N per period&quot; today; a credit ledger (roll-over, top-up packs, refunds) is a bigger build and comes only if people ask for it
+          </li>
+          <li>Spend from other coding agents (Cursor, Codex), next to Claude Code</li>
+          <li>
+            The price table for Python (<code>fiscallm.prices</code>)
+          </li>
           <li>Spread annual-plan revenue across the months it covers</li>
           <li>Adapty and Superwall webhooks</li>
           <li>Hosted proxy for apps with no backend</li>

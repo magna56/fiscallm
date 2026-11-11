@@ -1,6 +1,6 @@
 # fiscallm
 
-Track the AI cost of each user of your app against their subscription revenue from RevenueCat, Stripe or any billing system. Zero dependencies, Python 3.9+.
+Limit AI usage by subscription plan, and track the AI cost of each user of your app against their subscription revenue from RevenueCat, Stripe or any billing system. Zero dependencies, Python 3.9+.
 
 The SDK never sits in the path of your AI calls: tracking only queues an event, a background thread sends batches, and it never raises. Prompts and responses are never sent, only token counts.
 
@@ -51,6 +51,22 @@ meter.track_job(job_id=job_id, user_id=user_id, status="captured")   # or "refun
 # Serverless (AWS Lambda, Cloud Functions): before returning
 meter.flush()          # or: await meter.aflush()
 ```
+
+## Limits by plan
+
+Give each plan its own AI allowance on the app's Limits page (for example `free`: 10 AI calls a day; `pro_monthly`: 500 a month; `paid`: $8 of AI a month). FiscaLLM knows each user's plan from RevenueCat or Stripe. Ask before each AI call:
+
+```python
+r = meter.check(user_id)            # await meter.acheck(user_id) in async code
+if not r.allow:
+    return paywall(plan=r.plan, resets_at=r.limits[0].resets_at if r.limits else None)
+
+res = client.chat.completions.create(model=model, messages=messages)
+meter.track_openai(res, user_id=user_id)
+remaining = r.limits[0].remaining - 1 if r.limits else None   # "3 left today"
+```
+
+Each entry of `r.limits` has `period` (`"day"`, `"month"` or `"total"`), `unit` (`"requests"` or `"usd"`), `limit`, `used`, `remaining` and `resets_at`. Your own plan names: `meter.check(user_id, plan="team")`. The answer is cached for 5 seconds, and each tracked call is counted against it at once. [Docs](https://fiscallm.com/docs#plan-limits)
 
 OpenAI-compatible APIs work with `meter.track_openai(res, user_id=user_id, provider="groq")`.
 

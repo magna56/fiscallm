@@ -16,7 +16,7 @@ export default function RoadmapPage() {
         <h1>Roadmap</h1>
         <p>
           FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later.
-          Last updated: 18 October 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
+          Last updated: 10 November 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
           <a href="https://github.com/magna56/fiscallm">repo</a> too. Follow progress on the <a href="https://github.com/users/magna56/projects/1">public board</a>.
         </p>
 
@@ -29,6 +29,11 @@ export default function RoadmapPage() {
 
         <h2>Done recently</h2>
         <ul>
+          <li>
+            <strong><Link href="/docs#plan-limits">Limits by plan</Link></strong> (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per
+            product, in AI calls or dollars, per day, month or in total; <code>meter.check</code> returns what is left and when it resets; a Limits page
+            lists users at a limit
+          </li>
           <li>
             No second SDK: usage from <Link href="/integrations/opentelemetry">OpenTelemetry traces</Link> (including the{" "}
             <Link href="/integrations/vercel-ai-sdk">Vercel AI SDK</Link>) and from a <Link href="/integrations/litellm">LiteLLM callback</Link>

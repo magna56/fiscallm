@@ -15,9 +15,9 @@ import time
 import urllib.error
 import urllib.request
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
-from typing import Any, AsyncIterable, AsyncIterator, Callable, Dict, Iterable, Iterator, List, Optional, TypeVar, Union
+from typing import Any, AsyncIterable, AsyncIterator, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, TypeVar, Union
 
 from .usage import StreamUsage, Usage, from_anthropic, from_gemini, from_openai
 
@@ -64,15 +64,49 @@ def _http_post_json(url: str, headers: Dict[str, str], body: bytes) -> "tuple[in
         return e.code, b""
 
 
+def _limits(raw: Any) -> "Tuple[CheckLimit, ...]":
+    """The ``limits`` list of a check answer; entries that are not well formed are dropped."""
+    out = []
+    for l in raw if isinstance(raw, list) else []:
+        try:
+            out.append(CheckLimit(period=str(l["period"]), unit=str(l["unit"]), limit=l["limit"], used=l["used"], remaining=l["remaining"], resets_at=l.get("resetsAt")))
+        except (KeyError, TypeError, AttributeError):
+            continue
+    return tuple(out)
+
+
+@dataclass(frozen=True)
+class CheckLimit:
+    """One limit of the user's plan and what is left of it."""
+
+    #: "day" (UTC day), "month" (UTC calendar month) or "total" (never resets).
+    period: str
+    #: "requests" counts AI calls; "usd" is AI cost.
+    unit: str
+    limit: float
+    used: float
+    #: Never below 0. Show it in your app: "3 messages left today".
+    remaining: float
+    #: When the count starts again (ISO time); None for "total".
+    resets_at: Optional[str] = None
+
+
 @dataclass(frozen=True)
 class CheckResult:
     """The answer to ``meter.check(user_id)``."""
 
+    #: False when the user reached a limit of their plan, or a budget marked "Block".
     allow: bool = True
-    #: Why the user is refused, e.g. "daily AI budget reached ($6.00 of $5.00)".
+    #: Why the user is refused, e.g. "free plan limit reached (20 of 20 AI calls today)".
     reason: Optional[str] = None
     spent_today: Optional[float] = None
     spent_30d: Optional[float] = None
+    #: "free", "trial" or "paid" from RevenueCat or Stripe, or the plan you passed.
+    plan: Optional[str] = None
+    #: The user's product ID in RevenueCat or Stripe, if they have one.
+    product_id: Optional[str] = None
+    #: The limits that apply to this user ("Limits by plan" in Settings).
+    limits: Tuple[CheckLimit, ...] = ()
     #: "server", "local" (the local limit), "last-known" (FiscaLLM unreachable;
     #: the user was refused before) or "unreachable" (``check_on_error`` decided).
     source: Optional[str] = None
@@ -133,7 +167,7 @@ class Meter:
         self._interval = flush_interval
         self._post = _post or _http_post
         self._post_json = _post_json or _http_post_json
-        self._check_cache: Dict[str, "tuple[float, CheckResult]"] = {}
+        self._check_cache: Dict[str, "tuple[float, CheckResult, Optional[str]]"] = {}
         # What check() answers when FiscaLLM cannot be reached: "allow" or
         # "deny". A user refused earlier stays refused either way.
         self._check_on_error = check_on_error
@@ -185,6 +219,7 @@ class Meter:
             return
         try:
             if user_id:
+                self._count_call(str(user_id))
                 cost = float(cost_usd) if isinstance(cost_usd, (int, float)) and cost_usd > 0 else 0.0
                 self._note_local(str(user_id), _count(input_tokens) + _count(output_tokens) + _count(cached_tokens) + _count(cache_write_tokens), cost)
             if not self._api_key:
@@ -340,7 +375,7 @@ class Meter:
             return self._wrap_async(stream, user_id, feature, provider, model, job_id)
         return self._wrap_sync(stream, user_id, feature, provider, model, job_id)
 
-    def check(self, user_id: str) -> CheckResult:
+    def check(self, user_id: str, *, plan: Optional[str] = None) -> CheckResult:
         """May this user make another AI call?
 
         Call it before the AI call and, when ``allow`` is False, refuse or switch
@@ -348,16 +383,22 @@ class Meter:
         process. If FiscaLLM is slow or down, a user it refused before stays
         refused; anyone else gets ``check_on_error`` ("allow" by default).
         Never raises.
+
+        With limits by plan set in Settings, the answer also has ``plan`` and
+        ``limits`` (what is left today, this month or in total). Pass ``plan``
+        when your own database knows the user's plan better than RevenueCat
+        or Stripe.
         """
         open_ = CheckResult()
         if self._disabled or not user_id:
             return open_
         uid = str(user_id)
+        plan = plan.strip() if isinstance(plan, str) and plan.strip() else None
 
         def fallback() -> CheckResult:
             last = self._last_deny.get(uid)
             if last is not None:
-                return CheckResult(allow=False, reason=last.reason, spent_today=last.spent_today, spent_30d=last.spent_30d, source="last-known")
+                return replace(last, source="last-known")
             if self._check_on_error == "deny":
                 return CheckResult(allow=False, reason="FiscaLLM unreachable; check_on_error is deny", source="unreachable")
             return CheckResult(allow=True, source="unreachable")
@@ -369,10 +410,10 @@ class Meter:
             if not self._api_key:
                 return open_
             hit = self._check_cache.get(uid)
-            if hit and time.monotonic() - hit[0] < CHECK_CACHE_S:
+            if hit and hit[2] == plan and time.monotonic() - hit[0] < CHECK_CACHE_S:
                 return hit[1]
             url = self._endpoint[: -len("/events")] + "/check" if self._endpoint.endswith("/events") else self._endpoint
-            status, raw = self._post_json(url, {"content-type": "application/json", "authorization": "Bearer " + self._api_key}, json.dumps({"userId": uid}).encode())
+            status, raw = self._post_json(url, {"content-type": "application/json", "authorization": "Bearer " + self._api_key}, json.dumps({"userId": uid, **({"plan": plan} if plan else {})}).encode())
             if status != 200:
                 if status in (401, 403):
                     self._warn_once("check-%d" % status, "check() was refused (%d); check the ingest key. Using check_on_error." % status)
@@ -383,11 +424,14 @@ class Meter:
                 reason=data["reason"] if isinstance(data.get("reason"), str) else None,
                 spent_today=data["spentToday"] if isinstance(data.get("spentToday"), (int, float)) else None,
                 spent_30d=data["spent30d"] if isinstance(data.get("spent30d"), (int, float)) else None,
+                plan=data["plan"] if isinstance(data.get("plan"), str) else None,
+                product_id=data["productId"] if isinstance(data.get("productId"), str) else None,
+                limits=_limits(data.get("limits")),
                 source="server",
             )
             if len(self._check_cache) >= CHECK_CACHE_MAX:
                 self._check_cache.clear()
-            self._check_cache[uid] = (time.monotonic(), result)
+            self._check_cache[uid] = (time.monotonic(), result, plan)
             if result.allow:
                 self._last_deny.pop(uid, None)
             else:
@@ -398,11 +442,11 @@ class Meter:
         except Exception:
             return fallback()
 
-    async def acheck(self, user_id: str) -> CheckResult:
+    async def acheck(self, user_id: str, *, plan: Optional[str] = None) -> CheckResult:
         """``check()`` for async code, run off the event loop."""
         import asyncio
 
-        return await asyncio.get_running_loop().run_in_executor(None, self.check, user_id)
+        return await asyncio.get_running_loop().run_in_executor(None, lambda: self.check(user_id, plan=plan))
 
     def flush(self) -> None:
         """Sends everything queued, waiting at most a few seconds. Never raises."""
@@ -490,6 +534,19 @@ class Meter:
         else:
             self._recent.pop(uid, None)
         return items
+
+    def _count_call(self, uid: str) -> None:
+        """A tracked call counts against the remembered answer right away, so
+        "3 left" becomes "2 left" without waiting for the server to see it."""
+        hit = self._check_cache.get(uid)
+        if not hit or not hit[1].limits:
+            return
+        result = hit[1]
+        limits = tuple(replace(l, used=l.used + 1, remaining=max(0, l.remaining - 1)) if l.unit == "requests" else l for l in result.limits)
+        reached = next((l for l in limits if l.unit == "requests" and l.remaining <= 0), None)
+        if reached is not None and result.allow:
+            result = replace(result, allow=False, reason="%s plan limit reached (%d of %d AI calls)" % (result.plan or "plan", reached.used, reached.limit))
+        self._check_cache[uid] = (hit[0], replace(result, limits=limits), hit[2])
 
     def _note_local(self, uid: str, tokens: int, cost: float) -> None:
         if self._local_limit is None:

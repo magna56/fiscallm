@@ -2,7 +2,16 @@
 
 [![CI](https://github.com/magna56/fiscallm/actions/workflows/ci.yml/badge.svg)](https://github.com/magna56/fiscallm/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/fiscallm)](https://www.npmjs.com/package/fiscallm) [![PyPI](https://img.shields.io/pypi/v/fiscallm)](https://pypi.org/project/fiscallm/)
 
-**See the AI cost of every single user.** FiscaLLM adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
+**AI limits for every plan you sell, and the AI cost of every user.** Give free, trial and paid plans their own AI allowance (10 messages a day on free, 500 a month on Pro, $8 of AI a month on any paid plan). FiscaLLM knows each user's plan from RevenueCat or Stripe, counts their usage, and answers one call from your backend: allow or refuse, and how much is left. It also adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
+
+```ts
+const { allow, plan, limits } = await meter.check(userId);
+if (!allow) return respond(402, { paywall: true, plan, resetsAt: limits[0]?.resetsAt });
+// ... make the AI call, then meter.trackOpenAI(res, { userId })
+return { reply, remaining: limits[0]?.remaining };   // "3 left today"
+```
+
+Limits are settings on the app's **Limits** page, not code. [How to limit AI usage per plan](https://fiscallm.com/guides/ai-usage-limits-by-plan) · [reference](https://fiscallm.com/docs#plan-limits)
 
 **Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
 

@@ -205,7 +205,12 @@ export interface Allowance {
  * May this user make another AI call? Only budgets marked `enforce` can say no;
  * a user is refused once their spend reaches the limit.
  */
-export async function checkAllowance(db: MetricsDb, appId: string, userId: string, now = new Date()): Promise<Allowance> {
+export async function checkAllowance(db: MetricsDb, appId: string, userId: string | string[], now = new Date()): Promise<Allowance> {
+  // Several IDs are one person: the ID sent plus its aliases.
+  const ids = sql.join(
+    [userId].flat().map((u) => sql`${u}`),
+    sql`, `,
+  );
   const rules = (await enabledRules(db, appId, ["user_daily_cost", "user_30d_cost"])).filter((r) => r.enforce);
   const limit = (kind: AlertRule["kind"]) => {
     const ts = rules.filter((r) => r.kind === kind).map(threshold).filter((t): t is number => t !== null);
@@ -216,7 +221,7 @@ export async function checkAllowance(db: MetricsDb, appId: string, userId: strin
   const [r] = await rows<{ today: string | null; d30: string | null }>(
     db,
     sql`SELECT sum(cost_usd) FILTER (WHERE day = ${day(now)}::date) AS today, sum(cost_usd) AS d30
-        FROM daily_user_cost WHERE app_id = ${appId}::uuid AND user_id = ${userId} AND day >= ${lastDays(30, now).from}::date`,
+        FROM daily_user_cost WHERE app_id = ${appId}::uuid AND user_id IN (${ids}) AND day >= ${lastDays(30, now).from}::date`,
   );
   const spentToday = Number(r?.today ?? 0);
   const spent30d = Number(r?.d30 ?? 0);

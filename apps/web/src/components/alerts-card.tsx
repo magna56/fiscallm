@@ -27,6 +27,10 @@ export function AlertsCard({ appId, rules, events, alertSecret }: { appId: strin
           <a href="/docs#caps" className="underline">
             docs
           </a>
+          . To give each plan its own allowance (20 calls a day on free, more on paid), use{" "}
+          <a href={`/dashboard/${appId}/limits`} className="underline">
+            Limits
+          </a>
           .
         </p>
 

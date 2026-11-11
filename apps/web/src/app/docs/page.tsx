@@ -6,7 +6,7 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 export const metadata: Metadata = {
   title: "Docs · FiscaLLM",
   alternates: { canonical: "/docs" },
-  description: "Set up FiscaLLM: the SDK, RevenueCat, user IDs, prices and the ingest API.",
+  description: "Set up FiscaLLM: the SDK, AI limits by plan, RevenueCat and Stripe, user IDs, prices and the API.",
 };
 
 export default function DocsPage() {
@@ -16,8 +16,10 @@ export default function DocsPage() {
       <Prose>
         <h1>Docs</h1>
         <p>
-          <strong>In short:</strong> your backend reports each user&apos;s AI usage with one line of code, RevenueCat reports what they paid, and
-          FiscaLLM shows the margin per user, plan and trial. Setup takes about ten minutes. Curious what happens under the hood? <a href="/how-it-works">How it works</a>.
+          <strong>In short:</strong> your backend reports each user&apos;s AI usage with one line of code, and RevenueCat or Stripe reports their plan
+          and what they paid. FiscaLLM then <a href="#plan-limits">limits AI usage by plan</a> (and tells your app what is left, for the paywall) and
+          shows the margin per user, plan and trial. Setup takes about ten minutes. Curious what happens under the hood?{" "}
+          <a href="/how-it-works">How it works</a>.
         </p>
         <p>
           Fastest: <a href="#ai-setup">let your AI coding assistant do it</a>. Otherwise follow the quickstart below.
@@ -404,6 +406,108 @@ def verify(raw_body: bytes, header: str, secret: str) -> bool:
     parts = dict(p.split("=", 1) for p in header.split(","))
     expected = hmac.new(secret.encode(), f"{parts['t']}.".encode() + raw_body, hashlib.sha256).hexdigest()
     return abs(time.time() - int(parts["t"])) < 300 and hmac.compare_digest(expected, parts["v1"])`}</code>
+        </pre>
+
+        <h2 id="plan-limits">Limits by plan</h2>
+        <p>
+          Give each plan its own AI allowance: 20 calls a day on free, 500 a month on Pro, $5 of AI a month on any paid plan. FiscaLLM knows each
+          user&apos;s plan from <a href="#revenuecat">RevenueCat</a> or <a href="#stripe">Stripe</a>, counts their AI calls and cost, and tells your
+          backend whether to allow the next call and how much is left. You keep no quota table and no reset job. Full guide:{" "}
+          <Link href="/guides/ai-usage-limits-by-plan">AI usage limits per subscription plan</Link>.
+        </p>
+        <ol>
+          <li>
+            In the app, open <strong>Limits</strong> and add a limit: a plan, a period (a day, a month, or in total), and a number of AI calls, an
+            amount in USD, or both.
+          </li>
+          <li>Ask before each AI call, and track the call as usual:</li>
+        </ol>
+        <pre>
+          <code>{`const { allow, plan, limits } = await meter.check(userId);
+if (!allow) return respond(402, { paywall: true, plan, resetsAt: limits[0]?.resetsAt });
+
+const reply = await openai.chat.completions.create({ ... });
+meter.trackOpenAI(reply, { userId });
+return { reply, remaining: limits[0]?.remaining };      // show "3 left today" in the app
+
+# Python
+r = meter.check(user_id)          # await meter.acheck(user_id) in async code
+if not r.allow:
+    return paywall(r.plan, r.limits[0].resets_at)`}</code>
+        </pre>
+        <table>
+          <thead>
+            <tr>
+              <th>Plan name</th>
+              <th>Who it covers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>free</code>
+              </td>
+              <td>Anyone without an active purchase, including users whose subscription ended</td>
+            </tr>
+            <tr>
+              <td>
+                <code>trial</code>
+              </td>
+              <td>Users in a free trial. Without a trial limit they get their product&apos;s limits</td>
+            </tr>
+            <tr>
+              <td>
+                <code>paid</code>
+              </td>
+              <td>Every paying user, including one who cancelled but still has time left</td>
+            </tr>
+            <tr>
+              <td>A product ID</td>
+              <td>
+                Users on that product, for example <code>pro_yearly</code>. Overrides <code>paid</code> for them
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ul>
+          <li>
+            <strong>Periods</strong>: a day and a month are UTC (the month is the calendar month); <code>resetsAt</code> says when the count starts
+            again. &quot;In total&quot; never resets, for &quot;5 free tries, then subscribe&quot;.
+          </li>
+          <li>
+            <strong>What counts</strong>: one tracked event is one AI call. If one message in your app makes several model calls, limit by USD
+            instead, or set the number of calls accordingly.
+          </li>
+          <li>
+            <strong>Your own plans</strong>: if your database knows the plan better than RevenueCat or Stripe (teams, promo access, no billing
+            connected), pass it: <code>meter.check(userId, {"{ plan: \"team\" }"})</code> (<code>plan=&quot;team&quot;</code> in Python) and add a limit
+            for <code>team</code>.
+          </li>
+          <li>
+            <strong>A renewal that arrives late</strong> does not drop a paying user to the free limits: a subscription counts as paid for a day
+            past its end date.
+          </li>
+          <li>
+            <strong>How exact it is</strong>: usage counts once the call is tracked, so a user can go slightly over with calls made at the same
+            moment. The SDK counts each tracked call against its remembered answer at once, so &quot;3 left&quot; becomes &quot;2 left&quot; right
+            away; the server&apos;s number follows within seconds.
+          </li>
+          <li>
+            The <strong>Limits</strong> page lists who is at a limit right now. Free users on that list are the ones most likely to pay for more.
+          </li>
+          <li>Everything under <a href="#caps">Spending caps</a> about outages, caching and the local limit applies here too.</li>
+        </ul>
+        <p>Without the SDK:</p>
+        <pre>
+          <code>{`POST https://fiscallm.com/api/v1/check
+Authorization: Bearer fsk_…
+{ "userId": "rc-app-user-id" }            // optional: "plan": "team"
+
+200 { "allow": false, "reason": "free plan limit reached (20 of 20 AI calls today)",
+      "plan": "free", "productId": null, "limitsFrom": "free",
+      "limits": [{ "period": "day", "unit": "requests", "limit": 20, "used": 20,
+                   "remaining": 0, "resetsAt": "2026-11-12T00:00:00.000Z" }],
+      "spentToday": 0.21, "spent30d": 1.9, "dailyLimit": null, "monthlyLimit": null }`}</code>
         </pre>
 
         <h2 id="caps">Spending caps</h2>

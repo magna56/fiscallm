@@ -26,6 +26,42 @@ describe("meter.check", () => {
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({ userId: "heavy" });
   });
 
+  it("returns the plan and what is left of its limits", async () => {
+    const limits = [{ period: "day", unit: "requests", limit: 20, used: 18, remaining: 2, resetsAt: "2026-11-12T00:00:00.000Z" }];
+    fetchMock.mockResolvedValueOnce(json({ allow: true, plan: "free", productId: null, limitsFrom: "free", limits, spentToday: 0.1, spent30d: 0.4 }));
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    expect(await meter.check("u")).toEqual({ allow: true, plan: "free", productId: null, limits, spentToday: 0.1, spent30d: 0.4, source: "server" });
+  });
+
+  it("sends the plan you pass, and asks again when it changes", async () => {
+    fetchMock.mockResolvedValue(json({ allow: true, plan: "team", limits: [] }));
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    await meter.check("u", { plan: "team" });
+    await meter.check("u", { plan: "team" });
+    await meter.check("u");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string)).toEqual({ userId: "u", plan: "team" });
+    expect(JSON.parse((fetchMock.mock.calls[1]![1] as RequestInit).body as string)).toEqual({ userId: "u" });
+  });
+
+  it("counts a tracked call against the remembered answer", async () => {
+    const limits = [
+      { period: "day", unit: "requests", limit: 20, used: 18, remaining: 2, resetsAt: "2026-11-12T00:00:00.000Z" },
+      { period: "month", unit: "usd", limit: 5, used: 1, remaining: 4, resetsAt: "2026-12-01T00:00:00.000Z" },
+    ];
+    fetchMock.mockImplementation(async () => json({ allow: true, plan: "free", limits }));
+    const meter = createMeter({ apiKey: "k", logger: quiet });
+    await meter.check("u");
+    meter.track({ userId: "u", provider: "openai", model: "gpt-4o-mini", inputTokens: 1, outputTokens: 1 });
+    const one = await meter.check("u");
+    expect(one.allow).toBe(true);
+    expect(one.limits).toMatchObject([{ used: 19, remaining: 1 }, { used: 1, remaining: 4 }]);
+    meter.track({ userId: "u", provider: "openai", model: "gpt-4o-mini", inputTokens: 1, outputTokens: 1 });
+    expect(await meter.check("u")).toMatchObject({ allow: false, reason: "free plan limit reached (20 of 20 AI calls)", limits: [{ remaining: 0 }, { remaining: 4 }] });
+    // Other users are not touched.
+    expect((await meter.check("other")).limits).toMatchObject([{ remaining: 2 }, { remaining: 4 }]);
+  });
+
   it("uses the endpoint's host when one is set", async () => {
     fetchMock.mockResolvedValueOnce(json({ allow: true }));
     await createMeter({ apiKey: "k", endpoint: "http://localhost:8787/api/v1/events", logger: quiet }).check("u");

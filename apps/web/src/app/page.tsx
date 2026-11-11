@@ -23,13 +23,16 @@ const STEPS = [
   },
   {
     n: "03",
-    title: "See your real margin per user",
-    body: "AI cost next to revenue for every user, plan and trial cohort, with the people losing you money at the top.",
-    code: "demo-heavy   −$16.41",
+    title: "Set limits, see margins",
+    body: "Give each plan its AI allowance and ask before each call. The dashboard shows who is at a limit and what every user, plan and trial costs against what it earns.",
+    code: "meter.check(userId)  →  3 left today",
   },
 ];
 
 const FAQ: [string, string][] = [
+  ["How do I give each plan its own AI limit?", "On the Limits page, add a row per plan: free, trial, paid or a product ID, with a number of AI calls or dollars per day, per month or in total. Your backend calls meter.check(userId) before each AI call. FiscaLLM knows the user's plan from RevenueCat or Stripe and answers with allow or refuse and how much is left."],
+  ["Can my app show how many AI messages are left?", "Yes. Every check returns the limit, the amount used, the amount remaining and when it resets. Send it to your app to show \"3 left today\", and open your paywall when the answer is no."],
+  ["How exact are the limits?", "Usage counts once a call is tracked, so calls made at the same moment can pass a limit by one or two. The SDK counts each tracked call at once, and the server follows within seconds. It is built for plan allowances and paywalls, not for billing by the unit."],
   ["What does FiscaLLM store?", "User IDs, token counts, models and your revenue events (RevenueCat or Stripe). Never prompts or responses."],
   ["Which apps is it for?", "Subscription apps that call AI from their own backend, in TypeScript or Python."],
   ["I already use OpenTelemetry, LiteLLM or the Vercel AI SDK. Do I need another SDK?", "No. Point an OpenTelemetry trace exporter at FiscaLLM, or add one callback to your LiteLLM config, and the usage you already record becomes cost per user. The SDK is for apps that have neither."],
@@ -66,8 +69,11 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Web",
-      description: "Matches each user's AI cost to what they pay you, so you can see margin per user, plan and free trial.",
+      description: "Limits AI usage by subscription plan, tells your app how much each user has left, and shows each user's AI cost against what they pay.",
       featureList: [
+        "AI usage limits per free, trial and paid plan, in AI calls or dollars, per day, month or in total",
+        "Remaining allowance for every user, for in-app counters and paywalls",
+        "Plans read from RevenueCat or Stripe",
         "AI cost per user, plan and free trial next to revenue",
         "Usage from OpenTelemetry traces, LiteLLM, the Vercel AI SDK, or TypeScript and Python SDKs",
         "Revenue from RevenueCat, Stripe, CSV or an API",
@@ -94,6 +100,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />
+        <PlanLimits />
         <Problem />
         <Solution />
         <HowItWorks />
@@ -133,10 +140,11 @@ function Hero() {
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="See the AI cost of" start={0} /> <Words text="every single user." start={5} gradient />
+          <Words text="AI limits for" start={0} /> <Words text="every plan you sell." start={3} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          FiscaLLM matches every user&apos;s AI cost to what they pay you.
+          Free gets 10 AI messages a day, Pro gets 500 a month. FiscaLLM knows each user&apos;s plan from RevenueCat or Stripe, tells your app how many
+          are left, and shows what every user costs you.
         </p>
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link
@@ -171,12 +179,12 @@ function Hero() {
           </Link>
 
           <FloatCard className="float -left-4 top-[16%] hidden md:block xl:-left-44">
-            <div className="text-xs text-muted">Biggest cost driver</div>
-            <div className="mt-1 font-mono text-sm">claude-sonnet-5-5</div>
+            <div className="text-xs text-muted">Free plan · today</div>
+            <div className="mt-1 font-mono text-sm">7 of 10 AI messages</div>
             <div className="mt-2 h-1.5 w-40 rounded-full bg-black/[0.05]">
-              <div className="h-1.5 w-[74%] rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
+              <div className="h-1.5 w-[70%] rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
             </div>
-            <div className="mt-1 text-xs text-muted">74% of AI cost</div>
+            <div className="mt-1 text-xs text-muted">3 left · resets 00:00 UTC</div>
           </FloatCard>
           <FloatCard className="float-slow -right-4 top-[46%] hidden md:block xl:-right-44">
             <div className="text-xs text-muted">Paying user losing you money</div>
@@ -188,6 +196,81 @@ function Hero() {
           </FloatCard>
         </div>
       </div>
+    </section>
+  );
+}
+
+function PlanLimits() {
+  const rules: [string, string, string][] = [
+    ["free", "10 AI calls", "a day"],
+    ["trial", "30 AI calls", "a day"],
+    ["pro_monthly", "500 AI calls", "a month"],
+    ["paid", "$8.00 of AI", "a month"],
+  ];
+  const points: [string, string][] = [
+    ["No quota table, no reset job", "FiscaLLM already counts every AI call per user and already knows their plan. A limit is one row of settings."],
+    ["A number your app can show", "Each check returns used, remaining and the reset time, so the app shows \"3 left today\" before the paywall, not an error after."],
+    ["Change limits without a release", "Tighten the free plan or loosen Pro from the dashboard. No deploy, no app review."],
+  ];
+  return (
+    <section id="limits" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead
+        eyebrow="Limits by plan"
+        title={
+          <>
+            One check before each AI call. <span className="text-gradient">Allow, or paywall.</span>
+          </>
+        }
+        body="You decide what each plan gets. FiscaLLM tracks who has used what."
+      />
+      <div className="reveal mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-2">
+        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+          <h3 className="font-semibold">1. Set what each plan gets</h3>
+          <ul className="mt-4 divide-y divide-black/5 text-sm">
+            {rules.map(([plan, amount, period]) => (
+              <li key={plan} className="flex items-center justify-between gap-3 py-2.5">
+                <code className="rounded-md bg-[#fafafc] px-2 py-0.5 font-mono text-xs">{plan}</code>
+                <span>
+                  <strong>{amount}</strong> <span className="text-muted">{period}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted">Plans come from RevenueCat or Stripe. A product&apos;s own limit overrides &quot;paid&quot;.</p>
+        </div>
+        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+          <h3 className="font-semibold">2. Ask before each AI call</h3>
+          <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0f0f1a] p-4 text-xs leading-relaxed text-white/90">
+            <code>{`const { allow, limits } = await meter.check(userId);
+if (!allow) return paywall();
+
+// → { allow: true, plan: "free",
+//     limits: [{ period: "day", limit: 10,
+//                used: 7, remaining: 3,
+//                resetsAt: "…T00:00:00Z" }] }`}</code>
+          </pre>
+          <p className="mt-3 text-xs text-muted">
+            Also plain HTTP: <code>POST /api/v1/check</code>. TypeScript and Python SDKs.
+          </p>
+        </div>
+      </div>
+      <Spotlight className="mt-4 grid gap-4 md:grid-cols-3">
+        {points.map(([t, b]) => (
+          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
+            <h3 className="font-semibold">{t}</h3>
+            <p className="mt-1.5 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </Spotlight>
+      <p className="mt-6 text-center text-sm">
+        <Link href="/guides/ai-usage-limits-by-plan" className="font-medium text-accent hover:underline">
+          How to limit AI usage per plan →
+        </Link>
+        <span className="mx-2 text-muted">·</span>
+        <Link href="/docs#plan-limits" className="font-medium text-accent hover:underline">
+          Reference →
+        </Link>
+      </p>
     </section>
   );
 }
@@ -253,7 +336,7 @@ function Problem() {
   return (
     <section id="problem" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
       <SectionHead
-        eyebrow="The problem"
+        eyebrow="Why limits need cost data"
         title={
           <>
             AI apps lose money on <span className="text-gradient">users they can&apos;t see</span>
@@ -352,7 +435,8 @@ function UserCompare({ name, plan, pays, cost }: { name: string; plan: string; p
 
 function Actions() {
   const actions: [string, string][] = [
-    ["Price plans on real numbers", "See which plan loses money once AI is paid for."],
+    ["Turn free users into subscribers", "The Limits page lists who has used up their plan today. They are the users most likely to pay for more."],
+    ["Price plans on real numbers", "See which plan loses money once AI is paid for, and set its limit from what a call really costs."],
     ["Cap heavy users", "Mark a budget as Block, and meter.check(userId) tells your backend to refuse the user or use a cheaper model. A capped user stays capped even if FiscaLLM goes down."],
     ["See what failed jobs cost you", "Credits refunded on a failed render, or a timeout never reconciled: the Jobs page shows what you paid the provider anyway, per user."],
     ["Switch the expensive feature", "Find the feature and model behind the bill; move it to a cheaper model."],

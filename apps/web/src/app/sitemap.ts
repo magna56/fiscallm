@@ -23,6 +23,7 @@ export const PAGES: [string, number][] = [
   ["/changelog", 0.4],
   ["/roadmap", 0.5],
   ["/guides", 0.7],
+  ["/guides/ai-usage-limits-by-plan", 0.9],
   ["/guides/track-openai-cost-per-user", 0.7],
   ["/guides/track-anthropic-claude-cost-per-user", 0.7],
   ["/guides/ai-margin-per-user-revenuecat", 0.8],

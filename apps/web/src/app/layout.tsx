@@ -14,13 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "FiscaLLM: AI cost per user for subscription apps";
-const DESCRIPTION = "See what each user costs you in AI, against what they pay. Per user, plan and free trial.";
+const TITLE = "FiscaLLM: AI usage limits by plan, and AI cost per user";
+const DESCRIPTION =
+  "Give free, trial and paid plans their own AI limits, show users how much is left, and see what each user costs you in AI against what they pay. Open source.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),
   verification: { other: { "msvalidate.01": "45DBEA58E8AD4145DC54FC72D77D244C" } },
-  keywords: ["AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
+  keywords: ["AI usage limits per plan", "limit AI usage per user", "AI message limit free tier", "RevenueCat AI limits", "AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
   title: TITLE,
   description: DESCRIPTION,
   openGraph: { type: "website", siteName: "FiscaLLM", title: TITLE, description: DESCRIPTION, url: "/" },

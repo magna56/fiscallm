@@ -22,9 +22,9 @@ const SPEC = {
   info: {
     title: "FiscaLLM API",
     version: "1.0.0",
-    summary: "LLM prices, cost estimates, and AI cost and margin per user.",
+    summary: "AI usage limits by subscription plan, AI cost and margin per user, LLM prices and cost estimates.",
     description:
-      "FiscaLLM shows what each user of an AI app costs in AI next to what that user pays. The price endpoints are public. Sending usage and reading margins need an app's ingest key. An MCP server with the same data is at https://fiscallm.com/api/mcp.",
+      "FiscaLLM limits AI usage by subscription plan (free, trial, paid or a product) and shows what each user of an AI app costs in AI next to what that user pays. The price endpoints are public. Sending usage, checking a user's allowance and reading margins need an app's ingest key. An MCP server is at https://fiscallm.com/api/mcp.",
     license: { name: "MIT", identifier: "MIT" },
     contact: { name: "FiscaLLM", url: "https://github.com/magna56/fiscallm/issues" },
   },
@@ -33,6 +33,7 @@ const SPEC = {
   tags: [
     { name: "Prices", description: "Public. No key. CORS enabled." },
     { name: "Usage", description: "Send AI usage. Needs the app's ingest key." },
+    { name: "Limits", description: "Ask whether a user may make another AI call and how much of their plan's allowance is left. Needs the app's ingest key." },
     { name: "Margins", description: "Read cost, revenue and margin. Needs the app's ingest key." },
   ],
   paths: {
@@ -121,6 +122,64 @@ const SPEC = {
           "202": ok("Stored.", { type: "object", properties: { accepted: { type: "integer" }, duplicates: { type: "integer" }, unpriced: { type: "integer" } } }),
           "401": error("Missing or invalid key."),
           "403": error("The app is over its monthly event limit."),
+        },
+      },
+    },
+    "/v1/check": {
+      post: {
+        ...keyed,
+        tags: ["Limits"],
+        operationId: "checkAllowance",
+        summary: "May this user make another AI call, and how much is left?",
+        description:
+          "Call before each AI call. The user's plan comes from RevenueCat or Stripe (no record means free), or from the plan you send. Limits are set per plan on the app's Limits page. Answers are cached for up to 10 seconds; usage counts once the call is tracked, so a limit can be passed slightly by calls made at the same moment. Guide: https://fiscallm.com/docs#plan-limits",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["userId"],
+                properties: {
+                  userId: { type: "string", description: "The same ID usage is sent with." },
+                  plan: { type: "string", description: "Optional. Use this plan's limits instead of the plan known from billing." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": ok("The answer.", {
+            type: "object",
+            required: ["allow", "plan", "limits"],
+            properties: {
+              allow: { type: "boolean" },
+              reason: { type: "string", description: "Why the user is refused. Absent when allowed." },
+              plan: { type: "string", description: 'free, trial or paid, or the plan that was sent.' },
+              productId: { type: ["string", "null"] },
+              limitsFrom: { type: ["string", "null"], description: "The plan name whose limits apply, or null when none do." },
+              limits: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    period: { type: "string", enum: ["day", "month", "total"], description: "UTC day, UTC calendar month, or never resets." },
+                    unit: { type: "string", enum: ["requests", "usd"], description: "requests = AI calls (one tracked event each)." },
+                    limit: { type: "number" },
+                    used: { type: "number" },
+                    remaining: { type: "number" },
+                    resetsAt: { type: ["string", "null"], format: "date-time" },
+                  },
+                },
+              },
+              spentToday: money,
+              spent30d: money,
+              dailyLimit: { type: ["number", "null"], description: "Blocking per-user daily budget in USD, if set." },
+              monthlyLimit: { type: ["number", "null"], description: "Blocking per-user 30-day budget in USD, if set." },
+            },
+          }),
+          "400": error("userId is missing."),
+          "401": error("Missing or invalid key."),
         },
       },
     },

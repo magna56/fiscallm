@@ -136,14 +136,34 @@ export interface TrackContext {
   model?: string;
 }
 
+/** One limit of the user's plan and what is left of it. */
+export interface CheckLimit {
+  /** UTC day, UTC calendar month, or a total that never resets. */
+  period: "day" | "month" | "total";
+  /** "requests" counts AI calls; "usd" is AI cost. */
+  unit: "requests" | "usd";
+  limit: number;
+  used: number;
+  /** Never below 0. Show it in your app: "3 messages left today". */
+  remaining: number;
+  /** When the count starts again (ISO time); null for "total". */
+  resetsAt: string | null;
+}
+
 /** The answer to `meter.check(userId)`. */
 export interface CheckResult {
-  /** False only when the user reached a budget you marked "Block" in Settings. */
+  /** False when the user reached a limit of their plan, or a budget you marked "Block" in Settings. */
   allow: boolean;
-  /** Why the user is refused, e.g. "daily AI budget reached ($6.00 of $5.00)". */
+  /** Why the user is refused, e.g. "free plan limit reached (20 of 20 AI calls today)". */
   reason?: string;
   spentToday?: number;
   spent30d?: number;
+  /** "free", "trial" or "paid" from RevenueCat or Stripe, or the plan you passed. */
+  plan?: string;
+  /** The user's product ID in RevenueCat or Stripe, if they have one. */
+  productId?: string | null;
+  /** The limits that apply to this user (set under "Limits by plan" in Settings); empty when none do. */
+  limits?: CheckLimit[];
   /**
    * Where the answer came from: "server", "local" (the local limit),
    * "last-known" (FiscaLLM unreachable; the user was refused before) or
@@ -159,8 +179,12 @@ export interface Meter {
    * checked first, in process. If FiscaLLM is slow or down, a user it refused
    * before stays refused; anyone else gets `checkOnError` (allow by default).
    * Never rejects.
+   *
+   * With limits by plan set in Settings, the answer also has `plan` and
+   * `limits` (what is left today, this month or in total). Pass `plan` when
+   * your own database knows the user's plan better than RevenueCat or Stripe.
    */
-  check(userId: string): Promise<CheckResult>;
+  check(userId: string, options?: { plan?: string }): Promise<CheckResult>;
   /** Queues an event. Never throws and never waits on the network. */
   track(event: TrackEvent): void;
   /** Chat Completions or Responses API result, from the SDK or `res.json()`. */
@@ -266,7 +290,19 @@ export function createMeter(options: MeterOptions): Meter {
     } catch {}
   };
 
-  const checkCache = new Map<string, { value: CheckResult; at: number }>();
+  const checkCache = new Map<string, { value: CheckResult; plan: string | undefined; at: number }>();
+  // A tracked call counts against the cached answer right away, so "3 left"
+  // becomes "2 left" without waiting for the server to see the event.
+  function countCall(userId: string) {
+    const hit = checkCache.get(userId);
+    if (!hit?.value.limits?.length) return;
+    const limits = hit.value.limits.map((l) => (l.unit === "requests" ? { ...l, used: l.used + 1, remaining: Math.max(0, l.remaining - 1) } : l));
+    const reached = limits.find((l) => l.unit === "requests" && l.remaining <= 0);
+    hit.value =
+      reached && hit.value.allow
+        ? { ...hit.value, limits, allow: false, reason: `${hit.value.plan ?? "plan"} plan limit reached (${reached.used} of ${reached.limit} AI calls)` }
+        : { ...hit.value, limits };
+  }
   // Last refusal per user, kept until FiscaLLM allows them again.
   const lastDeny = new Map<string, CheckResult>();
   const limit = options.localLimit;
@@ -519,10 +555,11 @@ export function createMeter(options: MeterOptions): Meter {
       }
     },
 
-    async check(userId) {
+    async check(userId, checkOptions) {
       const open: CheckResult = { allow: true };
       if (!userId) return open;
       const id = String(userId);
+      const plan = typeof checkOptions?.plan === "string" && checkOptions.plan.trim() ? checkOptions.plan.trim() : undefined;
       // When FiscaLLM cannot answer: keep refusing a user it refused before,
       // otherwise do what checkOnError says.
       const fallback = (): CheckResult => {
@@ -537,11 +574,11 @@ export function createMeter(options: MeterOptions): Meter {
         if (local) return local;
         if (!options.apiKey) return open;
         const hit = checkCache.get(id);
-        if (hit && Date.now() - hit.at < CHECK_CACHE_MS) return hit.value;
+        if (hit && hit.plan === plan && Date.now() - hit.at < CHECK_CACHE_MS) return hit.value;
         const res = await fetch(endpoint.replace(/\/events$/, "/check"), {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${options.apiKey}` },
-          body: JSON.stringify({ userId: id }),
+          body: JSON.stringify({ userId: id, ...(plan ? { plan } : {}) }),
           signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
         });
         if (!res.ok) {
@@ -554,10 +591,13 @@ export function createMeter(options: MeterOptions): Meter {
           ...(typeof data.reason === "string" ? { reason: data.reason } : {}),
           ...(typeof data.spentToday === "number" ? { spentToday: data.spentToday } : {}),
           ...(typeof data.spent30d === "number" ? { spent30d: data.spent30d } : {}),
+          ...(typeof data.plan === "string" ? { plan: data.plan } : {}),
+          ...(typeof data.productId === "string" || data.productId === null ? { productId: data.productId } : {}),
+          ...(Array.isArray(data.limits) ? { limits: data.limits } : {}),
           source: "server",
         };
         if (checkCache.size >= CHECK_CACHE_MAX) checkCache.clear();
-        checkCache.set(id, { value, at: Date.now() });
+        checkCache.set(id, { value, plan, at: Date.now() });
         if (value.allow) lastDeny.delete(id);
         else {
           if (lastDeny.size >= CHECK_CACHE_MAX) lastDeny.clear();
@@ -572,6 +612,7 @@ export function createMeter(options: MeterOptions): Meter {
     track(event) {
       try {
         if (event?.userId) {
+          countCall(String(event.userId));
           noteLocal(
             String(event.userId),
             count(event.inputTokens) + count(event.outputTokens) + count(event.cachedTokens) + count(event.cacheWriteTokens),

@@ -310,6 +310,30 @@ export const alertRules = pgTable(
   (t) => [index("alert_rules_app").on(t.appId)],
 ).enableRLS();
 
+// How much AI a user on a plan may use in a period. POST /v1/check refuses a
+// user who reached one and reports what is left, so the app can show a paywall.
+export const PLAN_PERIODS = ["day", "month", "total"] as const;
+export type PlanPeriod = (typeof PLAN_PERIODS)[number];
+
+export const planLimits = pgTable(
+  "plan_limits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    // "free", "trial", "paid", or a product ID from RevenueCat or Stripe.
+    plan: text("plan").notNull(),
+    // UTC day, UTC calendar month, or "total" (never resets).
+    period: text("period", { enum: PLAN_PERIODS }).notNull(),
+    // AI calls, USD of AI cost, or both; the user is refused at the first one reached.
+    maxRequests: integer("max_requests"),
+    maxCostUsd: usd("max_cost_usd"),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("plan_limits_app_plan_period").on(t.appId, t.plan, t.period)],
+).enableRLS();
+
 // Sent alerts. The unique key makes each rule fire once per subject per day.
 export const alertEvents = pgTable(
   "alert_events",

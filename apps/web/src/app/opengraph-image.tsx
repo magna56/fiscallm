@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "FiscaLLM: see the AI cost of every single user";
+export const alt = "FiscaLLM: AI limits for every plan you sell";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -39,15 +39,15 @@ export default function OgImage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", flexWrap: "wrap", fontSize: 88, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
-            <span>See the AI cost of&nbsp;</span>
-            <span style={{ color: "#8b5cf6" }}>every single user.</span>
+            <span>AI limits for&nbsp;</span>
+            <span style={{ color: "#8b5cf6" }}>every plan you sell.</span>
           </div>
-          <div style={{ fontSize: 34, color: "#55556a" }}>Matches each user&apos;s AI cost to what they pay you.</div>
+          <div style={{ fontSize: 34, color: "#55556a" }}>Limits by plan, a remaining count for your paywall, and AI cost per user.</div>
         </div>
 
         <div style={{ display: "flex", gap: 16, fontSize: 28 }}>
           <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: "white", border: "1px solid #e5e5ef" }}>
-            Loses money: user_k3x9 −$16.41
+            free plan: 7 of 10 AI messages today
           </div>
           <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: "#0b0b14", color: "white" }}>fiscallm.com</div>
         </div>

@@ -4,11 +4,16 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 
 export const metadata: Metadata = {
   title: "Guides · FiscaLLM",
-  description: "Practical guides on tracking AI cost per user and protecting your margins.",
+  description: "Practical guides on limiting AI usage by plan, tracking AI cost per user and protecting your margins.",
   alternates: { canonical: "/guides" },
 };
 
 const GUIDES = [
+  {
+    href: "/guides/ai-usage-limits-by-plan",
+    title: "How to limit AI usage per subscription plan (free, trial and paid)",
+    body: "What to count, when to reset, how your backend knows the plan, and the remaining number that opens the paywall.",
+  },
   {
     href: "/guides/ai-cost-per-customer-stripe",
     title: "How to track AI cost per customer against Stripe revenue",
@@ -42,7 +47,7 @@ export default function GuidesPage() {
       <SiteHeader />
       <Prose>
         <h1>Guides</h1>
-        <p>Practical write-ups on AI cost per user and protecting your margins.</p>
+        <p>Practical write-ups on AI limits by plan, AI cost per user and protecting your margins.</p>
         <ul className="!list-none !pl-0">
           {GUIDES.map((g) => (
             <li key={g.href} className="!my-4 rounded-2xl border border-black/5 bg-white p-5">

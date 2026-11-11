@@ -106,6 +106,13 @@
       "when": 1793637563093,
       "tag": "0014_stripe_api_key",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794360290574,
+      "tag": "0015_plan_limits",
+      "breakpoints": true
     }
   ]
 }

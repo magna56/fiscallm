@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fiscallm"
-version = "0.6.1"
-description = "Track AI cost per user against subscription revenue (RevenueCat, Stripe or any billing). Zero-dependency SDK for your backend."
+version = "0.7.0"
+description = "Limit AI usage by subscription plan and track AI cost per user against revenue (RevenueCat, Stripe or any billing). Zero-dependency SDK for your backend."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"

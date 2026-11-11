@@ -8,6 +8,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - The hosted service at fiscallm.com is free under fair use (up to 100,000 events per app per month), run by the maintainer on a best-effort basis.
 
 ## Done recently
+- **Limits by plan** (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per product, in AI calls or dollars, per day, month or in total; `meter.check` returns what is left and when it resets; a Limits page lists users at a limit
 - **No second SDK**: usage from OpenTelemetry traces (GenAI conventions, including the Vercel AI SDK) and from a LiteLLM callback
 - **For AI agents**: a read-only MCP server (LLM prices, cost estimates, your app's margins), a free LLM pricing API, a read API for margins, and an OpenAPI description
 - **Stripe history import**: the last 12 months of Stripe payments, refunds, trials and ended subscriptions, with a read-only key that is never stored

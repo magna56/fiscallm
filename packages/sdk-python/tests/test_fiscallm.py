@@ -7,7 +7,7 @@ from types import SimpleNamespace as NS
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from fiscallm import CheckResult, Meter  # noqa: E402
+from fiscallm import CheckLimit, CheckResult, Meter  # noqa: E402
 
 
 class Recorder:
@@ -320,6 +320,35 @@ class CheckTest(unittest.TestCase):
         url, headers, body = calls[0]
         self.assertEqual(url, "https://fiscallm.com/api/v1/check")
         self.assertEqual((headers["authorization"], body), ("Bearer k", {"userId": "heavy"}))
+
+    def test_returns_the_plan_and_what_is_left(self):
+        limits = [{"period": "day", "unit": "requests", "limit": 20, "used": 18, "remaining": 2, "resetsAt": "2026-11-12T00:00:00.000Z"}, {"bad": 1}]
+        post_json, calls = self.server((200, json.dumps({"allow": True, "plan": "paid", "productId": "pro_yearly", "limits": limits}).encode()))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        r = m.check("u")
+        self.assertEqual((r.allow, r.plan, r.product_id), (True, "paid", "pro_yearly"))
+        self.assertEqual(r.limits, (CheckLimit(period="day", unit="requests", limit=20, used=18, remaining=2, resets_at="2026-11-12T00:00:00.000Z"),))
+
+    def test_sends_the_plan_you_pass(self):
+        post_json, calls = self.server()
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        m.check("u", plan="team")
+        m.check("u", plan="team")
+        m.check("u")
+        self.assertEqual([c[2] for c in calls], [{"userId": "u", "plan": "team"}, {"userId": "u"}])
+
+    def test_counts_a_tracked_call_against_the_remembered_answer(self):
+        limits = [{"period": "day", "unit": "requests", "limit": 20, "used": 18, "remaining": 2, "resetsAt": None}, {"period": "month", "unit": "usd", "limit": 5, "used": 1, "remaining": 4}]
+        post_json, calls = self.server((200, json.dumps({"allow": True, "plan": "free", "limits": limits}).encode()))
+        m = Meter(api_key="k", flush_interval=60, _post=Recorder(), _post_json=post_json)
+        m.check("u")
+        m.track(user_id="u", provider="openai", model="gpt-4o-mini", input_tokens=1, output_tokens=1)
+        r = m.check("u")
+        self.assertEqual((r.allow, r.limits[0].remaining, r.limits[1].remaining), (True, 1, 4))
+        m.track(user_id="u", provider="openai", model="gpt-4o-mini", input_tokens=1, output_tokens=1)
+        r = m.check("u")
+        self.assertEqual((r.allow, r.reason, r.limits[0].remaining), (False, "free plan limit reached (20 of 20 AI calls)", 0))
+        self.assertEqual(len(calls), 1)
 
     def test_remembers_an_answer_for_a_few_seconds(self):
         post_json, calls = self.server()

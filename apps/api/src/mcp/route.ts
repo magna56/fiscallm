@@ -61,7 +61,7 @@ function estimateOrThrow(model: string, a: Args) {
 }
 
 const SETUP_GUIDE = {
-  what: "FiscaLLM shows the AI cost of each user next to the revenue from that user (RevenueCat or Stripe), so you can see who loses money. Open source (MIT), free hosted plan, no proxy: your AI calls go straight to the provider and only token counts are reported.",
+  what: "FiscaLLM limits AI usage by subscription plan (free, trial, paid or a product) and shows the AI cost of each user next to the revenue from that user (RevenueCat or Stripe), so you can see who loses money. Open source (MIT), free hosted plan, no proxy: your AI calls go straight to the provider and only token counts are reported.",
   signUp: `${SITE}/login`,
   docs: `${SITE}/docs`,
   waysToSendUsage: [
@@ -71,6 +71,7 @@ const SETUP_GUIDE = {
     { name: "HTTP", how: `POST ${SITE}/api/v1/events with a batch of events.`, guide: `${SITE}/docs` },
   ],
   revenue: "Connect RevenueCat (one click) or Stripe, or POST /api/v1/revenue. The user id on usage must be the same id the revenue source knows.",
+  limitsByPlan: `Set an allowance per plan on the app's Limits page (AI calls or USD; per day, per month or in total). Before each AI call, call meter.check(userId) or POST ${SITE}/api/v1/check with { "userId" } and the ingest key. The answer has allow, reason, plan and limits (limit, used, remaining, resetsAt), for an in-app "3 left today" and a paywall at zero. Guide: ${SITE}/guides/ai-usage-limits-by-plan`,
   readBack: `GET ${SITE}/api/v1/metrics/overview, /users, /plans and /breakdown with the same key, or the margin tools of this server.`,
   agentSkill: `${SITE}/skill.md`,
   source: "https://github.com/magna56/fiscallm",

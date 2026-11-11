@@ -3,6 +3,7 @@ import { checkUserBudgets, deliverAlerts } from "@fiscallm/shared/alerts";
 import type { MetricsDb } from "@fiscallm/shared/metrics";
 import { waitUntil } from "@vercel/functions";
 import { eq } from "drizzle-orm";
+import { forgetChecks } from "../check/route";
 import type { AnyDb } from "./db";
 import { type LimitBlock, noteAccepted, overMonthlyCap } from "./limit";
 import { loadOverrides, loadPrices } from "./prices";
@@ -40,8 +41,9 @@ export async function ingestEvents(db: AnyDb, appId: string, events: IngestEvent
   const result = await storeEvents(db, rows);
   noteAccepted(appId, result.accepted);
   if (result.accepted > 0) {
-    // Budgets are checked after the response, so ingest stays fast.
     const userIds = [...new Set(events.map((e) => e.userId))];
+    forgetChecks(appId, userIds);
+    // Budgets are checked after the response, so ingest stays fast.
     waitUntil(checkBudgets(db, appId, userIds).catch((e) => console.error("alert check failed", e)));
   }
   return result;

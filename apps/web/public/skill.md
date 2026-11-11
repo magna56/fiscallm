@@ -1,6 +1,6 @@
 ---
 name: fiscallm-setup
-description: Set up FiscaLLM in this codebase, so each user's AI cost is reported and matched to their RevenueCat subscription. Use when the user asks to add, install, set up or connect FiscaLLM, or to track AI cost or margin per user.
+description: Set up FiscaLLM in this codebase, so each user's AI usage is reported, matched to their RevenueCat or Stripe subscription, and can be limited by plan. Use when the user asks to add, install, set up or connect FiscaLLM, to limit AI usage per plan or per user (free tier, message quota, paywall when the quota is used up), or to track AI cost or margin per user.
 ---
 
 # Set up FiscaLLM
@@ -154,6 +154,27 @@ meter.track_openai(res, user_id=user_id, feature="chat")
 ```
 
 Serverless (Lambda, Cloud Functions): call `meter.flush()` before returning. Streams: `meter.track_stream(stream, user_id=user_id)` returns a stream to iterate instead.
+
+## 5a. Optional: limits by plan (free, trial, paid)
+
+If the user wants each plan to have its own AI allowance (for example 10 AI messages a day on free, 500 a month on Pro), call `check` before the AI call and keep tracking the call as in step 5. FiscaLLM knows the plan from RevenueCat or Stripe; a user with no purchase is `free`.
+
+```ts
+const { allow, plan, limits } = await meter.check(userId);
+if (!allow) return Response.json({ paywall: true, plan, resetsAt: limits?.[0]?.resetsAt }, { status: 402 });
+
+const res = await openai.chat.completions.create({ model, messages });
+meter.trackOpenAI(res, { userId });
+return Response.json({ reply, remaining: limits?.[0]?.remaining });
+```
+
+Python: `r = meter.check(user_id)` (`await meter.acheck(user_id)` in async code), then `r.allow`, `r.plan`, `r.limits[0].remaining`, `r.limits[0].resets_at`.
+
+- Each entry of `limits` has `period` (`day`, `month` or `total`), `unit` (`requests` or `usd`), `limit`, `used`, `remaining` and `resetsAt`. Days and months are UTC.
+- One tracked event counts as one AI call. If one user action makes several model calls, tell the user to limit by USD or set the number accordingly.
+- If the codebase has its own plan names (teams, promo access, no RevenueCat or Stripe), pass the plan: `meter.check(userId, { plan: "team" })` (`plan="team"` in Python).
+- Return the remaining number to the client so it can show "3 left today"; do not enforce the limit in the client.
+- Tell the user the one thing only they can do: open the app's **Limits** page in the dashboard and add a limit per plan (plan `free`, `trial`, `paid` or a product ID; a period; AI calls and/or USD). Without any limit, `check` allows every call.
 
 ## 5b. Optional: block users over budget
 

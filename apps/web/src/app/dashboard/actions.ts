@@ -1,7 +1,8 @@
 "use server";
 
 import { generateIngestKey, generateWebhookSecret, hashKey, openSecret, schema, sealSecret } from "@fiscallm/shared";
-import { ALERT_KINDS, type AlertKind } from "@fiscallm/shared/schema";
+import { ALERT_KINDS, type AlertKind, PLAN_PERIODS, type PlanPeriod } from "@fiscallm/shared/schema";
+import { PLAN_STATES } from "@fiscallm/shared/plan-limits";
 import { describeAlert, isSlackWebhook, signWebhook, slackPayload, webhookPayload } from "@fiscallm/shared/alerts";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -316,6 +317,45 @@ export async function deleteAlertRule(appId: string, ruleId: string) {
     .delete(schema.alertRules)
     .where(and(eq(schema.alertRules.id, ruleId), eq(schema.alertRules.appId, app.id)));
   revalidatePath(`/dashboard/${app.id}/settings`);
+}
+
+/** Sets how much AI a plan may use in a period; saving the same plan and period again replaces it. */
+export async function savePlanLimit(appId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const page = `/dashboard/${app.id}/limits`;
+  const fail = (msg: string): never => redirect(`${page}?error=${encodeURIComponent(msg)}`);
+
+  const raw = String(formData.get("plan") ?? "").trim();
+  // "Free" and "free" are the same plan; product IDs keep their case.
+  const plan = (PLAN_STATES as readonly string[]).includes(raw.toLowerCase()) ? raw.toLowerCase() : raw;
+  if (!plan || plan.length > 128) fail("Enter a plan: free, trial, paid, or a product ID");
+  const period = String(formData.get("period") ?? "") as PlanPeriod;
+  if (!PLAN_PERIODS.includes(period)) fail("Choose a period");
+  const amount = (name: string) => {
+    const v = String(formData.get(name) ?? "").trim();
+    if (!v) return null;
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 ? n : fail("Limits must be numbers, 0 or above");
+  };
+  const maxRequests = amount("maxRequests");
+  const maxCostUsd = amount("maxCostUsd");
+  if (maxRequests === null && maxCostUsd === null) fail("Enter a number of AI calls, an amount in USD, or both");
+  if (maxRequests !== null && (!Number.isInteger(maxRequests) || maxRequests > 2_000_000_000)) fail("AI calls must be a whole number");
+
+  const values = { maxRequests, maxCostUsd: maxCostUsd === null ? null : String(maxCostUsd) };
+  await getDb()
+    .insert(schema.planLimits)
+    .values({ appId: app.id, plan, period, ...values })
+    .onConflictDoUpdate({ target: [schema.planLimits.appId, schema.planLimits.plan, schema.planLimits.period], set: values });
+  redirect(`${page}?done=${encodeURIComponent(`Saved. ${plan} users are checked against it within a few seconds.`)}`);
+}
+
+export async function deletePlanLimit(appId: string, limitId: string) {
+  const app = await requireApp(appId);
+  await getDb()
+    .delete(schema.planLimits)
+    .where(and(eq(schema.planLimits.id, limitId), eq(schema.planLimits.appId, app.id)));
+  revalidatePath(`/dashboard/${app.id}/limits`);
 }
 
 /** Sends a sample alert through a rule's channels, outside the once-a-day limit. */

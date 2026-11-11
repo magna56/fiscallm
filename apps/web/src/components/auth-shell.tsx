@@ -24,10 +24,10 @@ export function AuthShell({ title, subtitle, children, aside = true }: { title: 
         {aside && (
           <div className="hidden md:block">
             <h2 className="text-3xl font-semibold tracking-tight">
-              See the AI cost of <span className="text-gradient">every single user.</span>
+              AI limits for <span className="text-gradient">every plan you sell.</span>
             </h2>
             <ul className="mt-6 space-y-3 text-muted">
-              {["Margin per user, plan and free trial", "Which model and feature drive the bill", "Alerts before a user gets expensive", "Free and open source"].map((t) => (
+              {["An AI allowance for each free, trial and paid plan", "A remaining count your app can show", "Margin per user, plan and free trial", "Free and open source"].map((t) => (
                 <li key={t} className="flex gap-2">
                   <span className="text-accent">✓</span>
                   {t}

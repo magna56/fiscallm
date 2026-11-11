@@ -25,6 +25,12 @@ describe("built-in prices match the providers' pages (2026-10-18)", () => {
     expect(usd("openai", "gpt-5.5", { inputTokens: 300_000, outputTokens: 100_000 })).toBeCloseTo(0.3 * 10 + 0.1 * 45, 6);
   });
 
+  it("OpenAI embeddings (input tokens only)", () => {
+    expect(usd("openai", "text-embedding-3-small", { inputTokens: M })).toBeCloseTo(0.02, 6);
+    expect(usd("openai", "text-embedding-3-large", { inputTokens: M })).toBeCloseTo(0.13, 6);
+    expect(usd("openai", "text-embedding-ada-002", { inputTokens: M })).toBeCloseTo(0.1, 6);
+  });
+
   it("OpenAI legacy models", () => {
     expect(usd("openai", "gpt-3.5-turbo", { inputTokens: M, outputTokens: M })).toBeCloseTo(0.5 + 1.5, 6);
     expect(usd("openai", "gpt-4-turbo-2024-04-09", { inputTokens: M, outputTokens: M })).toBeCloseTo(10 + 30, 6);

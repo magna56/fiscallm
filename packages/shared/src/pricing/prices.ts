@@ -168,6 +168,16 @@ const google = [
   ),
 ];
 
+// ---- Embeddings ----
+// Input tokens only: embedding responses have no output tokens, and
+// trackOpenAI already reads them that way. Prices, USD per million tokens:
+//   https://developers.openai.com/api/docs/pricing
+const openaiEmbeddings = rows("openai", [
+  ["text-embedding-3-small", 0.02, null, 0],
+  ["text-embedding-3-large", 0.13, null, 0],
+  ["text-embedding-ada-002", 0.1, null, 0],
+]);
+
 // ---- Image, audio and video ----
 // Token-priced media models use their media rates: image output for image
 // models, audio for speech models. Text tokens in the same call are counted
@@ -238,4 +248,4 @@ const googleMedia: ModelPrice[] = [
   media("google", "gemini-2.5-flash-native-audio-preview-12-2025", 3, 12),
 ];
 
-export const MODEL_PRICES: readonly ModelPrice[] = [...openai, ...anthropic, ...google, ...openaiMedia, ...googleMedia];
+export const MODEL_PRICES: readonly ModelPrice[] = [...openai, ...anthropic, ...google, ...openaiEmbeddings, ...openaiMedia, ...googleMedia];

@@ -136,6 +136,13 @@ describe("MODEL_PRICES", () => {
   it("has lower-case ids and sane prices", () => {
     for (const p of MODEL_PRICES) {
       expect(p.model).toBe(p.model.toLowerCase());
+      // Embedding models are priced on input tokens only: a positive
+      // input price and no output price.
+      if (p.model.includes("embedding")) {
+        expect(p.input).toBeGreaterThan(0);
+        expect(p.output).toBe(0);
+        continue;
+      }
       // Unit-priced and image models may have no input token price.
       if (!p.units && p.output < 30) expect(p.input).toBeGreaterThan(0);
       expect(p.output).toBeGreaterThanOrEqual(p.input);

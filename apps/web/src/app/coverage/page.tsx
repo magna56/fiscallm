@@ -134,7 +134,7 @@ export default function CoveragePage() {
             backend. It is based on cost already recorded, so a user can go slightly over before being refused. If FiscaLLM is unreachable, users it
             already refused stay refused and others are allowed unless you choose to fail closed. Automatic downgrade to a cheaper model is on the roadmap.
           </li>
-          <li>Hosted use is limited to 100,000 events per app per month. Self-hosting has no limit.</li>
+          <li>Hosted use is limited to 1,000,000 events per app per month. Self-hosting has no limit.</li>
         </ul>
 
         <h2 id="reliability">Reliability</h2>

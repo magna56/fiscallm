@@ -5,7 +5,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 ## What is free, and stays free
 - The SDKs (TypeScript and Python), MIT licensed.
 - The server, dashboard, alerts, weekly report, RevenueCat webhook and import, and the revenue API: open source, self-hostable for free.
-- The hosted service at fiscallm.com is free under fair use (up to 100,000 events per app per month), run by the maintainer on a best-effort basis.
+- The hosted service at fiscallm.com is free under fair use (up to 1,000,000 events per app per month), run by the maintainer on a best-effort basis.
 
 ## Done recently
 - **Limits by plan** (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per product, in AI calls or dollars, per day, month or in total; `meter.check` returns what is left and when it resets; a Limits page lists users at a limit

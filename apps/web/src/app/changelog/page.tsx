@@ -11,6 +11,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
   {
     date: "2026-11-11",
     items: [
+      "Hosted limit raised from 100,000 to 1,000,000 events per app per month, so a team's Claude Code usage fits. Self-hosted copies still have no limit.",
       "Spend-only dashboard: an app with no revenue connected, such as a team's Claude Code usage, shows spend only: total cost, users, cost per user and cost per request, and users by biggest spend. Revenue, margin and plan columns appear once revenue arrives. The Setup page shows the Claude Code settings with the app's key filled in.",
       "The site now leads with Claude Code spend per developer and team. Limits by plan and cost per user for AI products are unchanged. The Claude Code page says what Anthropic already gives each kind of team, and when FiscaLLM is not needed.",
       "Limits by plan (SDKs 0.7.0): give free, trial and paid plans, or a single product, their own AI allowance in AI calls or dollars, per day, per month or in total. meter.check(userId) now answers with the user's plan and, for each limit, the amount used, the amount remaining and when it resets, so your app can show \"3 left today\" and open the paywall at zero. Plans come from RevenueCat or Stripe, or pass your own. The new Limits page sets the limits and lists the users who are at one. Also POST /api/v1/check.",

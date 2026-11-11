@@ -196,7 +196,7 @@ export default function HowItWorksPage() {
             <tr><td>Unknown model</td><td>Stored without a cost and flagged as unpriced. Add a price and it is counted going forward.</td></tr>
             <tr><td>User ID mismatch</td><td>Cost shows under free or unmatched; the match rate on Setup drops.</td></tr>
             <tr><td>Bad payload</td><td>The API rejects it with a 4xx and an error message; the SDK does not retry client errors.</td></tr>
-            <tr><td>Hosted monthly limit reached</td><td>On the hosted service an app can send 100,000 events a month. After that the API answers 403 with a clear message until the 1st; the SDK prints it once. Self-hosted copies have no limit.</td></tr>
+            <tr><td>Hosted monthly limit reached</td><td>On the hosted service an app can send 1,000,000 events a month. After that the API answers 403 with a clear message until the 1st; the SDK prints it once. Self-hosted copies have no limit.</td></tr>
             <tr><td>You want reporting off</td><td>Set <code>FISCALLM_DISABLED=1</code> (or <code>disabled: true</code>). The SDK then does nothing at all: no events, no network calls, streams and responses pass through untouched.</td></tr>
             <tr><td>Stripe event it does not use, or non-USD</td><td>Acknowledged with 200 and ignored, so Stripe does not keep retrying. The response says why.</td></tr>
           </tbody>

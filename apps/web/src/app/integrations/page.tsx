@@ -149,7 +149,7 @@ export default function IntegrationsPage() {
           title="Hosting and tooling"
           intro="Use the free hosted service or run your own copy."
           rows={[
-            ["Hosted service (fiscallm.com)", "Supported", "Free under fair use: up to 100,000 events per app per month, best effort."],
+            ["Hosted service (fiscallm.com)", "Supported", "Free under fair use: up to 1,000,000 events per app per month, best effort."],
             ["Self-hosting on Vercel and Supabase", "Supported", <>With a deploy button and a step-by-step guide in <a href="https://github.com/magna56/fiscallm/blob/main/SELF-HOSTING.md">SELF-HOSTING.md</a>.</>],
             ["Docker Compose", "Planned", "Waiting for a machine with Docker to test it properly."],
             ["AI coding assistants", "Supported", <>A <a href="/skill.md">setup skill</a> for Claude Code, plus a prompt for Cursor, Copilot and others. See <Link href="/docs#ai-setup">the docs</Link>.</>],

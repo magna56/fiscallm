@@ -24,7 +24,7 @@ export default function RoadmapPage() {
         <ul>
           <li>The SDKs (TypeScript and Python), MIT licensed.</li>
           <li>The server, dashboard, alerts, weekly report, RevenueCat webhook and import, and the revenue API: open source, self-hostable for free.</li>
-          <li>The hosted service at fiscallm.com is free under fair use (up to 100,000 events per app per month), run by the maintainer on a best-effort basis.</li>
+          <li>The hosted service at fiscallm.com is free under fair use (up to 1,000,000 events per app per month), run by the maintainer on a best-effort basis.</li>
         </ul>
 
         <h2>Done recently</h2>

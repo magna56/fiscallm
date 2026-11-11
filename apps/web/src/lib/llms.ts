@@ -32,7 +32,7 @@ For agents:
 
 Key facts:
 - Claude Code spend per developer and team: set \`CLAUDE_CODE_ENABLE_TELEMETRY=1\`, \`OTEL_LOGS_EXPORTER=otlp\`, \`OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/json\`, \`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=${BASE}/api/v1/otel/v1/logs\` and \`OTEL_EXPORTER_OTLP_LOGS_HEADERS="Authorization=Bearer <key>"\`. Only model call events are read; prompts are never stored. The cost is Claude Code's estimate at API prices. Claude Code only (not Cursor or Codex).
-- Price: free. Hosted at fiscallm.com (fair use, 100,000 events per app per month) or self-hosted. MIT license. Source: https://github.com/magna56/fiscallm
+- Price: free. Hosted at fiscallm.com (fair use, 1,000,000 events per app per month) or self-hosted. MIT license. Source: https://github.com/magna56/fiscallm
 - No SDK needed if you already trace or proxy AI calls: point an OTLP/HTTP trace exporter at ${BASE}/api/v1/otel (GenAI semantic conventions; Vercel AI SDK, OpenLLMetry, OpenInference) with a \`user.id\` attribute, or add a LiteLLM \`generic_api\` callback with endpoint ${BASE}/api/v1/litellm. Both use the header \`Authorization: Bearer <ingest key>\`.
 - Read API: \`GET ${BASE}/api/v1/metrics/overview\`, \`/users\`, \`/plans\`, \`/breakdown\` (\`?days=30\`) with the app's key return cost, revenue and margin as JSON.
 - SDKs: \`npm install fiscallm\` (TypeScript; Node, Cloudflare Workers, Vercel, Supabase Edge, Deno, Bun) and \`pip install fiscallm\` (Python). One call after each AI request: \`meter.trackOpenAI(res, { userId })\`, \`trackAnthropic\`, \`trackGemini\`, \`trackStream\`, or \`track\` with exact cost.

@@ -688,7 +688,7 @@ Authorization: Bearer <FISCALLM_KEY>`}</code>
 
         <h2 id="limits">Limits</h2>
         <p>
-          The hosted service accepts up to 100,000 events per app per calendar month (UTC). After that the API answers 403 until the 1st, and the SDKs print
+          The hosted service accepts up to 1,000,000 events per app per calendar month (UTC). After that the API answers 403 until the 1st, and the SDKs print
           the message once. Self-hosted copies have no limit by default. Need more? <a href="https://github.com/magna56/fiscallm/issues">Open an issue</a> or
           self-host.
         </p>

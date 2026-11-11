@@ -37,7 +37,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "How many developers does the free hosted service cover?",
-    "It accepts 100,000 events per app per month, and one model call is one event. An agent makes many model calls per task, so the hosted service suits a small team or a trial. A larger team should self-host, which is free and has no limit.",
+    "It accepts 1,000,000 events per app per month, and one model call is one event. An agent makes many model calls per task, so a large team can still pass that. Self-hosting is free and has no limit.",
   ],
 ];
 

@@ -21,6 +21,9 @@ describe("built-in prices match the providers' pages (2026-10-18)", () => {
     expect(usd("openai", "gpt-4o-mini", { inputTokens: M, outputTokens: M })).toBeCloseTo(0.15 + 0.6, 6);
     expect(usd("openai", "gpt-5", { inputTokens: M, outputTokens: M })).toBeCloseTo(1.25 + 10, 6);
     expect(usd("openai", "gpt-5-mini", { inputTokens: M, outputTokens: M })).toBeCloseTo(0.25 + 2, 6);
+    // Read on 2026-11-12.
+    expect(usd("openai", "gpt-5.3-codex", { inputTokens: M, cachedTokens: M, outputTokens: M })).toBeCloseTo(1.75 + 0.175 + 14, 6);
+    expect(usd("openai", "text-embedding-3-small", { inputTokens: M })).toBeCloseTo(0.02, 6);
     // Long prompts (over 272K tokens) use the long rates.
     expect(usd("openai", "gpt-5.5", { inputTokens: 300_000, outputTokens: 100_000 })).toBeCloseTo(0.3 * 10 + 0.1 * 45, 6);
   });

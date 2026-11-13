@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "FiscaLLM: track Claude Code spend per developer, free and open source";
+const TITLE = "FiscaLLM: AI spend per developer across Claude Code, Codex, Cursor and more";
 const DESCRIPTION =
-  "See what each developer and team spends in Claude Code, with budget alerts. Five settings, no proxy, prompts never stored. Also AI limits by plan and AI cost per user for the products you sell. Open source.";
+  "See what each developer and team spends on AI: Claude Code, Codex, Cursor, Gemini CLI, and the OpenAI and Anthropic APIs, with budget alerts. No proxy, prompts never stored. Also AI limits by plan and AI cost per user for products. Free and open source.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),
   verification: { other: { "msvalidate.01": "45DBEA58E8AD4145DC54FC72D77D244C" } },
-  keywords: ["Claude Code cost per developer", "Claude Code usage tracking", "Claude Code spend by team", "Claude Code budget alerts", "coding agent cost tracking", "AI usage limits per plan", "limit AI usage per user", "AI message limit free tier", "RevenueCat AI limits", "AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
+  keywords: ["AI spend per developer", "Codex CLI cost tracking", "Cursor spend per developer", "Gemini CLI usage tracking", "OpenAI usage per user", "Claude Code cost per developer", "Claude Code usage tracking", "Claude Code spend by team", "Claude Code budget alerts", "coding agent cost tracking", "AI usage limits per plan", "limit AI usage per user", "AI message limit free tier", "RevenueCat AI limits", "AI cost per user", "LLM cost tracking", "OpenAI cost per user", "RevenueCat AI margin", "AI app unit economics", "token cost tracking"],
   title: TITLE,
   description: DESCRIPTION,
   openGraph: { type: "website", siteName: "FiscaLLM", title: TITLE, description: DESCRIPTION, url: "/" },

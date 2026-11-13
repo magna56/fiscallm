@@ -4,10 +4,12 @@ import type { MetricsDb } from "@fiscallm/shared/metrics";
 import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AnyDb } from "../ingest/db";
+import { startSync } from "../sources/sync";
 import { deleteOldRawEvents } from "./retention";
 
 /**
- * Daily at 07:00 UTC: raw-event retention, then the app-wide alert rules.
+ * Daily at 07:00 UTC: raw-event retention, a sync of every connected
+ * provider usage API, then the app-wide alert rules.
  * One job, as Vercel's Hobby plan limits how many crons a project has.
  */
 export function dailyRoute(getDb: () => AnyDb) {
@@ -16,6 +18,10 @@ export function dailyRoute(getDb: () => AnyDb) {
     if (!secret || c.req.header("authorization") !== `Bearer ${secret}`) return c.json({ error: "unauthorized" }, 401);
     const db = getDb();
     const deleted = await deleteOldRawEvents(db);
+
+    // Each sync runs in its own function call; this only starts them.
+    const connected = await db.select({ appId: schema.appSources.appId, source: schema.appSources.source }).from(schema.appSources);
+    for (const s of connected) await startSync(s.appId, s.source);
 
     const ruleApps = await db
       .selectDistinct({ appId: schema.alertRules.appId })
@@ -37,6 +43,6 @@ export function dailyRoute(getDb: () => AnyDb) {
         console.error("daily alerts failed for", appId, e);
       }
     }
-    return c.json({ retention: deleted, alertApps: ruleApps.length, alertsSent: sent });
+    return c.json({ retention: deleted, syncs: connected.length, alertApps: ruleApps.length, alertsSent: sent });
   });
 }

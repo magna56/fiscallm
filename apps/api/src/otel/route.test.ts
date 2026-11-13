@@ -303,6 +303,122 @@ describe("POST /v1/otel/v1/logs (Claude Code)", () => {
   });
 });
 
+// Codex CLI: one "codex.sse_event" record per stream event; the completed
+// one carries the token counts (codex-rs/otel session_telemetry.rs).
+const codexCompleted = (over: Record<string, Value> = {}) => ({
+  "event.name": "codex.sse_event",
+  "event.timestamp": new Date().toISOString(),
+  "event.kind": "response.completed",
+  "conversation.id": "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b",
+  "app.version": "0.58.0",
+  auth_mode: "Chatgpt",
+  "user.account_id": "acct_123",
+  "user.email": "dev@example.com",
+  model: "gpt-4o",
+  slug: "gpt-4o",
+  input_token_count: 1_000_000,
+  output_token_count: 100_000,
+  cached_token_count: 200_000,
+  reasoning_token_count: 20_000,
+  tool_token_count: 1_100_000,
+  ...over,
+});
+
+// A record as the agents send it: the body is a message, not the event name.
+const agentRecord = (attrs: Record<string, Value>) => logRecord(attrs, { body: { stringValue: "event" } });
+
+describe("POST /v1/otel/v1/logs (Codex CLI)", () => {
+  it("prices a completed response from the table, without the cached tokens counted twice", async () => {
+    const res = await postLogs(logsBody([agentRecord(codexCompleted())], { "service.name": "codex_cli_rs" }));
+    expect(await res.json()).toEqual({});
+    const [e] = await events();
+    expect(e).toMatchObject({
+      source: "codex",
+      userId: "dev@example.com",
+      provider: "openai",
+      model: "gpt-4o",
+      inputTokens: 800_000,
+      outputTokens: 100_000,
+      cachedTokens: 200_000,
+      cacheWriteTokens: 0,
+      feature: "codex",
+      costSource: "table",
+    });
+    // 0.8M × $2.50 + 0.2M × $1.25 + 0.1M × $10 per million.
+    expect(Number(e!.costUsd)).toBeCloseTo(3.25, 6);
+  });
+
+  it("skips other stream events and failed responses, and does not count a resent event twice", async () => {
+    const delta = codexCompleted({ "event.kind": "response.output_text.delta" });
+    for (const k of ["input_token_count", "output_token_count"]) delete (delta as Record<string, unknown>)[k];
+    const failed = codexCompleted({ "error.message": "stream disconnected" });
+    for (const k of ["input_token_count", "output_token_count", "cached_token_count"]) delete (failed as Record<string, unknown>)[k];
+    const sent = codexCompleted();
+    for (let i = 0; i < 2; i++) await postLogs(logsBody([agentRecord(sent), agentRecord(delta), agentRecord(failed)]));
+    expect((await events()).map((e) => e.source)).toEqual(["codex"]);
+  });
+
+  it("names the machine when Codex runs with an API key and no account", async () => {
+    const apiKey = codexCompleted({ auth_mode: "ApiKey" });
+    for (const k of ["user.email", "user.account_id"]) delete (apiKey as Record<string, unknown>)[k];
+    await postLogs(logsBody([agentRecord(apiKey)], { "service.name": "codex_cli_rs", "host.name": "alice-mbp" }));
+    expect((await events()).map((e) => e.userId)).toEqual(["alice-mbp"]);
+  });
+});
+
+// Gemini CLI: one "gemini_cli.api_response" record per model call, plus a
+// GenAI "operation details" record for the same call, which is not counted.
+const geminiResponse = (over: Record<string, Value> = {}) => ({
+  "event.name": "gemini_cli.api_response",
+  "event.timestamp": new Date().toISOString(),
+  "session.id": "8f1c2d3e-session",
+  "installation.id": "inst-42",
+  "user.email": "dev@example.com",
+  model: "gemini-2.5-pro",
+  status_code: 200,
+  duration_ms: 1500,
+  input_token_count: 5000,
+  output_token_count: 700,
+  cached_content_token_count: 3000,
+  thoughts_token_count: 300,
+  tool_token_count: 100,
+  total_token_count: 6100,
+  prompt_id: "8f1c2d3e-session########0",
+  auth_type: "oauth-personal",
+  ...over,
+});
+
+describe("POST /v1/otel/v1/logs (Gemini CLI)", () => {
+  it("stores a model call with thinking billed as output and the duplicate GenAI record ignored", async () => {
+    const details = logRecord(
+      { "event.name": "gen_ai.client.inference.operation.details", "gen_ai.response.model": "gemini-2.5-pro", "gen_ai.usage.input_tokens": 5000, "gen_ai.usage.output_tokens": 700, "user.email": "dev@example.com" },
+      { body: { stringValue: "GenAI operation details from gemini-2.5-pro." } },
+    );
+    const res = await postLogs(logsBody([logRecord(geminiResponse(), { body: { stringValue: "API response from gemini-2.5-pro. Status: 200. Duration: 1500ms." } }), details], { "service.name": "gemini-cli" }));
+    expect(await res.json()).toEqual({});
+    const stored = await events();
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({
+      source: "gemini-cli",
+      userId: "dev@example.com",
+      provider: "google",
+      model: "gemini-2.5-pro",
+      inputTokens: 2100,
+      outputTokens: 1000,
+      cachedTokens: 3000,
+      feature: "gemini-cli",
+    });
+  });
+
+  it("falls back to the install ID and keeps two calls of one prompt apart", async () => {
+    const first = geminiResponse({ "event.timestamp": new Date(Date.now() - 2000).toISOString() });
+    const second = geminiResponse({ output_token_count: 50 });
+    for (const r of [first, second]) delete (r as Record<string, unknown>)["user.email"];
+    for (let i = 0; i < 2; i++) await postLogs(logsBody([agentRecord(first), agentRecord(second)]));
+    expect((await events()).map((e) => e.userId)).toEqual(["inst-42", "inst-42"]);
+  });
+});
+
 // A minimal protobuf writer, to check the reader against the wire format.
 const varint = (n: bigint | number) => {
   const out: number[] = [];

@@ -10,6 +10,7 @@ const TABS = [
   ["/limits", "Limits", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M5.6 5.6l12.8 12.8"],
   ["/jobs", "Jobs", "M4 7h16v12H4zM9 7V5h6v2"],
   ["/trials", "Trials", "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18"],
+  ["/sources", "Sources", "M4 6h4v4H4zM16 6h4v4h-4zM10 16h4v4h-4zM6 10v3h12v-3M12 13v3"],
   ["/setup", "Setup", "M4 12l5 5L20 6"],
   ["/settings", "Settings", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 12h2M3 12h2M12 3v2M12 19v2"],
 ] as const;

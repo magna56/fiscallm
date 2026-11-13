@@ -72,6 +72,9 @@ export const aiEvents = pgTable(
     // Your own id for the unit of work the call belongs to, e.g. a video
     // render. Joins the cost to the job's outcome in `jobs`.
     jobId: text("job_id"),
+    // The tool the call came from, by its id in sources.ts ("claude-code",
+    // "cursor"). Null for events sent with the SDK or the events API.
+    source: text("source"),
   },
   (t) => [
     primaryKey({ columns: [t.appId, t.id] }),
@@ -332,6 +335,30 @@ export const planLimits = pgTable(
     createdAt: ts("created_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("plan_limits_app_plan_period").on(t.appId, t.plan, t.period)],
+).enableRLS();
+
+// A source that is read with a key of the customer's (Cursor, OpenAI,
+// Anthropic): the sealed key and how far the last sync got. Sources that
+// push (OpenTelemetry, the SDK) need no row.
+export const appSources = pgTable(
+  "app_sources",
+  {
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => apps.id, { onDelete: "cascade" }),
+    // The source's id in sources.ts.
+    source: text("source").notNull(),
+    // The customer's read-only key, sealed with the server secret.
+    keyCipher: text("key_cipher").notNull(),
+    // Usage before this time is stored; the next sync starts here.
+    syncedUntil: ts("synced_until"),
+    lastSyncAt: ts("last_sync_at"),
+    lastError: text("last_error"),
+    // Set while a sync runs, so two never overlap.
+    lockedUntil: ts("locked_until"),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.appId, t.source] })],
 ).enableRLS();
 
 // Sent alerts. The unique key makes each rule fire once per subject per day.

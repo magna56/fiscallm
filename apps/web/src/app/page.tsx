@@ -34,7 +34,7 @@ const FAQ: [string, string][] = [
   ["Does FiscaLLM see our prompts or code?", "No. It reads one kind of event, the model call: the model, the token counts, Claude Code's cost figure and who made the call. Every other event Claude Code sends is discarded on arrival."],
   ["Doesn't Anthropic already show this?", "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan, and with Pro or Max seats, cost per developer comes from Claude Code's OpenTelemetry export, which needs somewhere to go. FiscaLLM is that place, with budget alerts."],
   ["We pay per seat (Pro, Max or Team). What does the cost mean?", "It is Claude Code's own estimate of what each call costs at API prices. On a subscription you pay per seat, so read it as what the usage would have cost on the API: good for comparing developers and teams and for deciding who needs a bigger plan, not a copy of your invoice."],
-  ["Does it work with Cursor, Codex or GitHub Copilot?", "Not yet. Only Claude Code is read today. If you need another agent, open an issue on GitHub and say which."],
+  ["Does it work with Cursor, Codex or GitHub Copilot?", "Codex CLI and Gemini CLI send their usage the same way Claude Code does, and Cursor is read with a team admin key. The OpenAI and Anthropic APIs are read with an admin key, and ElevenLabs, Perplexity and other AI APIs with one line of code. These new sources are in beta. GitHub Copilot and Windsurf are planned: vote on GitHub."],
   ["How big a team does the free hosted service cover?", "It accepts 1,000,000 events per app per month, and one model call is one event. An agent makes many model calls per task, so a large team can still pass that. Self-hosting is free and has no limit."],
   ["How do I give each plan its own AI limit?", "On the Limits page, add a row per plan: free, trial, paid or a product ID, with a number of AI calls or dollars per day, per month or in total. Your backend calls meter.check(userId) before each AI call. FiscaLLM knows the user's plan from RevenueCat or Stripe and answers with allow or refuse and how much is left."],
   ["Can my app show how many AI messages are left?", "Yes. Every check returns the limit, the amount used, the amount remaining and when it resets. Send it to your app to show \"3 left today\", and open your paywall when the answer is no."],
@@ -75,9 +75,9 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Web",
-      description: "Shows what each developer and team spends in Claude Code, with budget alerts and no proxy. For AI products, limits AI usage by subscription plan and shows each user's AI cost against what they pay.",
+      description: "Shows what each developer and team spends on AI tools (Claude Code, Codex, Cursor, Gemini CLI, the OpenAI and Anthropic APIs), with budget alerts and no proxy. For AI products, limits AI usage by subscription plan and shows each user's AI cost against what they pay.",
       featureList: [
-        "Claude Code spend per developer and per team, from Claude Code's OpenTelemetry export",
+        "AI spend per developer, team, tool and model: Claude Code, Codex CLI, Gemini CLI, Cursor, the OpenAI and Anthropic APIs",
         "Budget alerts per developer and a warning when an agent loops",
         "No proxy or wrapper; prompts and code are never stored",
         "AI usage limits per free, trial and paid plan, in AI calls or dollars, per day, month or in total",
@@ -152,11 +152,11 @@ function Hero() {
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="See what every developer" start={0} /> <Words text="spends in Claude Code." start={4} gradient />
+          <Words text="See what every developer" start={0} /> <Words text="spends on AI." start={4} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          Spend per developer and per team, and an alert when someone passes a budget or an agent loops. Five settings in Claude Code. No proxy, and
-          prompts are never stored.
+          Claude Code, Codex, Cursor, Gemini CLI and the OpenAI and Anthropic APIs, per developer, tool and model on one page. Budget alerts and a warning
+          when an agent loops. Turn on the tools you use. No proxy, and prompts are never stored.
         </p>
         <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
           <Link
@@ -328,7 +328,7 @@ function ClaudeCode() {
             Five settings. <span className="text-gradient">No proxy.</span>
           </>
         }
-        body="Claude Code can already export its usage with OpenTelemetry. FiscaLLM is somewhere to send it."
+        body="Claude Code, Codex and Gemini CLI already export their usage with OpenTelemetry, and Cursor and the OpenAI and Anthropic APIs are read with one key. FiscaLLM puts it on one page."
       />
       <div className="reveal mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-2">
         <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
@@ -881,10 +881,10 @@ function FinalCta() {
           <span />
           <span />
         </div>
-        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know who spends what in Claude Code.</h2>
+        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know who spends what on AI.</h2>
         <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Five settings and about five minutes. Free and open source.</p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
-          We&apos;re looking for our first 10 teams. Tell us how you use Claude Code and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
+          We&apos;re looking for our first 10 teams. Tell us which AI tools your team uses and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
           <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">
             {CONTACT}
           </a>

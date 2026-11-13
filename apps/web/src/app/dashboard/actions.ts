@@ -15,6 +15,7 @@ import { sendWeeklyReport } from "@fiscallm/shared/report/send";
 import { keyCookie } from "@/lib/key-cookie";
 import { beginImport, connectProject } from "@/lib/revenuecat";
 import { accessToken, deleteWebhook, listProjects, oauthClient } from "@fiscallm/shared/rc-oauth";
+import { sourceInfo, sourceName } from "@fiscallm/shared/sources";
 
 // The plain ingest key is shown once: kept in a short-lived cookie that
 // only the setup page reads, never stored server side.
@@ -552,4 +553,65 @@ export async function disconnectStripe(appId: string) {
   await getDb().update(schema.apps).set({ stripeWebhookSecretCipher: null }).where(eq(schema.apps.id, app.id));
   revalidatePath(back);
   redirect(`${back}?done=${encodeURIComponent("Stripe disconnected. Existing data is kept.")}#stripe`);
+}
+
+// Sources whose usage FiscaLLM reads with a key (Cursor, OpenAI, Anthropic).
+// The API checks the key and runs the sync; here the key is only sealed and
+// saved.
+
+async function sourcesApi(path: "check" | "sync", body: unknown): Promise<Response | null> {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return null;
+  return fetch(`${await origin()}/api/sources/${path}`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(25_000),
+  }).catch(() => null);
+}
+
+export async function connectSource(appId: string, sourceId: string, formData: FormData) {
+  const app = await requireApp(appId);
+  const info = sourceInfo(sourceId);
+  const back = `/dashboard/${app.id}/sources`;
+  const fail = (msg: string): never => redirect(`${back}?error=${encodeURIComponent(msg)}#${sourceId}`);
+  if (!info?.key) fail("Unknown source");
+  const secret = process.env.CRON_SECRET;
+  if (!secret) fail("Sources are not configured on this server yet");
+  const key = String(formData.get("key") ?? "").trim();
+  if (!new RegExp(info!.key!.pattern).test(key)) fail(`That does not look like a ${info!.key!.label} (${info!.key!.placeholder})`);
+
+  const res = await sourcesApi("check", { source: sourceId, key });
+  if (!res?.ok) fail(`Could not check the key with ${info!.name}. Try again in a minute.`);
+  const { problem } = (await res!.json()) as { problem: string | null };
+  if (problem) fail(problem);
+
+  const keyCipher = await sealSecret(secret!, key);
+  await getDb()
+    .insert(schema.appSources)
+    .values({ appId: app.id, source: sourceId, keyCipher })
+    .onConflictDoUpdate({ target: [schema.appSources.appId, schema.appSources.source], set: { keyCipher, lastError: null } });
+  await sourcesApi("sync", { appId: app.id, source: sourceId });
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent(`${info!.name} connected. The last 30 days are being read now; refresh in a minute.`)}#${sourceId}`);
+}
+
+export async function syncSourceNow(appId: string, sourceId: string) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/sources`;
+  const res = await sourcesApi("sync", { appId: app.id, source: sourceId });
+  revalidatePath(back);
+  const msg = res?.ok ? `Sync of ${sourceName(sourceId)} started; refresh in a minute.` : "Could not start the sync. Try again in a minute.";
+  redirect(`${back}?${res?.ok ? "done" : "error"}=${encodeURIComponent(msg)}#${sourceId}`);
+}
+
+/** Forgets the key. Usage already read stays in the dashboard. */
+export async function disconnectSource(appId: string, sourceId: string) {
+  const app = await requireApp(appId);
+  const back = `/dashboard/${app.id}/sources`;
+  await getDb()
+    .delete(schema.appSources)
+    .where(and(eq(schema.appSources.appId, app.id), eq(schema.appSources.source, sourceId)));
+  revalidatePath(back);
+  redirect(`${back}?done=${encodeURIComponent(`${sourceName(sourceId)} disconnected and its key deleted. Usage already read stays. You can also revoke the key at ${sourceName(sourceId)}.`)}#${sourceId}`);
 }

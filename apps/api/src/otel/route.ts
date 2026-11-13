@@ -9,7 +9,8 @@ import { type OtelLog, type OtelSpan, parseOtlpJson, parseOtlpLogsJson, parseOtl
 // https://fiscallm.com/api/v1/otel (it adds /v1/traces) with the ingest key
 // in the Authorization header. AI call spans become cost events; every other
 // span is ignored. No FiscaLLM SDK needed. Log exports are read for the model
-// calls of coding agents (Claude Code), for spend per developer.
+// calls of coding agents (Claude Code, Codex CLI, Gemini CLI), for spend per
+// developer; see ../sources.
 
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 const CHUNK = 500;
@@ -65,7 +66,7 @@ export function otelRoute(getDb: () => AnyDb) {
       : c.json({ partialSuccess: { rejectedSpans: rejected, errorMessage: why } });
   });
 
-  // Claude Code reports each model call as a log event. Other log records
+  // Coding agents report each model call as a log event. Other log records
   // are ignored.
   route.post("/v1/logs", async (c) => {
     if (Number(c.req.header("content-length") ?? 0) > MAX_BODY_BYTES) return c.json({ error: "body too large" }, 413);
@@ -99,7 +100,7 @@ export function otelRoute(getDb: () => AnyDb) {
       return proto ? c.body(new Uint8Array(0), 200, { "content-type": "application/x-protobuf" }) : c.json({});
     }
     const why = [
-      mapped.noUser > 0 ? `${mapped.noUser} model call event(s) had no user: sign in to Claude Code, or set fiscallm.user_id in OTEL_RESOURCE_ATTRIBUTES` : "",
+      mapped.noUser > 0 ? `${mapped.noUser} model call event(s) had no user: sign in to the agent, or set fiscallm.user_id in OTEL_RESOURCE_ATTRIBUTES` : "",
       mapped.badTime > 0 ? `${mapped.badTime} model call event(s) were older than 90 days or dated in the future` : "",
     ]
       .filter(Boolean)

@@ -29,7 +29,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "Does it work with Cursor, Codex or GitHub Copilot?",
-    "Not yet. Only Claude Code is read today. If you need another agent, open an issue on GitHub and say which.",
+    "Yes, as separate sources in the same app (beta): Codex CLI and Gemini CLI send their own export, and Cursor is read with a team admin key. GitHub Copilot and Windsurf are planned. The overview then shows cost per tool next to cost per developer.",
   ],
   [
     "Can we keep sending Claude Code telemetry to our current backend?",
@@ -247,7 +247,7 @@ service:
           name there.
         </li>
         <li>
-          <strong>Only Claude Code.</strong> Cursor, Codex and Copilot are not read.
+          <strong>This page covers Claude Code.</strong> Codex CLI, Gemini CLI and Cursor are separate sources (beta), see <Link href="/integrations">integrations</Link>; Copilot is not read yet.
         </li>
         <li>
           <strong>Tested with a signed-in Claude account.</strong> Not yet on Amazon Bedrock or Google Vertex AI.

@@ -45,6 +45,12 @@ Using an AI coding assistant is fine. You are still the author: read and underst
 - Do not commit secrets, keys or real user data.
 - Add a line to CHANGELOG.md for anything users will notice, and keep ROADMAP.md current when plans change.
 
+## Adding a source
+A source is one AI tool FiscaLLM reads spend from. Each is one file in `apps/api/src/sources`:
+- A tool that exports its own usage as OpenTelemetry logs exports a `LogSource` (`match` and `toEvent`); see `codex.ts`.
+- A provider with a usage API exports a `PullSource` (`check` and `pull`); see `cursor.ts`. The sync job handles keys, locking, progress and storage.
+Add it to the lists in `apps/api/src/sources/index.ts`, describe it (name, setup steps, limits) in `packages/shared/src/sources.ts`, and add tests with records in the tool's published format (`sync.test.ts`, `otel/route.test.ts`). The dashboard's Sources page and the integrations pages are built from the catalog.
+
 ## Licence and contributor agreement
 The project is MIT licensed (see [LICENSE](LICENSE)). By opening a pull request you confirm that:
 

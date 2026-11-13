@@ -9,6 +9,12 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-11-12",
+    items: [
+      "Sources: every AI tool on one page (beta). A new Sources page lists each tool with its status and setup. Codex CLI and Gemini CLI send their usage with their own OpenTelemetry export, like Claude Code. Cursor, the OpenAI API and the Anthropic API are read once a day with an admin key (the last 30 days on connect). ElevenLabs, Perplexity and other AI APIs work with one meter.track call. The overview shows cost by tool. The new sources are tested against each tool's published format, not yet against live accounts. Prices added for the Codex models and OpenAI embeddings.",
+    ],
+  },
+  {
     date: "2026-11-11",
     items: [
       "Hosted limit raised from 100,000 to 1,000,000 events per app per month, so a team's Claude Code usage fits. Self-hosted copies still have no limit.",

@@ -34,6 +34,7 @@ export function priceEvents(
       variant: e.variant ?? null,
       feature: e.feature ?? null,
       jobId: e.jobId ?? null,
+      source: e.source ?? null,
     };
     if (e.costUsd !== undefined) {
       return { ...base, costUsd: String(e.costUsd), costSource: "client" as const };

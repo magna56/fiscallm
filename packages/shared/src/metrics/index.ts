@@ -312,6 +312,8 @@ export interface Breakdown {
   range: Range;
   byModel: (BreakdownRow & { provider: string; model: string })[];
   byFeature: BreakdownRow[];
+  /** By the tool the calls came from; the key is "" for the SDK and the events API. */
+  bySource: BreakdownRow[];
 }
 
 export async function breakdown(
@@ -335,6 +337,11 @@ export async function breakdown(
     sql`SELECT coalesce(feature, '') AS feature, ${totals} FROM ai_events WHERE ${where}
         GROUP BY 1 ORDER BY sum(cost_usd) DESC NULLS LAST, count(*) DESC`,
   );
+  const sources = await query(
+    db,
+    sql`SELECT coalesce(source, '') AS source, ${totals} FROM ai_events WHERE ${where}
+        GROUP BY 1 ORDER BY sum(cost_usd) DESC NULLS LAST, count(*) DESC`,
+  );
   const row = (x: Row) => ({ costUsd: num(x.cost), requests: num(x.requests), unpriced: num(x.unpriced) });
   return {
     range,
@@ -345,6 +352,7 @@ export async function breakdown(
       ...row(x),
     })),
     byFeature: features.map((x) => ({ key: String(x.feature), ...row(x) })),
+    bySource: sources.map((x) => ({ key: String(x.source), ...row(x) })),
   };
 }
 

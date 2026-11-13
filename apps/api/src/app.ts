@@ -18,6 +18,7 @@ import { litellmRoute } from "./litellm/route";
 import { pricesRoute } from "./prices/route";
 import { metricsRoute } from "./metrics/route";
 import { mcpRoute } from "./mcp/route";
+import { syncRoute } from "./sources/sync";
 
 // Vercel routes /api/* to this service and passes the path through unchanged.
 export const app = new Hono().basePath("/api");
@@ -30,6 +31,8 @@ app.route("/v1/jobs", jobsRoute(getDb));
 // Usage from tools people already run, with no FiscaLLM SDK.
 app.route("/v1/otel", otelRoute(getDb));
 app.route("/v1/litellm", litellmRoute(getDb));
+// Usage read from providers' APIs with a key the customer saved.
+app.route("/sources", syncRoute(getDb));
 // Reading: an app's numbers (with its key), public list prices, and both as
 // tools for AI agents.
 app.route("/v1/metrics", metricsRoute(getDb));

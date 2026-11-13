@@ -157,6 +157,7 @@ export async function spansToEvents(spans: OtelSpan[]): Promise<Mapped> {
 
     out.events.push({
       id: await stableUuid(`otel:${s.traceId}:${s.spanId}`),
+      source: "otel",
       userId,
       ts: s.at,
       provider: provider.slice(0, 64),

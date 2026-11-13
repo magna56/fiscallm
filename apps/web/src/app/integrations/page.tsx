@@ -6,7 +6,7 @@ import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 export const metadata: Metadata = {
   title: "Integrations · FiscaLLM",
   description:
-    "What FiscaLLM connects to: OpenTelemetry, LiteLLM, the Vercel AI SDK, Claude Code, AI providers, revenue sources (RevenueCat, Stripe, any billing system), an MCP server for agents, runtimes and alerts, with the status of each.",
+    "What FiscaLLM connects to: Claude Code, Codex CLI, Gemini CLI, Cursor, OpenAI and Anthropic usage, OpenTelemetry, LiteLLM, the Vercel AI SDK, ElevenLabs, Perplexity, revenue sources (RevenueCat, Stripe, any billing system), an MCP server for agents, runtimes and alerts, with the status of each.",
   alternates: { canonical: "/integrations" },
 };
 
@@ -62,6 +62,22 @@ export default function IntegrationsPage() {
         </p>
 
         <Group
+          id="tools"
+          title="AI tools your team uses"
+          intro="Turn on each tool on the app's Sources page. Spend shows per developer, tool and model, side by side. Coding agents send their own usage; providers are read with a read-only admin key."
+          rows={[
+            ["Claude Code", "Beta", <>From Claude Code&apos;s built-in OpenTelemetry export. See <Link href="/integrations/claude-code">the guide</Link>.</>],
+            ["Codex CLI", "Beta", <>From Codex&apos;s built-in OpenTelemetry export, priced at OpenAI list prices. See <Link href="/integrations/codex">the guide</Link>.</>],
+            ["Gemini CLI", "Beta", <>From Gemini CLI&apos;s built-in telemetry, priced at Google list prices. See <Link href="/integrations/gemini-cli">the guide</Link>.</>],
+            ["Cursor", "Beta", <>Read daily from Cursor&apos;s Admin API with a team admin key. See <Link href="/integrations/cursor">the guide</Link>.</>],
+            ["OpenAI API", "Beta", <>Organization usage per member, key and model (chat, embeddings, Whisper, speech) with an admin key. See <Link href="/integrations/openai-usage">the guide</Link>.</>],
+            ["Anthropic API", "Beta", <>Organization usage per member, key, model and product with an Admin API key. See <Link href="/integrations/anthropic-usage">the guide</Link>.</>],
+            ["ElevenLabs, Perplexity and other AI APIs", "Supported", <>One <code>meter.track</code> call with the cost of each call. See <Link href="/docs#sdk">the docs</Link>.</>],
+            ["GitHub Copilot, Windsurf", "Planned", <><a href="https://github.com/magna56/fiscallm/issues?q=label%3Asource">Vote on GitHub</a>.</>],
+          ]}
+        />
+
+        <Group
           id="usage"
           title="Ways to send AI usage"
           intro="Use what you already run. None of these put a proxy between you and the AI provider, and none send prompts or responses."
@@ -70,7 +86,6 @@ export default function IntegrationsPage() {
             ["Vercel AI SDK", "Supported", <>Through the AI SDK&apos;s built-in telemetry: generateText, streamText, tools and agents. See <Link href="/integrations/vercel-ai-sdk">the guide</Link>.</>],
             ["LiteLLM", "Supported", <>One callback in the proxy config. Uses LiteLLM&apos;s own cost figure. See <Link href="/integrations/litellm">the guide</Link>.</>],
             ["OpenLLMetry and OpenInference", "Supported", <>Their spans are read through the <Link href="/integrations/opentelemetry">OpenTelemetry endpoint</Link>.</>],
-            ["Claude Code", "Beta", <>Spend per developer and team from Claude Code&apos;s built-in OpenTelemetry export. For engineering teams, not app revenue. See <Link href="/integrations/claude-code">the guide</Link>.</>],
             ["FiscaLLM SDK", "Supported", <>One line after each AI call, in TypeScript or Python. See <Link href="/docs#sdk">the docs</Link>.</>],
             ["HTTP API", "Supported", <>Send events from any language. See <Link href="/docs#api">the docs</Link>.</>],
           ]}

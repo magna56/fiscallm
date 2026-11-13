@@ -138,7 +138,8 @@ describe("MODEL_PRICES", () => {
       expect(p.model).toBe(p.model.toLowerCase());
       // Unit-priced and image models may have no input token price.
       if (!p.units && p.output < 30) expect(p.input).toBeGreaterThan(0);
-      expect(p.output).toBeGreaterThanOrEqual(p.input);
+      // Embedding models have no output.
+      if (!p.model.includes("embedding")) expect(p.output).toBeGreaterThanOrEqual(p.input);
       if (p.cached !== undefined) expect(p.cached).toBeLessThanOrEqual(p.input);
       for (const [k, v] of Object.entries(p.units ?? {})) {
         expect(k).toMatch(/^(image|second|minute|character)(:[a-z0-9.]+)?$/);

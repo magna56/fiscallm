@@ -1,6 +1,6 @@
 # Roadmap
 
-FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-11-11. Shipped changes are in [CHANGELOG.md](CHANGELOG.md). Follow progress on the [public roadmap board](https://github.com/users/magna56/projects/1), vote with a 👍 on the [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap), or suggest something in [Ideas](https://github.com/magna56/fiscallm/discussions/categories/ideas). This file is the source of truth; the board mirrors it.
+FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later. Last updated: 2026-11-12. Shipped changes are in [CHANGELOG.md](CHANGELOG.md). Follow progress on the [public roadmap board](https://github.com/users/magna56/projects/1), vote with a 👍 on the [roadmap issues](https://github.com/magna56/fiscallm/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap), or suggest something in [Ideas](https://github.com/magna56/fiscallm/discussions/categories/ideas). This file is the source of truth; the board mirrors it.
 
 ## What is free, and stays free
 - The SDKs (TypeScript and Python), MIT licensed.
@@ -8,6 +8,7 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - The hosted service at fiscallm.com is free under fair use (up to 1,000,000 events per app per month), run by the maintainer on a best-effort basis.
 
 ## Done recently
+- **Sources: every AI tool on one page** (beta): Codex CLI and Gemini CLI from their own OpenTelemetry export, Cursor, the OpenAI API and the Anthropic API read with an admin key, ElevenLabs and Perplexity with one SDK call; cost by tool on the overview. Each source is one file, so new ones are quick to add
 - **Limits by plan** (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per product, in AI calls or dollars, per day, month or in total; `meter.check` returns what is left and when it resets; a Limits page lists users at a limit
 - **Claude Code spend per developer and team** (beta): from Claude Code's own OpenTelemetry export, with no proxy; prompts never stored
 - **Spend-only dashboard** for apps with no revenue, such as a team's Claude Code usage: no empty revenue or margin columns
@@ -47,7 +48,7 @@ If we introduce paid hosted plans, existing free users get advance notice, and a
 
 ## Ideas, roughly in order
 - **Credits and top-ups**: a balance per user that plans refill and packs add to, spent by AI calls. Limits by plan covers "N per period" today; a credit ledger (roll-over, top-up packs, refunds) is a bigger build and comes only if people ask for it
-- Spend from other coding agents (Cursor, Codex), next to Claude Code
+- More sources: GitHub Copilot, Windsurf, Google Cloud billing for Gemini API usage, ElevenLabs usage API (vote on GitHub issues labelled `source`)
 - Claude Code on Amazon Bedrock and Google Vertex AI: test and document
 - The price table for Python (`fiscallm.prices`)
 - Spread annual-plan revenue across the months it covers

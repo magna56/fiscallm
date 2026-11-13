@@ -9,7 +9,7 @@ export const PRICES_CHECKED = "2026-10-18";
 
 // Media and legacy models, and dated snapshots ("gpt-4-0613",
 // "gpt-4o-2024-05-13") that would be near-duplicates of the undated model.
-export const NOT_A_TEXT_MODEL = /image|tts|transcribe|whisper|realtime|audio|live|veo|davinci|babbage|instruct|-\d{4}$|-\d{4}-\d{2}-\d{2}$/;
+export const NOT_A_TEXT_MODEL = /image|tts|transcribe|whisper|realtime|audio|live|veo|davinci|babbage|instruct|embedding|-\d{4}$|-\d{4}-\d{2}-\d{2}$/;
 
 /** A current text model with a page at fiscallm.com/llm-pricing/<model>. */
 export const isTextModel = (p: ModelPrice) =>

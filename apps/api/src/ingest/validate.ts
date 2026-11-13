@@ -31,6 +31,11 @@ export const eventSchema = z.object({
   feature: z.string().min(1).max(64).optional(),
   // Joins the cost to a job outcome sent to POST /v1/jobs.
   jobId: z.string().min(1).max(128).optional(),
+  // The tool the call came from, e.g. "cursor"; see sources.ts in shared.
+  source: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9_-]{0,31}$/)
+    .optional(),
 });
 
 const withUnit = eventSchema.refine((e) => (e.units === undefined) === (e.unit === undefined), {

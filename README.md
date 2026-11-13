@@ -2,9 +2,11 @@
 
 [![CI](https://github.com/magna56/fiscallm/actions/workflows/ci.yml/badge.svg)](https://github.com/magna56/fiscallm/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/fiscallm)](https://www.npmjs.com/package/fiscallm) [![PyPI](https://img.shields.io/pypi/v/fiscallm)](https://pypi.org/project/fiscallm/)
 
-**See what every developer spends in Claude Code, and what every user of your AI product costs you.**
+**See what every developer spends on AI (Claude Code, Codex, Cursor, Gemini CLI, the OpenAI and Anthropic APIs), and what every user of your AI product costs you.**
 
 **For engineering teams:** add five settings to Claude Code and its built-in OpenTelemetry export sends each model call to FiscaLLM: spend per developer and per team, budget alerts, and a warning when an agent loops. No proxy, nothing to install, prompts and code never stored. [Setup and what Anthropic already gives you](https://fiscallm.com/integrations/claude-code)
+
+Other tools are turned on the same way, each on the app's Sources page (beta): [Codex CLI](https://fiscallm.com/integrations/codex) and [Gemini CLI](https://fiscallm.com/integrations/gemini-cli) from their own OpenTelemetry export; [Cursor](https://fiscallm.com/integrations/cursor), the [OpenAI API](https://fiscallm.com/integrations/openai-usage) and the [Anthropic API](https://fiscallm.com/integrations/anthropic-usage) with a read-only admin key; ElevenLabs, Perplexity and any other AI API with one SDK call. Each source is [one file](CONTRIBUTING.md#adding-a-source).
 
 ```json
 { "env": {

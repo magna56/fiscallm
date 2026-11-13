@@ -66,6 +66,19 @@ const openai = withLong(
     ["gpt-5-mini", 0.25, 0.025, 2],
     ["gpt-5-nano", 0.05, 0.005, 0.4],
     ["gpt-5-pro", 15, null, 120],
+    // Codex models (Codex CLI, and the Responses API). gpt-5.3-codex as read
+    // on 2026-11-12; the older ones at the prices of their release.
+    ["gpt-5.3-codex", 1.75, 0.175, 14],
+    ["gpt-5.2-codex", 1.75, 0.175, 14],
+    ["gpt-5.1-codex-max", 1.25, 0.125, 10],
+    ["gpt-5.1-codex", 1.25, 0.125, 10],
+    ["gpt-5.1-codex-mini", 0.25, 0.025, 2],
+    ["gpt-5-codex", 1.25, 0.125, 10],
+    ["codex-mini-latest", 1.5, 0.375, 6],
+    // Embeddings: input only (read on 2026-11-12).
+    ["text-embedding-3-small", 0.02, null, 0],
+    ["text-embedding-3-large", 0.13, null, 0],
+    ["text-embedding-ada-002", 0.1, null, 0],
     ["gpt-4.1", 2, 0.5, 8],
     ["gpt-4.1-mini", 0.4, 0.1, 1.6],
     ["gpt-4.1-nano", 0.1, 0.025, 0.4],

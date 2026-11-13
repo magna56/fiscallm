@@ -205,6 +205,8 @@ describe("breakdown", () => {
       ["chat", 1],
       ["", 0],
     ]);
+    // Events sent with the SDK carry no source.
+    expect(b.bySource.map((s) => [s.key, s.costUsd, s.requests])).toEqual([["", 3, 3]]);
   });
 
   it("clips the range to the 90 days of raw events", async () => {

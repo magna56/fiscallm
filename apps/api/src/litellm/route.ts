@@ -95,6 +95,7 @@ export async function logsToEvents(logs: Json[]): Promise<MappedLogs> {
 
     out.events.push({
       id: await stableUuid(`litellm:${id}`),
+      source: "litellm",
       userId,
       ts,
       provider: named.provider.slice(0, 64),

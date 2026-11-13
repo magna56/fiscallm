@@ -1,4 +1,5 @@
 import { breakdown, overview } from "@fiscallm/shared/metrics";
+import { sourceName } from "@fiscallm/shared/sources";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CostChart } from "@/components/cost-chart";
@@ -73,6 +74,12 @@ async function Overview({ params, searchParams }: PageProps<"/dashboard/[appId]"
       <Card title={spendOnly ? "Daily AI cost" : "Daily AI cost and net revenue"}>
         <CostChart data={o.daily} revenue={!spendOnly} />
       </Card>
+
+      {b.bySource.some((s) => s.key !== "") && (
+        <Card title="Cost by tool" action={<Link className="text-sm text-muted underline" href={`/dashboard/${app.id}/sources`}>Sources</Link>}>
+          <Shares rows={b.bySource.map((s) => ({ key: sourceName(s.key || null), cost: s.costUsd, note: "" }))} />
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card title="Cost by model" action={<DownloadCsv href={`/dashboard/${app.id}/export/models?days=${days}`} />}>

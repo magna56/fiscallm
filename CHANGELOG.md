@@ -2,6 +2,9 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-12
+- **Sources: every AI tool on one page** (beta). The new Sources page lists each tool with its status and its settings, key filled in. **Codex CLI** (`[otel.exporter.otlp-http]` in `~/.codex/config.toml`) and **Gemini CLI** (`telemetry` in `~/.gemini/settings.json`) send their usage to `/api/v1/otel/v1/logs` like Claude Code, priced at API list prices. **Cursor** (team Admin API key), the **OpenAI API** (admin key: chat, embeddings, Whisper, text to speech) and the **Anthropic API** (Admin API key) are read once a day and on Sync now, the last 30 days on connect; keys are stored encrypted. **ElevenLabs**, **Perplexity** and other AI APIs work with one `meter.track` call. Events carry a `source`, and the overview shows cost by tool. The new sources are tested against each tool's published format, not yet against live accounts. Prices added for the Codex models and OpenAI embeddings. Each source is one file in `apps/api/src/sources`; see CONTRIBUTING.md to add one.
+
 ## 2026-11-11
 - **Hosted limit raised** from 100,000 to 1,000,000 events per app per month, so a team's Claude Code usage fits. Self-hosted copies still have no limit.
 - **Spend-only dashboard**: an app with no revenue connected, such as a team's Claude Code usage, now shows spend only: total cost, users, cost per user and cost per request on the Overview, and users by biggest spend. Revenue, margin and plan columns appear once revenue arrives. The Setup page shows the Claude Code settings with the app's key filled in.

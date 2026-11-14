@@ -6,8 +6,12 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 - The SDKs (TypeScript and Python), MIT licensed.
 - The server, dashboard, alerts, weekly report, RevenueCat webhook and import, and the revenue API: open source, self-hostable for free.
 - The hosted service at fiscallm.com is free under fair use (up to 1,000,000 events per app per month), run by the maintainer on a best-effort basis.
+- `npx fiscallm`, the command line tool. It runs on your machine and needs no account.
+- There are no paid plans and none are planned. If the hosted service ever costs more than one person can carry, it gets a lower free limit with advance notice, never a paywall on features; self-hosting stays free and unlimited.
 
 ## Done recently
+- **`npx fiscallm`**: what Claude Code and Codex cost you, from their local logs, with no account
+- **For apps page**: cost per user and limits by plan moved to their own page, so the homepage says one thing
 - **Sources: every AI tool on one page** (beta): Codex CLI and Gemini CLI from their own OpenTelemetry export, Cursor, the OpenAI API and the Anthropic API read with an admin key, ElevenLabs and Perplexity with one SDK call; cost by tool on the overview. Each source is one file, so new ones are quick to add
 - **Limits by plan** (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per product, in AI calls or dollars, per day, month or in total; `meter.check` returns what is left and when it resets; a Limits page lists users at a limit
 - **Claude Code spend per developer and team** (beta): from Claude Code's own OpenTelemetry export, with no proxy; prompts never stored
@@ -41,12 +45,12 @@ FiscaLLM is open source and free. This is the plan, including what we will only 
 | Stage | What we do | Only when |
 |---|---|---|
 | Signs of life | Team accounts | Any one: 300+ GitHub stars, 25+ active hosted apps, or 3+ people asking for it |
-| Paid cloud | Optional paid plans for the hosted service (self-hosting stays free) | 10+ people say they would pay, or hosted usage outgrows the free fair-use limit |
-| Teams and companies | SSO, audit logs, priority support | Companies ask for them |
+| Teams and companies | SSO and audit logs, open source like the rest | Companies ask for them |
 
-If we introduce paid hosted plans, existing free users get advance notice, and anything already in the open-source code stays open source.
+Everything we build is open source and free. Anything already in the open-source code stays open source.
 
 ## Ideas, roughly in order
+- More tools in `npx fiscallm`: Gemini CLI, Cursor and others that keep usage on disk
 - **Credits and top-ups**: a balance per user that plans refill and packs add to, spent by AI calls. Limits by plan covers "N per period" today; a credit ledger (roll-over, top-up packs, refunds) is a bigger build and comes only if people ask for it
 - More sources: GitHub Copilot, Windsurf, Google Cloud billing for Gemini API usage, ElevenLabs usage API (vote on GitHub issues labelled `source`)
 - Claude Code on Amazon Bedrock and Google Vertex AI: test and document

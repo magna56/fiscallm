@@ -2,6 +2,11 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-14
+- **`npx fiscallm`** (package 0.8.0): what Claude Code and Codex CLI cost you, from the logs they already keep on your machine, by tool, model, project and day. No account and no network request. `--days N`, `--by day|model|project|tool`, `--json`. Priced with the SDK's price table at API list prices; models not in the table are shown as unpriced.
+- **One message on the homepage**: free, open-source tools to know what your AI costs, in four parts: the command line tool, the team dashboard, cost per user for apps, and LLM prices. Cost per user and limits by plan moved to [/for-apps](https://fiscallm.com/for-apps).
+- **Free, with no paid plans**: the roadmap no longer has a paid hosted tier.
+
 ## 2026-11-12
 - **Sources: every AI tool on one page** (beta). The new Sources page lists each tool with its status and its settings, key filled in. **Codex CLI** (`[otel.exporter.otlp-http]` in `~/.codex/config.toml`) and **Gemini CLI** (`telemetry` in `~/.gemini/settings.json`) send their usage to `/api/v1/otel/v1/logs` like Claude Code, priced at API list prices. **Cursor** (team Admin API key), the **OpenAI API** (admin key: chat, embeddings, Whisper, text to speech) and the **Anthropic API** (Admin API key) are read once a day and on Sync now, the last 30 days on connect; keys are stored encrypted. **ElevenLabs**, **Perplexity** and other AI APIs work with one `meter.track` call. Events carry a `source`, and the overview shows cost by tool. The new sources are tested against each tool's published format, not yet against live accounts. Prices added for the Codex models and OpenAI embeddings. Each source is one file in `apps/api/src/sources`; see CONTRIBUTING.md to add one.
 

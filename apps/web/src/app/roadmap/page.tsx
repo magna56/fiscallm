@@ -16,7 +16,7 @@ export default function RoadmapPage() {
         <h1>Roadmap</h1>
         <p>
           FiscaLLM is open source and free. This is the plan, including what we will only build if there is real demand, so nobody is surprised later.
-          Last updated: 11 November 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
+          Last updated: 14 November 2026. Shipped changes are in the <Link href="/changelog">changelog</Link>, and both live in the{" "}
           <a href="https://github.com/magna56/fiscallm">repo</a> too. Follow progress on the <a href="https://github.com/users/magna56/projects/1">public board</a>.
         </p>
 
@@ -25,10 +25,23 @@ export default function RoadmapPage() {
           <li>The SDKs (TypeScript and Python), MIT licensed.</li>
           <li>The server, dashboard, alerts, weekly report, RevenueCat webhook and import, and the revenue API: open source, self-hostable for free.</li>
           <li>The hosted service at fiscallm.com is free under fair use (up to 1,000,000 events per app per month), run by the maintainer on a best-effort basis.</li>
+          <li>
+            <code>npx fiscallm</code>, the command line tool. It runs on your machine and needs no account.
+          </li>
+          <li>
+            There are no paid plans and none are planned. If the hosted service ever costs more than one person can carry, it gets a lower free limit
+            with advance notice, never a paywall on features; self-hosting stays free and unlimited.
+          </li>
         </ul>
 
         <h2>Done recently</h2>
         <ul>
+          <li>
+            <strong>
+              <code>npx fiscallm</code>
+            </strong>
+            : what Claude Code and Codex cost you, from their local logs, with no account
+          </li>
           <li>
             <strong><Link href="/docs#plan-limits">Limits by plan</Link></strong> (SDKs 0.7.0): an AI allowance per free, trial and paid plan or per
             product, in AI calls or dollars, per day, month or in total; <code>meter.check</code> returns what is left and when it resets; a Limits page
@@ -118,19 +131,14 @@ export default function RoadmapPage() {
               <td>Any one: 300+ GitHub stars, 25+ active hosted apps, or 3+ people asking for it</td>
             </tr>
             <tr>
-              <td>Paid cloud</td>
-              <td>Optional paid plans for the hosted service (self-hosting stays free)</td>
-              <td>10+ people say they would pay, or hosted usage outgrows the free fair-use limit</td>
-            </tr>
-            <tr>
               <td>Teams and companies</td>
-              <td>SSO, audit logs, priority support</td>
+              <td>SSO and audit logs, open source like the rest</td>
               <td>Companies ask for them</td>
             </tr>
           </tbody>
         </table>
         <p>
-          If we introduce paid hosted plans, existing free users get advance notice, and anything already in the open-source code stays open source.
+          Everything we build is open source and free. Anything already in the open-source code stays open source.
         </p>
 
         <h2>Ideas, roughly in order</h2>

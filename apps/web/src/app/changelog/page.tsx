@@ -9,6 +9,14 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-11-14",
+    items: [
+      "npx fiscallm (package 0.8.0): what Claude Code and Codex CLI cost you, from the logs they already keep on your machine, by tool, model, project and day. No account and no network request. Priced at API list prices; models not in the table are shown as unpriced.",
+      "One message on the homepage: free, open-source tools to know what your AI costs. Cost per user and limits by plan for apps moved to their own page, For apps.",
+      "Free, with no paid plans: the roadmap no longer has a paid hosted tier.",
+    ],
+  },
+  {
     date: "2026-11-12",
     items: [
       "Sources: every AI tool on one page (beta). A new Sources page lists each tool with its status and setup. Codex CLI and Gemini CLI send their usage with their own OpenTelemetry export, like Claude Code. Cursor, the OpenAI API and the Anthropic API are read once a day with an admin key (the last 30 days on connect). ElevenLabs, Perplexity and other AI APIs work with one meter.track call. The overview shows cost by tool. The new sources are tested against each tool's published format, not yet against live accounts. Prices added for the Codex models and OpenAI embeddings.",

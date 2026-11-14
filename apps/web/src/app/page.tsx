@@ -1,35 +1,16 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { CodeTabs, type CodeToken, Spotlight } from "@/components/fx";
-import { DashboardPreview } from "@/components/dashboard-preview";
+import { SectionHead } from "@/components/app-sections";
+import { CopyButton } from "@/components/copy-button";
+import { Spotlight } from "@/components/fx";
 import { LogoMark } from "@/components/logo-mark";
-import { FlowDemo } from "@/components/flow-demo";
 import { CONTACT, SiteFooter, SiteHeader } from "@/components/site";
 
 const RUNTIMES = ["Claude Code", "OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Track AI calls on your backend",
-    body: "Add one line after each AI request. The SDK reports token counts in the background and never slows or breaks your response.",
-    code: "meter.trackOpenAI(res, { userId })",
-  },
-  {
-    n: "02",
-    title: "Connect your revenue",
-    body: "Press Connect RevenueCat, connect Stripe and import the last 12 months, or upload a CSV from any billing system. Purchases, renewals, trials and refunds count net of fees and tax.",
-    code: "https://fiscallm.com/api/webhooks/rc/…",
-  },
-  {
-    n: "03",
-    title: "Set limits, see margins",
-    body: "Give each plan its AI allowance and ask before each call. The dashboard shows who is at a limit and what every user, plan and trial costs against what it earns.",
-    code: "meter.check(userId)  →  3 left today",
-  },
-];
 
 const FAQ: [string, string][] = [
+  ["What does npx fiscallm do?", "It reads the usage logs Claude Code and Codex CLI already write on your machine (~/.claude/projects and ~/.codex/sessions) and prints what the usage cost at API list prices, by tool, model, project and day. It needs no account and makes no network request. Add --by day, --days 7 or --json."],
+  ["Is it really free?", "Yes. Everything is MIT licensed and there are no paid plans. The hosted dashboard is free under fair use (1,000,000 events per app per month), and you can host every part yourself."],
   ["How do I see Claude Code spend per developer?", "Create an app in FiscaLLM, copy its key, and add five settings to Claude Code, as environment variables or in the settings file your admin distributes. Claude Code then reports each model call with the developer, the model, the tokens and the cost. There is no proxy and nothing to install."],
   ["Does FiscaLLM see our prompts or code?", "No. It reads one kind of event, the model call: the model, the token counts, Claude Code's cost figure and who made the call. Every other event Claude Code sends is discarded on arrival."],
   ["Doesn't Anthropic already show this?", "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan, and with Pro or Max seats, cost per developer comes from Claude Code's OpenTelemetry export, which needs somewhere to go. FiscaLLM is that place, with budget alerts."],
@@ -40,7 +21,7 @@ const FAQ: [string, string][] = [
   ["Can my app show how many AI messages are left?", "Yes. Every check returns the limit, the amount used, the amount remaining and when it resets. Send it to your app to show \"3 left today\", and open your paywall when the answer is no."],
   ["How exact are the limits?", "Usage counts once a call is tracked, so calls made at the same moment can pass a limit by one or two. The SDK counts each tracked call at once, and the server follows within seconds. It is built for plan allowances and paywalls, not for billing by the unit."],
   ["What does FiscaLLM store?", "User IDs, token counts, models, cost and, for a product, your revenue events (RevenueCat or Stripe). Never prompts or responses."],
-  ["Who is it for?", "Engineering teams that want to see Claude Code spend per developer, and subscription apps that call AI from their own backend, in TypeScript or Python."],
+  ["Who is it for?", "Any developer who wants to know what their AI coding costs (the command line tool), engineering teams that want spend per developer across tools (the dashboard), and apps that call AI from their own backend (cost per user and limits by plan)."],
   ["I already use OpenTelemetry, LiteLLM or the Vercel AI SDK. Do I need another SDK?", "No. Point an OpenTelemetry trace exporter at FiscaLLM, or add one callback to your LiteLLM config, and the usage you already record becomes cost per user. The SDK is for apps that have neither."],
   ["Can an AI agent use it?", "Yes. A read-only MCP server at fiscallm.com/api/mcp gives assistants current LLM prices and cost estimates with no key, and your app's cost and margin per user with its key. The same data is a JSON API."],
   ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe with one webhook, or upload a CSV from Paddle, Lemon Squeezy or a spreadsheet, or send payments with one SDK call."],
@@ -48,7 +29,7 @@ const FAQ: [string, string][] = [
   ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check lets calls through, except for users it already refused. You can make it refuse instead, and add a local limit that stops runaway loops with no network at all."],
   ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
   ["I charge per job (credits), not per month. Does it fit?", "Yes. Tag each AI call with your job id and report whether the user's credits were captured or refunded. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user."],
-  ["What does it cost?", "Nothing. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
+  ["What does it cost?", "Nothing, and there are no paid plans. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
 ];
 
 const JSON_LD = {
@@ -109,16 +90,10 @@ export default function Home() {
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />
+        <Tools />
         <ClaudeCode />
         <Already />
-        <Products />
-        <PlanLimits />
-        <Problem />
-        <Solution />
-        <HowItWorks />
-        <Actions />
         <Runtimes />
-        <CodeSection />
         <Privacy />
         <Faq />
         <BuiltBy />
@@ -140,36 +115,35 @@ function Hero() {
       <div className="dot-grid" aria-hidden />
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pt-20 text-center sm:pt-28">
         <Link
-          href="/integrations/claude-code"
+          href="https://github.com/magna56/fiscallm"
           className="fade-up glass inline-flex items-center gap-2 rounded-full border border-black/5 px-3 py-1 text-xs text-muted shadow-sm"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          Free and open source<span className="hidden sm:inline"> · No proxy, nothing to install</span>
+          Free and open source, MIT<span className="hidden sm:inline"> · No paid plans</span>
           <span aria-hidden>→</span>
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="See what every developer" start={0} /> <Words text="spends on AI." start={4} gradient />
+          <Words text="Know what your AI" start={0} /> <Words text="really costs." start={4} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          Claude Code, Codex, Cursor, Gemini CLI and the OpenAI and Anthropic APIs, per developer, tool and model on one page. Budget alerts and a warning
-          when an agent loops. Turn on the tools you use. No proxy, and prompts are never stored.
+          Free, open-source tools for developers. Start on your own machine with one command and no account. Then put your whole team on one page,
+          across Claude Code, Codex, Cursor and Gemini CLI, or see what each user of your app costs you.
         </p>
-        <div className="fade-up delay-3 mt-8 flex flex-wrap justify-center gap-3">
-          <Link
-            href="/login"
-            className="btn-glow rounded-full bg-foreground px-6 py-3 font-medium text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:shadow-xl"
-          >
-            Start free
-          </Link>
-          <Link href="/integrations/claude-code" className="glass rounded-full border border-black/10 px-6 py-3 font-medium transition hover:-translate-y-0.5">
-            See the setup
-          </Link>
+        <div className="fade-up delay-3 mt-8 flex items-center gap-3 rounded-full border border-black/10 bg-[#0f0f1a] py-2 pl-5 pr-2 font-mono text-sm text-white shadow-lg shadow-black/10">
+          <span>
+            <span className="text-white/40">$ </span>npx fiscallm
+          </span>
+          <span className="rounded-full bg-white text-[#0f0f1a]">
+            <CopyButton value="npx fiscallm" />
+          </span>
         </div>
-        <p className="fade-up delay-3 mt-4 text-sm text-muted">5-minute setup · Only the model, tokens and cost are stored</p>
+        <p className="fade-up delay-3 mt-4 text-sm text-muted">
+          What Claude Code and Codex cost you, from the logs on your machine. Nothing is sent anywhere.
+        </p>
 
         <div className="relative mt-16 w-full max-w-5xl">
           <div className="glow" aria-hidden />
@@ -178,34 +152,102 @@ function Hero() {
               <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
               <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
               <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">fiscallm.com/dashboard</span>
+              <span className="mx-auto rounded-md bg-black/[0.04] px-3 py-0.5 text-xs text-muted">Terminal · sample output</span>
             </div>
-            <ClaudeCodePreview />
+            <pre className="overflow-x-auto bg-[#0f0f1a] p-5 text-left font-mono text-[11px] leading-relaxed text-white/85 sm:text-xs">
+              <code>{TERMINAL}</code>
+            </pre>
           </div>
 
-          <FloatCard className="float -left-48 top-[16%] hidden xl:block">
-            <div className="text-xs text-muted">Budget alert · Slack</div>
-            <div className="mt-1 font-mono text-sm">alice · $52.10 today</div>
-            <div className="mt-2 h-1.5 w-40 rounded-full bg-black/[0.05]">
-              <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#6d5dfc] to-[#ec4899]" />
-            </div>
-            <div className="mt-1 text-xs text-muted">over the $50 daily budget</div>
-          </FloatCard>
-          <FloatCard className="float-slow -right-44 top-[46%] hidden xl:block">
-            <div className="text-xs text-muted">Runaway session</div>
-            <div className="mt-1 flex items-center justify-between gap-6 font-mono text-sm">
-              <span>ben</span>
-              <span className="font-semibold text-red-600">3.1M tokens</span>
-            </div>
-            <div className="mt-1 text-xs text-muted">in 5 minutes · alert sent</div>
-          </FloatCard>
         </div>
       </div>
     </section>
   );
 }
 
-// Sample numbers for the hero: one team's Claude Code usage over 30 days.
+// Sample output of `npx fiscallm`, in the format bin/fiscallm.mjs prints.
+const TERMINAL = `$ npx fiscallm
+AI coding spend, last 30 days: $412.60 over 5,931 model calls (1.2B tokens)
+
+Tool            calls    tokens         cost
+Claude Code      4810    988.1M      $351.92
+Codex            1121    214.6M       $60.68
+
+Model                 calls    tokens         cost
+claude-opus-5-5        3102    731.4M      $298.40
+claude-sonnet-5-5      1708    256.7M       $53.52
+gpt-5.3-codex          1121    214.6M       $60.68
+
+Project                  calls    tokens         cost
+api (Claude Code)         2210    463.0M      $171.33
+mobile (Claude Code)      1534    301.2M      $112.04
+web (Codex)                801    150.9M       $41.10
+…
+
+At API list prices. On a subscription plan you pay the plan, not this.`;
+
+function Tools() {
+  const tools: { tag: string; title: string; body: string; code: string; href: string; link: string }[] = [
+    {
+      tag: "On your machine",
+      title: "What your AI coding costs you",
+      body: "Reads the logs Claude Code and Codex CLI already keep. Cost by day, model and project. No account, and nothing leaves your laptop.",
+      code: "npx fiscallm",
+      href: "https://github.com/magna56/fiscallm/tree/main/packages/sdk#command-line",
+      link: "How it works",
+    },
+    {
+      tag: "For your team",
+      title: "Every developer, every AI tool",
+      body: "Claude Code, Codex and Gemini CLI report on their own; Cursor and the OpenAI and Anthropic APIs are read with an admin key. Budget alerts and a warning when an agent loops.",
+      code: "Sources → turn on the tools you use",
+      href: "/integrations/claude-code",
+      link: "Set up a team",
+    },
+    {
+      tag: "For your app",
+      title: "What each user costs you",
+      body: "One line after each AI call in your backend. AI cost per user against what they pay, limits per free and paid plan, and alerts.",
+      code: "meter.check(userId)  →  3 left today",
+      href: "/for-apps",
+      link: "For apps",
+    },
+    {
+      tag: "For anyone",
+      title: "LLM prices, free API and MCP",
+      body: "Current prices for OpenAI, Anthropic and Google models as a page, a JSON API with no key, an MCP server for assistants, and a price table in the SDK.",
+      code: "GET /api/v1/prices/claude-opus-5-5",
+      href: "/llm-pricing",
+      link: "LLM prices",
+    },
+  ];
+  return (
+    <section id="tools" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
+      <SectionHead
+        eyebrow="Free and open source"
+        title={
+          <>
+            Four tools, <span className="text-gradient">one price table</span>
+          </>
+        }
+        body="Use one or all of them. MIT licensed, no paid plans, and you can host every part yourself."
+      />
+      <Spotlight className="mt-10 grid gap-4 md:grid-cols-2">
+        {tools.map((t) => (
+          <Link key={t.tag} href={t.href} className="reveal card-glow spot group flex flex-col rounded-2xl border border-black/5 bg-white p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-accent">{t.tag}</p>
+            <h3 className="mt-2 text-lg font-semibold">{t.title}</h3>
+            <p className="mt-1.5 flex-1 text-sm text-muted">{t.body}</p>
+            <code className="mt-4 block truncate rounded-lg bg-[#fafafc] px-3 py-2 font-mono text-xs text-foreground/70">{t.code}</code>
+            <span className="mt-3 text-sm font-medium text-accent group-hover:underline">{t.link} →</span>
+          </Link>
+        ))}
+      </Spotlight>
+    </section>
+  );
+}
+
+// Sample numbers for the team section: one team's Claude Code usage over 30 days.
 const DEVS: [string, string, number, number][] = [
   ["alice@example.com", "platform", 2310, 412.6],
   ["ben@example.com", "platform", 1804, 268.15],
@@ -322,7 +364,7 @@ function ClaudeCode() {
   return (
     <section id="claude-code" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
       <SectionHead
-        eyebrow="How it works"
+        eyebrow="For your team"
         title={
           <>
             Five settings. <span className="text-gradient">No proxy.</span>
@@ -330,7 +372,10 @@ function ClaudeCode() {
         }
         body="Claude Code, Codex and Gemini CLI already export their usage with OpenTelemetry, and Cursor and the OpenAI and Anthropic APIs are read with one key. FiscaLLM puts it on one page."
       />
-      <div className="reveal mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-2">
+      <div className="reveal mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl shadow-indigo-500/10">
+        <ClaudeCodePreview />
+      </div>
+      <div className="reveal mx-auto mt-4 grid max-w-5xl gap-4 md:grid-cols-2">
         <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
           <h3 className="font-semibold">1. Add this to Claude Code&apos;s settings</h3>
           <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0f0f1a] p-4 text-xs leading-relaxed text-white/90">
@@ -419,108 +464,6 @@ function Already() {
   );
 }
 
-function Products() {
-  return (
-    <section id="products" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
-      <div className="reveal rounded-3xl border border-black/5 bg-gradient-to-br from-[#f5f3ff] via-white to-[#fdf2f8] p-8 text-center md:p-12">
-        <p className="shimmer text-sm font-medium">Building an AI product?</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          The same meter, <span className="text-gradient">for your own users</span>
-        </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">
-          FiscaLLM also counts what each user of your app costs you in AI, limits it by plan, and sets it next to what they pay. Works with
-          RevenueCat, Stripe or a CSV.
-        </p>
-        <Link
-          href="/demo"
-          aria-label="Open the live demo dashboard"
-          className="product-frame group relative mx-auto mt-8 block max-w-4xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl shadow-indigo-500/10 transition hover:-translate-y-0.5"
-        >
-          <DashboardPreview />
-          <span className="absolute bottom-3 right-3 rounded-full bg-foreground px-3.5 py-1.5 text-xs font-medium text-white shadow-md transition group-hover:scale-105 sm:text-sm">
-            Try it live →
-          </span>
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function PlanLimits() {
-  const rules: [string, string, string][] = [
-    ["free", "10 AI calls", "a day"],
-    ["trial", "30 AI calls", "a day"],
-    ["pro_monthly", "500 AI calls", "a month"],
-    ["paid", "$8.00 of AI", "a month"],
-  ];
-  const points: [string, string][] = [
-    ["No quota table, no reset job", "FiscaLLM already counts every AI call per user and already knows their plan. A limit is one row of settings."],
-    ["A number your app can show", "Each check returns used, remaining and the reset time, so the app shows \"3 left today\" before the paywall, not an error after."],
-    ["Change limits without a release", "Tighten the free plan or loosen Pro from the dashboard. No deploy, no app review."],
-  ];
-  return (
-    <section id="limits" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead
-        eyebrow="Limits by plan"
-        title={
-          <>
-            One check before each AI call. <span className="text-gradient">Allow, or paywall.</span>
-          </>
-        }
-        body="You decide what each plan gets. FiscaLLM tracks who has used what."
-      />
-      <div className="reveal mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-2">
-        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-          <h3 className="font-semibold">1. Set what each plan gets</h3>
-          <ul className="mt-4 divide-y divide-black/5 text-sm">
-            {rules.map(([plan, amount, period]) => (
-              <li key={plan} className="flex items-center justify-between gap-3 py-2.5">
-                <code className="rounded-md bg-[#fafafc] px-2 py-0.5 font-mono text-xs">{plan}</code>
-                <span>
-                  <strong>{amount}</strong> <span className="text-muted">{period}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted">Plans come from RevenueCat or Stripe. A product&apos;s own limit overrides &quot;paid&quot;.</p>
-        </div>
-        <div className="card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-          <h3 className="font-semibold">2. Ask before each AI call</h3>
-          <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0f0f1a] p-4 text-xs leading-relaxed text-white/90">
-            <code>{`const { allow, limits } = await meter.check(userId);
-if (!allow) return paywall();
-
-// → { allow: true, plan: "free",
-//     limits: [{ period: "day", limit: 10,
-//                used: 7, remaining: 3,
-//                resetsAt: "…T00:00:00Z" }] }`}</code>
-          </pre>
-          <p className="mt-3 text-xs text-muted">
-            Also plain HTTP: <code>POST /api/v1/check</code>. TypeScript and Python SDKs.
-          </p>
-        </div>
-      </div>
-      <Spotlight className="mt-4 grid gap-4 md:grid-cols-3">
-        {points.map(([t, b]) => (
-          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-            <h3 className="font-semibold">{t}</h3>
-            <p className="mt-1.5 text-sm text-muted">{b}</p>
-          </div>
-        ))}
-      </Spotlight>
-      <p className="mt-6 text-center text-sm">
-        <Link href="/guides/ai-usage-limits-by-plan" className="font-medium text-accent hover:underline">
-          How to limit AI usage per plan →
-        </Link>
-        <span className="mx-2 text-muted">·</span>
-        <Link href="/docs#plan-limits" className="font-medium text-accent hover:underline">
-          Reference →
-        </Link>
-      </p>
-    </section>
-  );
-}
-
 function Words({ text, start, gradient = false }: { text: string; start: number; gradient?: boolean }) {
   return (
     <>
@@ -534,10 +477,6 @@ function Words({ text, start, gradient = false }: { text: string; start: number;
       ))}
     </>
   );
-}
-
-function FloatCard({ className, children }: { className: string; children: ReactNode }) {
-  return <div className={`glass absolute z-20 rounded-xl border border-black/5 p-4 text-left shadow-xl shadow-black/10 ${className}`}>{children}</div>;
 }
 
 function Runtimes() {
@@ -563,249 +502,7 @@ function Runtimes() {
   );
 }
 
-function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: ReactNode; body?: string }) {
-  return (
-    <div className="reveal mx-auto max-w-2xl text-center">
-      <p className="shimmer text-sm font-medium">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
-      {body && <p className="mt-4 text-lg text-muted">{body}</p>}
-    </div>
-  );
-}
 
-function Problem() {
-  const points: [string, string][] = [
-    ["Flat price, variable cost", "Everyone pays $9.99. One user costs you $0.20 in AI, another $25."],
-    ["Two bills that never meet", "Your AI bill shows tokens. Your billing system shows payments. Neither shows the user."],
-    ["You find out too late", "All you see is one big AI bill at the end of the month."],
-  ];
-  return (
-    <section id="problem" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead
-        eyebrow="Why limits need cost data"
-        title={
-          <>
-            AI apps lose money on <span className="text-gradient">users they can&apos;t see</span>
-          </>
-        }
-      />
-      <ol className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
-        {points.map(([t, b], i) => (
-          <li key={t} className="reveal rounded-2xl border border-red-500/10 bg-gradient-to-b from-red-50/60 to-white p-6">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-red-500/10 text-sm font-semibold text-red-600">{i + 1}</span>
-            <h3 className="mt-3 font-semibold">{t}</h3>
-            <p className="mt-1.5 text-sm text-muted">{b}</p>
-          </li>
-        ))}
-      </ol>
-      <div className="reveal mx-auto mt-10 grid max-w-4xl gap-4 md:grid-cols-2">
-        <UserCompare name="Light user" plan="$9.99 / month" pays={7.49} cost={0.2} />
-        <UserCompare name="Heavy user" plan="$9.99 / month" pays={7.49} cost={25} />
-      </div>
-      <p className="mt-3 text-center text-sm text-muted">Same plan, same price. Without FiscaLLM, both look the same.</p>
-      <p className="mt-2 text-center text-sm">
-        <Link href="/demo" className="font-medium text-accent hover:underline">
-          See what this looks like in a dashboard →
-        </Link>
-      </p>
-    </section>
-  );
-}
-
-function Solution() {
-  const points: [string, string][] = [
-    ["Joins cost and revenue, per user", "One line in your backend reports AI usage. RevenueCat, Stripe (with 12 months of history) or a CSV upload reports payments."],
-    ["Shows your real margin", "Per user, per plan, per free trial, and which model or feature drives the bill."],
-    ["Warns you, and can say no", "Email, Slack or webhook alerts when a user goes over budget or loops. Mark a budget as Block and your backend can refuse them."],
-  ];
-  return (
-    <section className="mx-auto mt-28 w-full max-w-6xl px-6">
-      <SectionHead
-        eyebrow="The solution"
-        title={
-          <>
-            FiscaLLM <span className="text-gradient">joins them, per user</span>
-          </>
-        }
-      />
-      <Spotlight className="mt-10 grid gap-4 md:grid-cols-3">
-        {points.map(([t, b], i) => (
-          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[#6d5dfc]/10 text-sm font-semibold text-accent">{i + 1}</span>
-            <h3 className="mt-3 font-semibold">{t}</h3>
-            <p className="mt-1.5 text-sm text-muted">{b}</p>
-          </div>
-        ))}
-      </Spotlight>
-    </section>
-  );
-}
-
-function UserCompare({ name, plan, pays, cost }: { name: string; plan: string; pays: number; cost: number }) {
-  const margin = pays - cost;
-  const max = 25;
-  const fmt = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(n).toFixed(2)}`;
-  return (
-    <div className="spot card-glow rounded-2xl border border-black/5 bg-white p-6">
-      <div className="flex items-baseline justify-between">
-        <h3 className="font-semibold">{name}</h3>
-        <span className="text-xs text-muted">{plan}</span>
-      </div>
-      <dl className="mt-4 space-y-3 text-sm">
-        <div>
-          <div className="flex justify-between">
-            <dt className="text-muted">Pays you</dt>
-            <dd className="tabular-nums">{fmt(pays)}</dd>
-          </div>
-          <div className="mt-1 h-2 rounded-full bg-black/[0.04]">
-            <div className="h-2 rounded-full bg-green-400" style={{ width: `${(pays / max) * 100}%` }} />
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between">
-            <dt className="text-muted">Costs you in AI</dt>
-            <dd className="tabular-nums">{fmt(cost)}</dd>
-          </div>
-          <div className="mt-1 h-2 rounded-full bg-black/[0.04]">
-            <div className="h-2 rounded-full bg-red-400" style={{ width: `${Math.max(1, (cost / max) * 100)}%` }} />
-          </div>
-        </div>
-        <div className="flex justify-between border-t border-black/5 pt-3 font-semibold">
-          <dt>Margin</dt>
-          <dd className={`tabular-nums ${margin < 0 ? "text-red-600" : "text-green-600"}`}>{fmt(margin)}</dd>
-        </div>
-      </dl>
-    </div>
-  );
-}
-
-function Actions() {
-  const actions: [string, string][] = [
-    ["Turn free users into subscribers", "The Limits page lists who has used up their plan today. They are the users most likely to pay for more."],
-    ["Price plans on real numbers", "See which plan loses money once AI is paid for, and set its limit from what a call really costs."],
-    ["Cap heavy users", "Mark a budget as Block, and meter.check(userId) tells your backend to refuse the user or use a cheaper model. A capped user stays capped even if FiscaLLM goes down."],
-    ["See what failed jobs cost you", "Credits refunded on a failed render, or a timeout never reconciled: the Jobs page shows what you paid the provider anyway, per user."],
-    ["Switch the expensive feature", "Find the feature and model behind the bill; move it to a cheaper model."],
-    ["Fix trials that don't pay off", "Know what each trial and each conversion costs."],
-    ["Catch runaway loops", "By email, Slack or webhook, when a user goes over budget or burns a huge number of tokens in 5 minutes."],
-    ["A Monday email", "Last week's margin and who lost you money."],
-  ];
-  return (
-    <section className="mx-auto mt-32 w-full max-w-6xl px-6">
-      <SectionHead
-        eyebrow="What you can do with it"
-        title="Turn the numbers into decisions"
-      />
-      <Spotlight className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {actions.map(([t, b], i) => (
-          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-            <span className="text-sm font-semibold text-accent">{String(i + 1).padStart(2, "0")}</span>
-            <h3 className="mt-2 font-semibold">{t}</h3>
-            <p className="mt-2 text-sm text-muted">{b}</p>
-          </div>
-        ))}
-      </Spotlight>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  return (
-    <section id="how" className="mx-auto mt-32 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead eyebrow="For your product" title="Watch one request" body="Nothing sits between your app and the AI. Usage and revenue are reported on the side." />
-      <div className="reveal mt-12">
-        <FlowDemo />
-      </div>
-      <p className="mt-6 text-center text-sm">
-        <Link href="/how-it-works" className="font-medium text-accent hover:underline">
-          Engineer? See exactly how it works →
-        </Link>
-        <span className="mx-2 text-muted">·</span>
-        <Link href="/demo" className="font-medium text-accent hover:underline">
-          Or try the live demo →
-        </Link>
-      </p>
-      <h3 className="mt-20 text-center text-2xl font-semibold tracking-tight">Set up in ten minutes</h3>
-      <ol className="relative mt-14 grid gap-6 md:grid-cols-3">
-        {STEPS.map((s) => (
-          <li key={s.n} className="reveal card-glow spot relative rounded-2xl border border-black/5 bg-white p-6">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#6d5dfc] to-[#a855f7] text-sm font-semibold text-white shadow-md shadow-indigo-500/30">
-              {s.n}
-            </span>
-            <h3 className="mt-5 font-semibold">{s.title}</h3>
-            <p className="mt-2 text-sm text-muted">{s.body}</p>
-            <code className="mt-4 block truncate rounded-lg bg-[#fafafc] px-3 py-2 font-mono text-xs text-foreground/70">{s.code}</code>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-const K = "#c792ea";
-const F = "#82aaff";
-const S = "#c3e88d";
-const C = "rgba(255,255,255,0.4)";
-const CODE: CodeToken[] = [
-  ["import", K], [" { createMeter } "], ["from", K], [" "], ['"fiscallm"', S], [";\n\n"],
-  ["const", K], [" meter = "], ["createMeter", F], ["({\n  apiKey: env.FISCALLM_KEY,\n  waitUntil: ctx.waitUntil."], ["bind", F], ["(ctx),\n});\n\n"],
-  ["const", K], [" res = "], ["await", K], [" openai.chat.completions\n  ."], ["create", F], ["({ model, messages });\n\n"],
-  ["// that's it", C], ["\nmeter."], ["trackOpenAI", F], ["(res, { userId, feature: "], ['"chat"', S], [" });"],
-];
-
-const PY_CODE: CodeToken[] = [
-  ["from", K], [" fiscallm "], ["import", K], [" Meter\n\n"],
-  ["meter = "], ["Meter", F], ["(api_key=os.environ["], ['"FISCALLM_KEY"', S], ["])\n\n"],
-  ["res = client.chat.completions."], ["create", F], ["(\n    model=model, messages=messages,\n)\n\n"],
-  ["# that's it", C], ["\nmeter."], ["track_openai", F], ["(res, user_id=user_id, feature="], ['"chat"', S], [")"],
-];
-
-function CodeSection() {
-  return (
-    <section className="mx-auto mt-32 grid w-full max-w-6xl items-center gap-10 px-6 md:grid-cols-2">
-      <div className="reveal">
-        <p className="shimmer text-sm font-medium">For developers</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">One line per AI call</h2>
-        <p className="mt-4 text-lg text-muted">
-          TypeScript and Python SDKs with zero dependencies. OpenAI, Anthropic, Gemini, streaming, images and voice.
-        </p>
-        <ul className="mt-6 space-y-2 text-sm">
-          {[
-            "Reads only the model name and token counts from res, never the answer text",
-            "Never throws, never blocks your response",
-            "Batches in the background with waitUntil",
-            "Retries are de-duplicated, so nothing counts twice",
-            "Or let your AI assistant set it up with our setup skill",
-          ].map((t) => (
-            <li key={t} className="flex gap-2">
-              <span className="text-accent">✓</span>
-              {t}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 text-sm text-muted">
-          Already tracing? Skip the SDK and send usage from{" "}
-          <Link href="/integrations/opentelemetry" className="text-accent hover:underline">OpenTelemetry</Link>,{" "}
-          <Link href="/integrations/vercel-ai-sdk" className="text-accent hover:underline">the Vercel AI SDK</Link> or{" "}
-          <Link href="/integrations/litellm" className="text-accent hover:underline">LiteLLM</Link>. Agents can read prices and margins through{" "}
-          <Link href="/mcp" className="text-accent hover:underline">the MCP server</Link>.
-        </p>
-        <Link href="/docs" className="mt-6 inline-block font-medium text-accent hover:underline">
-          Read the docs →
-        </Link>
-      </div>
-      <div className="reveal relative">
-        <div className="glow" aria-hidden />
-        <CodeTabs
-          tabs={[
-            { label: "TypeScript", file: "worker.ts", tokens: CODE },
-            { label: "Python", file: "app.py", tokens: PY_CODE },
-          ]}
-        />
-      </div>
-    </section>
-  );
-}
 
 function Privacy() {
   return (
@@ -881,8 +578,10 @@ function FinalCta() {
           <span />
           <span />
         </div>
-        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know who spends what on AI.</h2>
-        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">Five settings and about five minutes. Free and open source.</p>
+        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know what your AI really costs.</h2>
+        <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">
+          Start with <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-base">npx fiscallm</code>. Free and open source, with no paid plans.
+        </p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
           We&apos;re looking for our first 10 teams. Tell us which AI tools your team uses and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}
           <a href={`mailto:${CONTACT}`} className="text-white underline underline-offset-4">
@@ -891,11 +590,11 @@ function FinalCta() {
         </p>
         <div className="relative mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/login" className="rounded-full bg-white px-6 py-3 font-medium text-[#0f0f1a] transition hover:-translate-y-0.5">
-            Start free
+            Team dashboard, free
           </Link>
-          <Link href="/integrations/claude-code" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
-            See the setup
-          </Link>
+          <a href="https://github.com/magna56/fiscallm" className="rounded-full border border-white/20 px-6 py-3 font-medium transition hover:-translate-y-0.5 hover:bg-white/5">
+            Star on GitHub
+          </a>
         </div>
       </div>
     </section>

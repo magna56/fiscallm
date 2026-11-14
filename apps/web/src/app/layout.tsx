@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "FiscaLLM: AI spend per developer across Claude Code, Codex, Cursor and more";
+const TITLE = "FiscaLLM: free, open-source tools to know what your AI costs";
 const DESCRIPTION =
-  "See what each developer and team spends on AI: Claude Code, Codex, Cursor, Gemini CLI, and the OpenAI and Anthropic APIs, with budget alerts. No proxy, prompts never stored. Also AI limits by plan and AI cost per user for products. Free and open source.";
+  "npx fiscallm shows what Claude Code and Codex cost you, from local logs and with no account. A free team dashboard across Claude Code, Codex, Cursor, Gemini CLI and the OpenAI and Anthropic APIs. AI cost per user and limits by plan for apps. MIT, no paid plans.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),

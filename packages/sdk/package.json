@@ -1,10 +1,13 @@
 {
   "name": "fiscallm",
-  "version": "0.7.0",
-  "description": "Limit AI usage by subscription plan and track AI cost per user against revenue (RevenueCat, Stripe or any billing). Zero-dependency SDK for your backend.",
+  "version": "0.8.0",
+  "description": "What your AI costs: `npx fiscallm` reads Claude Code and Codex logs on your machine; the SDK tracks AI cost per user and limits AI usage by plan. Zero dependencies.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "bin": {
+    "fiscallm": "./bin/fiscallm.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,7 +19,19 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "bin"
+  ],
+  "keywords": [
+    "claude-code",
+    "codex",
+    "ai-cost",
+    "llm-cost",
+    "token-usage",
+    "ccusage",
+    "openai",
+    "anthropic",
+    "cli"
   ],
   "engines": {
     "node": ">=20"

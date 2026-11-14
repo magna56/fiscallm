@@ -6,6 +6,7 @@ const BASE = "https://fiscallm.com";
 
 export const PAGES: [string, number][] = [
   ["/", 1],
+  ["/for-apps", 0.9],
   ["/demo", 0.9],
   ["/llm-pricing", 0.9],
   ["/llm-pricing/report", 0.8],

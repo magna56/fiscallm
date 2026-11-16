@@ -1,35 +1,18 @@
 import Link from "next/link";
 import { SectionHead } from "@/components/app-sections";
 import { CopyButton } from "@/components/copy-button";
-import { Spotlight } from "@/components/fx";
 import { LogoMark } from "@/components/logo-mark";
 import { CONTACT, SiteFooter, SiteHeader } from "@/components/site";
 
-const RUNTIMES = ["Claude Code", "OpenAI", "Anthropic", "Gemini", "Groq", "OpenRouter", "fal.ai", "Cloudflare Workers", "Vercel", "Supabase", "Firebase", "Node.js", "Python", "FastAPI", "Django", "AWS Lambda", "Deno", "Bun", "RevenueCat"];
 
 
 const FAQ: [string, string][] = [
   ["What does npx fiscallm do?", "It reads the usage logs Claude Code and Codex CLI already write on your machine (~/.claude/projects and ~/.codex/sessions) and prints what the usage cost at API list prices, by tool, model, project and day. It needs no account and makes no network request. Add --by day, --days 7 or --json."],
-  ["Is it really free?", "Yes. Everything is MIT licensed and there are no paid plans. The hosted dashboard is free under fair use (1,000,000 events per app per month), and you can host every part yourself."],
-  ["How do I see Claude Code spend per developer?", "Create an app in FiscaLLM, copy its key, and add five settings to Claude Code, as environment variables or in the settings file your admin distributes. Claude Code then reports each model call with the developer, the model, the tokens and the cost. There is no proxy and nothing to install."],
-  ["Does FiscaLLM see our prompts or code?", "No. It reads one kind of event, the model call: the model, the token counts, Claude Code's cost figure and who made the call. Every other event Claude Code sends is discarded on arrival."],
-  ["Doesn't Anthropic already show this?", "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan, and with Pro or Max seats, cost per developer comes from Claude Code's OpenTelemetry export, which needs somewhere to go. FiscaLLM is that place, with budget alerts."],
-  ["We pay per seat (Pro, Max or Team). What does the cost mean?", "It is Claude Code's own estimate of what each call costs at API prices. On a subscription you pay per seat, so read it as what the usage would have cost on the API: good for comparing developers and teams and for deciding who needs a bigger plan, not a copy of your invoice."],
-  ["Does it work with Cursor, Codex or GitHub Copilot?", "Codex CLI and Gemini CLI send their usage the same way Claude Code does, and Cursor is read with a team admin key. The OpenAI and Anthropic APIs are read with an admin key, and ElevenLabs, Perplexity and other AI APIs with one line of code. These new sources are in beta. GitHub Copilot and Windsurf are planned: vote on GitHub."],
-  ["How big a team does the free hosted service cover?", "It accepts 1,000,000 events per app per month, and one model call is one event. An agent makes many model calls per task, so a large team can still pass that. Self-hosting is free and has no limit."],
-  ["How do I give each plan its own AI limit?", "On the Limits page, add a row per plan: free, trial, paid or a product ID, with a number of AI calls or dollars per day, per month or in total. Your backend calls meter.check(userId) before each AI call. FiscaLLM knows the user's plan from RevenueCat or Stripe and answers with allow or refuse and how much is left."],
-  ["Can my app show how many AI messages are left?", "Yes. Every check returns the limit, the amount used, the amount remaining and when it resets. Send it to your app to show \"3 left today\", and open your paywall when the answer is no."],
-  ["How exact are the limits?", "Usage counts once a call is tracked, so calls made at the same moment can pass a limit by one or two. The SDK counts each tracked call at once, and the server follows within seconds. It is built for plan allowances and paywalls, not for billing by the unit."],
-  ["What does FiscaLLM store?", "User IDs, token counts, models, cost and, for a product, your revenue events (RevenueCat or Stripe). Never prompts or responses."],
-  ["Who is it for?", "Any developer who wants to know what their AI coding costs (the command line tool), engineering teams that want spend per developer across tools (the dashboard), and apps that call AI from their own backend (cost per user and limits by plan)."],
-  ["I already use OpenTelemetry, LiteLLM or the Vercel AI SDK. Do I need another SDK?", "No. Point an OpenTelemetry trace exporter at FiscaLLM, or add one callback to your LiteLLM config, and the usage you already record becomes cost per user. The SDK is for apps that have neither."],
-  ["Can an AI agent use it?", "Yes. A read-only MCP server at fiscallm.com/api/mcp gives assistants current LLM prices and cost estimates with no key, and your app's cost and margin per user with its key. The same data is a JSON API."],
-  ["Do I need RevenueCat?", "No. Connect RevenueCat in one click, or Stripe with one webhook, or upload a CSV from Paddle, Lemon Squeezy or a spreadsheet, or send payments with one SDK call."],
-  ["Does it include revenue from before I connected?", "Yes. Connect RevenueCat imports past subscribers, the Stripe import brings in the last 12 months with a read-only key that is never stored, and a CSV upload covers anything else. Re-running an import never counts a payment twice."],
-  ["What if FiscaLLM is down?", "Your app is unaffected. Reporting happens in the background and never blocks a request, and the optional budget check lets calls through, except for users it already refused. You can make it refuse instead, and add a local limit that stops runaway loops with no network at all."],
-  ["Can it stop a user who goes over budget?", "Yes, if you want it to. Mark a per-user budget as Block, and call meter.check(userId) before an AI call: it says no once the user reaches the amount, and you refuse them or switch to a cheaper model. Alerts alone never block anything."],
-  ["I charge per job (credits), not per month. Does it fit?", "Yes. Tag each AI call with your job id and report whether the user's credits were captured or refunded. The Jobs page shows the AI cost of refunded jobs and of jobs that never resolved, per user."],
-  ["What does it cost?", "Nothing, and there are no paid plans. FiscaLLM is open source (MIT). Use the free hosted service, or run your own copy."],
+  ["We pay per seat (Pro, Max or Team). What does the cost mean?", "It is what each call would cost at API list prices. On a subscription you pay per seat, so read it as what the usage would have cost on the API: good for comparing developers and projects and for deciding who needs a bigger plan, not a copy of your invoice."],
+  ["How do I see the whole team?", "Create a free team app, copy its key, and add five settings to Claude Code, Codex or Gemini CLI, in the settings file your admin distributes or as environment variables. Each tool then reports its model calls with the developer, the model and the tokens. Cursor is read with a team admin key. No proxy and nothing to install."],
+  ["Does it see our prompts or code?", "No. The command line tool reads only usage numbers and sends nothing. The team dashboard keeps only the model-call event: the model, the token counts, the cost and who made the call. Every other event is discarded on arrival."],
+  ["Doesn't Anthropic already show this?", "Partly. The Claude Console shows estimated spend per user for teams on API keys, and the Enterprise plan has cost by user and group. On the Team plan and with Pro or Max seats there is no per-developer cost view, and none of them covers Codex, Cursor or Gemini CLI next to Claude Code."],
+  ["Is it really free?", "Yes. Everything is MIT licensed and there are no paid plans. The hosted team dashboard is free under fair use (1,000,000 model calls per month), and you can host it yourself with no limit."],
 ];
 
 const JSON_LD = {
@@ -56,20 +39,13 @@ const JSON_LD = {
       url: "https://fiscallm.com",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Web",
-      description: "Shows what each developer and team spends on AI tools (Claude Code, Codex, Cursor, Gemini CLI, the OpenAI and Anthropic APIs), with budget alerts and no proxy. For AI products, limits AI usage by subscription plan and shows each user's AI cost against what they pay.",
+      description: "Open-source tracker for what AI coding tools cost: npx fiscallm reads Claude Code and Codex logs on your machine, and a free team dashboard shows spend per developer across Claude Code, Codex, Cursor and Gemini CLI.",
       featureList: [
-        "AI spend per developer, team, tool and model: Claude Code, Codex CLI, Gemini CLI, Cursor, the OpenAI and Anthropic APIs",
+        "npx fiscallm: Claude Code and Codex cost from local logs, with no account",
+        "Cost by tool, model, project and day",
+        "Team dashboard: spend per developer across Claude Code, Codex, Cursor and Gemini CLI",
         "Budget alerts per developer and a warning when an agent loops",
-        "No proxy or wrapper; prompts and code are never stored",
-        "AI usage limits per free, trial and paid plan, in AI calls or dollars, per day, month or in total",
-        "Remaining allowance for every user, for in-app counters and paywalls",
-        "Plans read from RevenueCat or Stripe",
-        "AI cost per user, plan and free trial next to revenue",
-        "Usage from OpenTelemetry traces, LiteLLM, the Vercel AI SDK, or TypeScript and Python SDKs",
-        "Revenue from RevenueCat, Stripe, CSV or an API",
-        "Alerts and per-user spending caps",
-        "MCP server and JSON API for AI agents",
-        "Free LLM pricing API",
+        "No proxy; prompts and code are never stored",
       ],
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       license: "https://opensource.org/licenses/MIT",
@@ -90,10 +66,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex flex-col">
         <Hero />
-        <Tools />
         <ClaudeCode />
-        <Already />
-        <Runtimes />
         <Privacy />
         <Faq />
         <BuiltBy />
@@ -127,11 +100,11 @@ function Hero() {
         </Link>
 
         <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-          <Words text="Know what your AI" start={0} /> <Words text="really costs." start={4} gradient />
+          <Words text="What does your" start={0} /> <Words text="AI coding cost?" start={3} gradient />
         </h1>
         <p className="fade-up delay-2 mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-          Free, open-source tools for developers. Start on your own machine with one command and no account. Then put your whole team on one page,
-          across Claude Code, Codex, Cursor and Gemini CLI, or see what each user of your app costs you.
+          An open-source cost tracker for Claude Code, Codex, Cursor and Gemini CLI. One command on your machine, or one page for your whole
+          team.
         </p>
         <div className="fade-up delay-3 mt-8 flex items-center gap-3 rounded-full border border-black/10 bg-[#0f0f1a] py-2 pl-5 pr-2 font-mono text-sm text-white shadow-lg shadow-black/10">
           <span>
@@ -185,67 +158,6 @@ web (Codex)                801    150.9M       $41.10
 …
 
 At API list prices. On a subscription plan you pay the plan, not this.`;
-
-function Tools() {
-  const tools: { tag: string; title: string; body: string; code: string; href: string; link: string }[] = [
-    {
-      tag: "On your machine",
-      title: "What your AI coding costs you",
-      body: "Reads the logs Claude Code and Codex CLI already keep. Cost by day, model and project. No account, and nothing leaves your laptop.",
-      code: "npx fiscallm",
-      href: "https://github.com/magna56/fiscallm/tree/main/packages/sdk#command-line",
-      link: "How it works",
-    },
-    {
-      tag: "For your team",
-      title: "Every developer, every AI tool",
-      body: "Claude Code, Codex and Gemini CLI report on their own; Cursor and the OpenAI and Anthropic APIs are read with an admin key. Budget alerts and a warning when an agent loops.",
-      code: "Sources → turn on the tools you use",
-      href: "/integrations/claude-code",
-      link: "Set up a team",
-    },
-    {
-      tag: "For your app",
-      title: "What each user costs you",
-      body: "One line after each AI call in your backend. AI cost per user against what they pay, limits per free and paid plan, and alerts.",
-      code: "meter.check(userId)  →  3 left today",
-      href: "/for-apps",
-      link: "For apps",
-    },
-    {
-      tag: "For anyone",
-      title: "LLM prices, free API and MCP",
-      body: "Current prices for OpenAI, Anthropic and Google models as a page, a JSON API with no key, an MCP server for assistants, and a price table in the SDK.",
-      code: "GET /api/v1/prices/claude-opus-5-5",
-      href: "/llm-pricing",
-      link: "LLM prices",
-    },
-  ];
-  return (
-    <section id="tools" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead
-        eyebrow="Free and open source"
-        title={
-          <>
-            Four tools, <span className="text-gradient">one price table</span>
-          </>
-        }
-        body="Use one or all of them. MIT licensed, no paid plans, and you can host every part yourself."
-      />
-      <Spotlight className="mt-10 grid gap-4 md:grid-cols-2">
-        {tools.map((t) => (
-          <Link key={t.tag} href={t.href} className="reveal card-glow spot group flex flex-col rounded-2xl border border-black/5 bg-white p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-accent">{t.tag}</p>
-            <h3 className="mt-2 text-lg font-semibold">{t.title}</h3>
-            <p className="mt-1.5 flex-1 text-sm text-muted">{t.body}</p>
-            <code className="mt-4 block truncate rounded-lg bg-[#fafafc] px-3 py-2 font-mono text-xs text-foreground/70">{t.code}</code>
-            <span className="mt-3 text-sm font-medium text-accent group-hover:underline">{t.link} →</span>
-          </Link>
-        ))}
-      </Spotlight>
-    </section>
-  );
-}
 
 // Sample numbers for the team section: one team's Claude Code usage over 30 days.
 const DEVS: [string, string, number, number][] = [
@@ -354,12 +266,6 @@ function ClaudeCode() {
     ["Spend per team", "Add team.id to the settings and cost is grouped by team."],
     ["Budget alerts", "Email or Slack when a developer passes an amount in a day or in 30 days, or the whole team passes a daily amount."],
     ["Runaway warning", "An alert when someone uses more tokens in 5 minutes than you allow, which is how a looping agent shows up."],
-    ["Ask Claude", "The same numbers through an MCP server and a JSON API, so you can ask who spent the most this week."],
-  ];
-  const points: [string, string][] = [
-    ["Nothing in the request path", "Claude Code talks to Anthropic as before and reports usage on the side. If FiscaLLM is down, nobody notices."],
-    ["Counts, not code", "Only the model-call event is read: the model, the tokens, the cost and who. Prompts, code and tool output are never stored."],
-    ["Yours to run", "MIT licensed. Try it on the free hosted service; self-host for a larger team, with no limit."],
   ];
   return (
     <section id="claude-code" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
@@ -370,7 +276,7 @@ function ClaudeCode() {
             Five settings. <span className="text-gradient">No proxy.</span>
           </>
         }
-        body="Claude Code, Codex and Gemini CLI already export their usage with OpenTelemetry, and Cursor and the OpenAI and Anthropic APIs are read with one key. FiscaLLM puts it on one page."
+        body="Claude Code, Codex and Gemini CLI already report their usage with OpenTelemetry, and Cursor is read with a team admin key. FiscaLLM puts every developer on one page. Nothing sits between your tools and the model."
       />
       <div className="reveal mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl shadow-indigo-500/10">
         <ClaudeCodePreview />
@@ -396,69 +302,10 @@ function ClaudeCode() {
           </ul>
         </div>
       </div>
-      <Spotlight className="mt-4 grid gap-4 md:grid-cols-3">
-        {points.map(([t, b]) => (
-          <div key={t} className="reveal card-glow spot rounded-2xl border border-black/5 bg-white p-6">
-            <h3 className="font-semibold">{t}</h3>
-            <p className="mt-1.5 text-sm text-muted">{b}</p>
-          </div>
-        ))}
-      </Spotlight>
       <p className="mt-6 text-center text-sm">
         <Link href="/integrations/claude-code" className="font-medium text-accent hover:underline">
           Full setup: teams, names and what is stored →
         </Link>
-      </p>
-    </section>
-  );
-}
-
-function Already() {
-  const rows: [string, string, string][] = [
-    ["API keys, in the Claude Console", "The Console has a Claude Code page with estimated spend per user.", "Start there. FiscaLLM adds alerts per developer and your own team grouping."],
-    ["Enterprise plan", "An admin dashboard with usage and cost by group and by user, with spend limits.", "You probably don't need FiscaLLM."],
-    ["Team plan", "The analytics dashboard shows usage and contribution, not cost per developer. Cost comes from the OpenTelemetry export or a CSV spend report.", "This is where FiscaLLM helps: a place to send that export, with no collector or Grafana to run."],
-    ["Pro or Max seats, one per developer", "Each seat is its own account, so there is no shared view.", "FiscaLLM puts the team on one page."],
-    ["Only you", "The /cost command, or a local tool such as ccusage.", "Use those. They are free and need no account."],
-    ["Amazon Bedrock or Google Vertex AI", "The same OpenTelemetry export.", "Not tested with FiscaLLM yet. If you try it, tell us what you see."],
-  ];
-  return (
-    <section id="already" className="mx-auto mt-28 w-full max-w-6xl scroll-mt-24 px-6">
-      <SectionHead
-        eyebrow="Before you sign up"
-        title={
-          <>
-            What Anthropic <span className="text-gradient">already gives you</span>
-          </>
-        }
-        body="You may not need this. It depends on how your team pays for Claude Code."
-      />
-      <div className="reveal mx-auto mt-10 max-w-5xl overflow-x-auto rounded-2xl border border-black/5 bg-white">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-black/5 text-xs text-muted">
-              <th className="px-5 py-3 font-medium">You use</th>
-              <th className="px-5 py-3 font-medium">What you get without FiscaLLM</th>
-              <th className="px-5 py-3 font-medium">Our advice</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {rows.map(([use, have, advice]) => (
-              <tr key={use} className="align-top">
-                <td className="px-5 py-3.5 font-medium">{use}</td>
-                <td className="px-5 py-3.5 text-muted">{have}</td>
-                <td className="px-5 py-3.5">{advice}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-4 text-center text-xs text-muted">
-        As of November 2026. Plans change, so check{" "}
-        <a href="https://code.claude.com/docs/en/analytics" className="underline hover:text-foreground">
-          Anthropic&apos;s analytics documentation
-        </a>
-        . FiscaLLM is not affiliated with Anthropic.
       </p>
     </section>
   );
@@ -478,31 +325,6 @@ function Words({ text, start, gradient = false }: { text: string; start: number;
     </>
   );
 }
-
-function Runtimes() {
-  const row = [...RUNTIMES, ...RUNTIMES];
-  return (
-    <section className="mx-auto mt-20 w-full max-w-6xl px-6">
-      <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted">
-        Works with your stack ·{" "}
-        <Link href="/integrations" className="normal-case tracking-normal text-accent hover:underline">
-          see all integrations
-        </Link>
-      </p>
-      <div className="marquee mt-6 overflow-hidden">
-        <div className="marquee-track gap-10">
-          {row.map((r, i) => (
-            <span key={i} className="whitespace-nowrap text-lg font-medium text-foreground/40">
-              {r}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
 
 function Privacy() {
   return (
@@ -578,9 +400,9 @@ function FinalCta() {
           <span />
           <span />
         </div>
-        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know what your AI really costs.</h2>
+        <h2 className="relative text-3xl font-semibold tracking-tight sm:text-5xl">Know what your AI coding costs.</h2>
         <p className="relative mx-auto mt-4 max-w-xl text-lg text-white/70">
-          Start with <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-base">npx fiscallm</code>. Free and open source, with no paid plans.
+          Run <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-base">npx fiscallm</code>. Free and open source, with no paid plans.
         </p>
         <p className="relative mx-auto mt-3 max-w-xl text-sm text-white/55">
           We&apos;re looking for our first 10 teams. Tell us which AI tools your team uses and we&apos;ll help you set it up, or star it on <a href="https://github.com/magna56/fiscallm" className="text-white underline underline-offset-4">GitHub</a>. Questions:{" "}

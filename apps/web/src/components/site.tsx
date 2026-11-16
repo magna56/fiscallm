@@ -24,12 +24,6 @@ export function SiteHeader() {
           <Link href="/integrations/claude-code" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
             For teams
           </Link>
-          <Link href="/for-apps" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
-            For apps
-          </Link>
-          <Link href="/llm-pricing" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground lg:block">
-            LLM pricing
-          </Link>
           <a href="https://github.com/magna56/fiscallm" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground md:block">
             GitHub
           </a>
@@ -64,6 +58,7 @@ export function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-5">
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
+          <Link href="/for-apps" className="hover:text-foreground">For apps</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/integrations" className="hover:text-foreground">Integrations</Link>
           <Link href="/mcp" className="hover:text-foreground">MCP server</Link>

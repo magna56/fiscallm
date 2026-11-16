@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "FiscaLLM: free, open-source tools to know what your AI costs";
+const TITLE = "FiscaLLM: what your AI coding costs, open source";
 const DESCRIPTION =
-  "npx fiscallm shows what Claude Code and Codex cost you, from local logs and with no account. A free team dashboard across Claude Code, Codex, Cursor, Gemini CLI and the OpenAI and Anthropic APIs. AI cost per user and limits by plan for apps. MIT, no paid plans.";
+  "Open-source cost tracker for Claude Code, Codex, Cursor and Gemini CLI. npx fiscallm reads your local logs with no account; a free team dashboard shows spend per developer. MIT, no paid plans.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fiscallm.com"),

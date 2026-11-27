@@ -117,7 +117,8 @@ export default function Guide() {
       <p>
         When an annual user cancels in month three and gets the money back, you lose the revenue but keep the bill. At {typical} actions a month on{" "}
         {m.name}, three months of use is about {usd(refundLoss)} of AI cost with nothing coming in. That is small for one user and real across a
-        launch week, so many apps offer a refund window of a few days instead of a long one, and keep the monthly limit active from the first day.
+        launch week. On the App Store and Google Play the store decides refunds, so the monthly limit from day one is your protection; for plans
+        sold on the web through Stripe you set the refund policy yourself.
       </p>
 
       <h2 id="measure">5. Read the results by month, not by payment</h2>
@@ -133,7 +134,7 @@ export default function Guide() {
         <li>Work out the AI cost of one action and the typical monthly use of a paying user.</li>
         <li>Choose a discount that keeps the typical user above your target margin at the real store fee.</li>
         <li>Keep a monthly limit on the annual plan.</li>
-        <li>Add a short refund window and track cost per user from day one.</li>
+        <li>Keep the limit active from day one, set a clear refund policy for web sales, and track cost per user.</li>
       </ol>
       <p>
         If you are still choosing between plan shapes, read <Link href="/guides/credits-vs-subscription-ai-app">credits or subscription</Link>, then

@@ -7,6 +7,7 @@ import { breakEven, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, usd } from ".
 const BASE = "https://fiscallm.com";
 
 export const GUIDE_LINKS: [string, string, string][] = [
+  ["/guides/ai-app-annual-plan", "Should an AI app offer an annual plan? Discount, margin and refund risk", "annual vs monthly price, margin per month at the store fee, keeping a monthly AI limit, refund cost"],
   ["/guides/cost-to-run-ai-chatbot-app", "How much does it cost to run an AI chatbot app? Per user, per month", "monthly AI cost per chat user by model for light, typical and heavy users"],
   ["/guides/credits-vs-subscription-ai-app", "Credits or subscription for an AI app? How to choose", "flat subscription vs allowance vs credits vs pay as you go for AI apps"],
   ["/guides/stop-runaway-ai-api-costs", "How to stop one user from running up your OpenAI or Claude bill", "per-user AI budgets, hard caps, rate limits and runaway-loop alerts"],

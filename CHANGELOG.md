@@ -2,6 +2,9 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-27
+- **New guide**: [Should an AI app offer an annual plan?](https://fiscallm.com/guides/ai-app-annual-plan) The discount you can afford, margin per month at the store fee, why to keep a monthly AI limit, and what a refund costs.
+
 ## 2026-11-26
 - **Five more guides**: [cost to run an AI chatbot app per user](https://fiscallm.com/guides/cost-to-run-ai-chatbot-app), [credits or subscription](https://fiscallm.com/guides/credits-vs-subscription-ai-app), [stopping one user from running up your bill](https://fiscallm.com/guides/stop-runaway-ai-api-costs), [what a free trial costs](https://fiscallm.com/guides/ai-app-free-trial-cost) and [7 ways to cut LLM cost per user](https://fiscallm.com/guides/cut-llm-cost-per-user).
 - **Pages on pricing an AI app**: [How to price an AI app](https://fiscallm.com/guides/how-to-price-an-ai-app), [How many free AI messages you can afford](https://fiscallm.com/guides/ai-free-tier-limits), [Why unlimited AI plans lose money on heavy users](https://fiscallm.com/guides/unlimited-ai-plan-heavy-users), and a "how much to charge" page for each popular model at /pricing-planner/<model>.

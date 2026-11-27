@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/ai-app-annual-plan",
+    title: "Should an AI app offer an annual plan? Discount, margin and refund risk",
+    body: "How big a discount an AI app can afford, what a refund costs, and why the monthly AI limit must stay.",
+  },
+  {
     href: "/guides/cost-to-run-ai-chatbot-app",
     title: "How much does it cost to run an AI chatbot app? Per user, per month",
     body: "Monthly AI cost of a light, typical and heavy chat user on OpenAI, Claude and Gemini models.",

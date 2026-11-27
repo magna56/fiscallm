@@ -32,6 +32,7 @@ export const PAGES: [string, number][] = [
   ["/changelog", 0.4],
   ["/roadmap", 0.5],
   ["/guides", 0.7],
+  ["/guides/ai-app-annual-plan", 0.8],
   ["/guides/ai-usage-limits-by-plan", 0.9],
   ["/guides/how-to-price-an-ai-app", 0.9],
   ["/guides/cost-to-run-ai-chatbot-app", 0.8],

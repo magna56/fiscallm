@@ -2,6 +2,10 @@
 
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
+## 2026-11-26
+- **Pricing planner** ([/pricing-planner](https://fiscallm.com/pricing-planner)), free with no sign-up: pick a model, enter your plans and a free tier, and see the margin on each plan, what a heavy user costs, the lowest price for your target margin, a monthly AI limit per plan and the largest free tier you can afford. Runs in the browser; a shared link keeps the plan after the #.
+- **The homepage is about apps that call AI again**: plan pricing before launch, then limits by plan and cost per user after. The AI coding cost page moved to [/for-teams](https://fiscallm.com/for-teams); /for-apps now redirects to the homepage.
+
 ## 2026-11-14
 - **`npx fiscallm`** (package 0.8.0): what Claude Code and Codex CLI cost you, from the logs they already keep on your machine, by tool, model, project and day. No account and no network request. `--days N`, `--by day|model|project|tool`, `--json`. Priced with the SDK's price table at API list prices; models not in the table are shown as unpriced.
 - **One message on the homepage**: free, open-source tools to know what your AI costs, in four parts: the command line tool, the team dashboard, cost per user for apps, and LLM prices. Cost per user and limits by plan moved to [/for-apps](https://fiscallm.com/for-apps).

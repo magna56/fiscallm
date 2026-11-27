@@ -21,7 +21,10 @@ export function SiteHeader() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
-          <Link href="/integrations/claude-code" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+          <Link href="/pricing-planner" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground sm:block">
+            Pricing planner
+          </Link>
+          <Link href="/for-teams" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground lg:block">
             For teams
           </Link>
           <a href="https://github.com/magna56/fiscallm" className="hidden rounded-full px-3 py-1.5 text-muted hover:text-foreground md:block">
@@ -58,7 +61,8 @@ export function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-5">
           <Link href="/docs" className="hover:text-foreground">Docs</Link>
-          <Link href="/for-apps" className="hover:text-foreground">For apps</Link>
+          <Link href="/pricing-planner" className="hover:text-foreground">Pricing planner</Link>
+          <Link href="/for-teams" className="hover:text-foreground">For teams</Link>
           <Link href="/how-it-works" className="hover:text-foreground">How it works</Link>
           <Link href="/integrations" className="hover:text-foreground">Integrations</Link>
           <Link href="/mcp" className="hover:text-foreground">MCP server</Link>

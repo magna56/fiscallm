@@ -9,6 +9,13 @@ export const metadata: Metadata = {
 
 const ENTRIES: { date: string; items: string[] }[] = [
   {
+    date: "2026-11-26",
+    items: [
+      "Pricing planner, free with no sign-up: pick a model, enter your plans and a free tier, and see the margin on each plan, what a heavy user costs, the lowest price for your target margin, a monthly AI limit per plan and the largest free tier you can afford.",
+      "The homepage is about apps that call AI again: plan pricing before launch, then limits by plan and cost per user after. AI coding cost moved to For teams.",
+    ],
+  },
+  {
     date: "2026-11-14",
     items: [
       "npx fiscallm (package 0.8.0): what Claude Code and Codex CLI cost you, from the logs they already keep on your machine, by tool, model, project and day. No account and no network request. Priced at API list prices; models not in the table are shown as unpriced.",

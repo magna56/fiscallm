@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   // multi-service rewrites in vercel.json; serve images as they are.
   images: { unoptimized: true },
   partialPrefetching: true,
+  // The app story moved back to the homepage on 2026-11-26.
+  async redirects() {
+    return [{ source: "/for-apps", destination: "/", permanent: true }];
+  },
   turbopack: {
     rules: {
       "*.css": {

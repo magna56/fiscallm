@@ -3,6 +3,7 @@
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
 ## 2026-11-27
+- **New guide**: [Should your AI app let users bring their own API key?](https://fiscallm.com/guides/byok-vs-managed-ai-keys) Managed keys against BYOK, the price floor by usage, and offering both.
 - **New guide**: [Should an AI app offer an annual plan?](https://fiscallm.com/guides/ai-app-annual-plan) The discount you can afford, margin per month at the store fee, why to keep a monthly AI limit, and what a refund costs.
 
 ## 2026-11-26

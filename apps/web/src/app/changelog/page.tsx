@@ -11,6 +11,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
   {
     date: "2026-11-27",
     items: [
+      "New guide: should your AI app let users bring their own API key? Managed keys against BYOK, the price floor by usage, and offering both.",
       "New guide: should an AI app offer an annual plan? The discount you can afford, margin per month at the store fee, why to keep a monthly AI limit, and what a refund costs.",
     ],
   },

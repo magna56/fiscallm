@@ -10,6 +10,11 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/byok-vs-managed-ai-keys",
+    title: "Should your AI app let users bring their own API key?",
+    body: "Bring your own key or your keys on a paid plan: what each costs you, who carries the risk, and when to offer both.",
+  },
+  {
     href: "/guides/ai-app-annual-plan",
     title: "Should an AI app offer an annual plan? Discount, margin and refund risk",
     body: "How big a discount an AI app can afford, what a refund costs, and why the monthly AI limit must stay.",

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { COMPETITORS } from "@/lib/compare";
 import { modelPairs, pairSlug, TEXT_MODELS } from "@/lib/models";
+import { plannerModels } from "@/lib/plan";
 
 const BASE = "https://fiscallm.com";
 
@@ -32,6 +33,9 @@ export const PAGES: [string, number][] = [
   ["/roadmap", 0.5],
   ["/guides", 0.7],
   ["/guides/ai-usage-limits-by-plan", 0.9],
+  ["/guides/how-to-price-an-ai-app", 0.9],
+  ["/guides/ai-free-tier-limits", 0.9],
+  ["/guides/unlimited-ai-plan-heavy-users", 0.8],
   ["/guides/track-openai-cost-per-user", 0.7],
   ["/guides/track-anthropic-claude-cost-per-user", 0.7],
   ["/guides/ai-margin-per-user-revenuecat", 0.8],
@@ -39,6 +43,7 @@ export const PAGES: [string, number][] = [
   ["/guides/ai-margin-from-revenue-csv", 0.8],
   ...COMPETITORS.map((c): [string, number] => [`/compare/fiscallm-vs-${c.slug}`, 0.6]),
   ...TEXT_MODELS.map((m): [string, number] => [`/llm-pricing/${m.slug}`, 0.6]),
+  ...plannerModels().map((m): [string, number] => [`/pricing-planner/${m.slug}`, 0.7]),
   ...modelPairs().map(([a, b]): [string, number] => [`/llm-pricing/compare/${pairSlug(a.slug, b.slug)}`, 0.5]),
   ["/privacy", 0.3],
   ["/terms", 0.3],

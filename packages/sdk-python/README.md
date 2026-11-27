@@ -4,6 +4,8 @@ Limit AI usage by subscription plan, and track the AI cost of each user of your 
 
 The SDK never sits in the path of your AI calls: tracking only queues an event, a background thread sends batches, and it never raises. Prompts and responses are never sent, only token counts.
 
+Pricing a new app? The free [pricing planner](https://fiscallm.com/pricing-planner) gives the margin per plan, what a heavy user costs, a monthly AI limit per plan and the free tier you can afford.
+
 ```sh
 pip install fiscallm
 ```

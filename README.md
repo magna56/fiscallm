@@ -2,9 +2,22 @@
 
 [![CI](https://github.com/magna56/fiscallm/actions/workflows/ci.yml/badge.svg)](https://github.com/magna56/fiscallm/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/fiscallm)](https://www.npmjs.com/package/fiscallm) [![PyPI](https://img.shields.io/pypi/v/fiscallm)](https://pypi.org/project/fiscallm/)
 
-**See what every developer spends on AI (Claude Code, Codex, Cursor, Gemini CLI, the OpenAI and Anthropic APIs), and what every user of your AI product costs you.**
+**Free, open-source tools to make sure every user of your AI app or website pays for their AI.**
 
-**For engineering teams:** add five settings to Claude Code and its built-in OpenTelemetry export sends each model call to FiscaLLM: spend per developer and per team, budget alerts, and a warning when an agent loops. No proxy, nothing to install, prompts and code never stored. [Setup and what Anthropic already gives you](https://fiscallm.com/integrations/claude-code)
+**Before launch:** the [pricing planner](https://fiscallm.com/pricing-planner) (free, no sign-up, runs in your browser) takes a model, tokens per action and your plans, and shows the margin on each plan, what a heavy user costs you, the lowest price for your target margin, a monthly AI limit per plan and the largest free tier you can afford.
+
+**After launch:** give free, trial and paid plans their own AI allowance (10 messages a day on free, 500 a month on Pro, $8 of AI a month on any paid plan). FiscaLLM knows each user's plan from RevenueCat or Stripe, counts their usage, and answers one call from your backend: allow or refuse, and how much is left. It also adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
+
+```ts
+const { allow, plan, limits } = await meter.check(userId);
+if (!allow) return respond(402, { paywall: true, plan, resetsAt: limits[0]?.resetsAt });
+// ... make the AI call, then meter.trackOpenAI(res, { userId })
+return { reply, remaining: limits[0]?.remaining };   // "3 left today"
+```
+
+Limits are settings on the app's **Limits** page, not code. [How to limit AI usage per plan](https://fiscallm.com/guides/ai-usage-limits-by-plan) · [reference](https://fiscallm.com/docs#plan-limits)
+
+**Also free, for engineering teams:** add five settings to Claude Code and its built-in OpenTelemetry export sends each model call to FiscaLLM: spend per developer and per team, budget alerts, and a warning when an agent loops. No proxy, nothing to install, prompts and code never stored. [Setup and what Anthropic already gives you](https://fiscallm.com/integrations/claude-code)
 
 Other tools are turned on the same way, each on the app's Sources page (beta): [Codex CLI](https://fiscallm.com/integrations/codex) and [Gemini CLI](https://fiscallm.com/integrations/gemini-cli) from their own OpenTelemetry export; [Cursor](https://fiscallm.com/integrations/cursor), the [OpenAI API](https://fiscallm.com/integrations/openai-usage) and the [Anthropic API](https://fiscallm.com/integrations/anthropic-usage) with a read-only admin key; ElevenLabs, Perplexity and any other AI API with one SDK call. Each source is [one file](CONTRIBUTING.md#adding-a-source).
 
@@ -18,20 +31,9 @@ Other tools are turned on the same way, each on the app's Sources page (beta): [
 } }
 ```
 
-**For AI products:** give free, trial and paid plans their own AI allowance (10 messages a day on free, 500 a month on Pro, $8 of AI a month on any paid plan). FiscaLLM knows each user's plan from RevenueCat or Stripe, counts their usage, and answers one call from your backend: allow or refuse, and how much is left. It also adds up what each user costs you in AI and sets it next to what they pay you, so you can see who is profitable and who is losing you money.
-
-```ts
-const { allow, plan, limits } = await meter.check(userId);
-if (!allow) return respond(402, { paywall: true, plan, resetsAt: limits[0]?.resetsAt });
-// ... make the AI call, then meter.trackOpenAI(res, { userId })
-return { reply, remaining: limits[0]?.remaining };   // "3 left today"
-```
-
-Limits are settings on the app's **Limits** page, not code. [How to limit AI usage per plan](https://fiscallm.com/guides/ai-usage-limits-by-plan) · [reference](https://fiscallm.com/docs#plan-limits)
-
 **Open source (MIT) and free.** Use the hosted service at [fiscallm.com](https://fiscallm.com) (free under fair use, best effort), or [run your own](SELF-HOSTING.md).
 
-[Live demo (no sign-up)](https://fiscallm.com/demo) · [LLM pricing and cost-per-user calculator](https://fiscallm.com/llm-pricing) · [Compare with alternatives](https://fiscallm.com/compare) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) ([board](https://github.com/users/magna56/projects/1)) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
+[Pricing planner](https://fiscallm.com/pricing-planner) · [Live demo (no sign-up)](https://fiscallm.com/demo) · [LLM pricing and cost-per-user calculator](https://fiscallm.com/llm-pricing) · [Compare with alternatives](https://fiscallm.com/compare) · [Docs](https://fiscallm.com/docs) · [How it works](https://fiscallm.com/how-it-works) · [What it covers](https://fiscallm.com/coverage) · [Accuracy](ACCURACY.md) · [Roadmap](ROADMAP.md) ([board](https://github.com/users/magna56/projects/1)) · [Changelog](CHANGELOG.md) · [Self-hosting](SELF-HOSTING.md) · [Contributing](CONTRIBUTING.md)
 
 ![FiscaLLM dashboard on sample data: AI cost, net revenue, margin per user, daily cost and cost by model](docs/dashboard.png)
 

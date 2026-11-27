@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fiscallm"
-version = "0.7.0"
-description = "Limit AI usage by subscription plan and track AI cost per user against revenue (RevenueCat, Stripe or any billing). Zero-dependency SDK for your backend."
+version = "0.7.1"
+description = "Make sure every user of your AI app pays for their AI: limit AI usage by plan and track AI cost per user against revenue (RevenueCat, Stripe or any billing). Zero dependencies."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 dependencies = []
-keywords = ["ai", "llm", "cost", "revenuecat", "openai", "anthropic", "gemini"]
+keywords = ["ai", "llm", "cost", "pricing", "usage-limits", "paywall", "revenuecat", "stripe", "openai", "anthropic", "gemini"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",

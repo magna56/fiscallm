@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PricingPlanner } from "@/components/pricing-planner";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
 import { calcModels, TEXT_MODELS } from "@/lib/models";
+import { plannerModels } from "@/lib/plan";
 
 const TITLE = "AI app pricing planner: what to charge, and how big a free tier you can afford";
 const DESCRIPTION = `Free planner for apps and websites that call AI. Pick a model from ${TEXT_MODELS.length}, enter your plans, and see the margin on each plan, what a heavy user costs you, a monthly AI limit per plan and the largest free tier you can afford. No sign-up.`;
@@ -83,6 +84,21 @@ export default function PricingPlannerPage() {
             or a CSV, and it enforces these limits with one <code>check()</code> before each call and shows the real margin of every user.{" "}
             <Link href="/guides/ai-usage-limits-by-plan">How limits by plan work</Link> · <Link href="/demo">See the demo</Link>.
           </p>
+          <h2>By model</h2>
+          <p>
+            {plannerModels().map((m, i) => (
+              <span key={m.slug}>
+                {i > 0 && " · "}
+                <Link href={`/pricing-planner/${m.slug}`}>{m.name}</Link>
+              </span>
+            ))}
+          </p>
+          <h2>Guides</h2>
+          <ul>
+            <li><Link href="/guides/how-to-price-an-ai-app">How to price an AI app</Link></li>
+            <li><Link href="/guides/ai-free-tier-limits">How many free AI messages you can afford</Link></li>
+            <li><Link href="/guides/unlimited-ai-plan-heavy-users">Why unlimited AI plans lose money on heavy users</Link></li>
+          </ul>
           <h2>Questions</h2>
           {FAQ.map(([q, a]) => (
             <div key={q}>

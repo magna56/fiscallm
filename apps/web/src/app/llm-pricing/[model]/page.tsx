@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CostCalculator } from "@/components/cost-calculator";
 import { Prose, SiteFooter, SiteHeader } from "@/components/site";
+import { findPlannerModel } from "@/lib/plan";
 import { breakEven, BUILT_MONTH, BUILT_ON, calcModels, cheaperAlternatives, pairSlug, pairsFor, findModel, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, TIERS, usd } from "@/lib/models";
 
 const MONTH = BUILT_MONTH;
@@ -151,6 +152,13 @@ export default async function ModelPricing({ params }: PageProps<"/llm-pricing/[
         <CostCalculator models={calcModels()} initial={m.slug} />
       </div>
       <Prose>
+        <p>
+          Pricing several plans and a free tier?{" "}
+          <Link href={findPlannerModel(m.slug) ? `/pricing-planner/${m.slug}` : "/pricing-planner"}>
+            How much to charge for an app built on {m.name}
+          </Link>
+          .
+        </p>
         {cheaper.length > 0 && (
           <>
             <h2 id="cheaper">Cheaper {m.providerName} models</h2>

@@ -1,16 +1,8 @@
 # fiscallm
 
-## Command line
+Make sure every user of your AI app or website pays for their AI. Limit AI usage by subscription plan, and see what each user costs you in AI against what they pay. Free and open source (MIT).
 
-What Claude Code and Codex CLI cost you, from the logs they already keep on your machine. No account, no key, and nothing is sent anywhere.
-
-```sh
-npx fiscallm                 # last 30 days: by tool, model, project and day
-npx fiscallm --by day --days 7
-npx fiscallm --by project --json
-```
-
-It reads `~/.claude/projects` (or `$CLAUDE_CONFIG_DIR/projects`) and `~/.codex/sessions` (or `$CODEX_HOME/sessions`) and prices each model call with the table in `fiscallm/prices`. Costs are at API list prices: on a Pro, Max or ChatGPT plan you pay the subscription, so read them as what the usage would cost on the API. Calls to a model that is not in the table are listed as unpriced, not guessed. For a whole team across Claude Code, Codex, Gemini CLI, Cursor and the OpenAI and Anthropic APIs, see [fiscallm.com](https://fiscallm.com).
+Pricing a new app? The free [pricing planner](https://fiscallm.com/pricing-planner) gives the margin per plan, what a heavy user costs, a monthly AI limit per plan and the free tier you can afford, before you write any code.
 
 ## SDK
 
@@ -101,3 +93,15 @@ listPrices(); // every current text model, cheapest input first
 `inputTokens` is the whole prompt, including cached tokens. `"openai/gpt-4o"` and dated snapshots match too; an unknown model returns `undefined` or `null`. The table is as current as the version you installed (`PRICES_CHECKED` is the date of the last audit); for prices that are always current, call the free [pricing API](https://fiscallm.com/llm-pricing/api).
 
 OpenAI-compatible APIs work with `trackOpenAI(res, { userId, provider: "groq" })`.
+
+## Command line
+
+What Claude Code and Codex CLI cost you, from the logs they already keep on your machine. No account, no key, and nothing is sent anywhere.
+
+```sh
+npx fiscallm                 # last 30 days: by tool, model, project and day
+npx fiscallm --by day --days 7
+npx fiscallm --by project --json
+```
+
+It reads `~/.claude/projects` (or `$CLAUDE_CONFIG_DIR/projects`) and `~/.codex/sessions` (or `$CODEX_HOME/sessions`) and prices each model call with the table in `fiscallm/prices`. Costs are at API list prices: on a Pro, Max or ChatGPT plan you pay the subscription, so read them as what the usage would cost on the API. Calls to a model that is not in the table are listed as unpriced, not guessed. For a whole team across Claude Code, Codex, Gemini CLI, Cursor and the OpenAI and Anthropic APIs, see [fiscallm.com](https://fiscallm.com).

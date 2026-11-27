@@ -3,6 +3,8 @@
 All notable changes. Newest first. Dates are when the change went live on fiscallm.com.
 
 ## 2026-11-26
+- **Pages on pricing an AI app**: [How to price an AI app](https://fiscallm.com/guides/how-to-price-an-ai-app), [How many free AI messages you can afford](https://fiscallm.com/guides/ai-free-tier-limits), [Why unlimited AI plans lose money on heavy users](https://fiscallm.com/guides/unlimited-ai-plan-heavy-users), and a "how much to charge" page for each popular model at /pricing-planner/<model>.
+- **SDKs** (npm 0.8.1, PyPI 0.7.1): descriptions and READMEs lead with apps that call AI and link the pricing planner. No code changes.
 - **Pricing planner** ([/pricing-planner](https://fiscallm.com/pricing-planner)), free with no sign-up: pick a model, enter your plans and a free tier, and see the margin on each plan, what a heavy user costs, the lowest price for your target margin, a monthly AI limit per plan and the largest free tier you can afford. Runs in the browser; a shared link keeps the plan after the #.
 - **The homepage is about apps that call AI again**: plan pricing before launch, then limits by plan and cost per user after. The AI coding cost page moved to [/for-teams](https://fiscallm.com/for-teams); /for-apps now redirects to the homepage.
 

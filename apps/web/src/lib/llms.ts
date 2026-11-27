@@ -7,6 +7,9 @@ import { breakEven, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, usd } from ".
 const BASE = "https://fiscallm.com";
 
 export const GUIDE_LINKS: [string, string, string][] = [
+  ["/guides/how-to-price-an-ai-app", "How to price an AI app: a formula and a worked example", "lowest price = AI cost per action x actions per month / (1 - target margin) / (1 - store fee), heavy users, fair-use limits"],
+  ["/guides/ai-free-tier-limits", "How many free AI messages can you afford? Sizing a free tier", "free actions per free user from what payers leave after fees, AI cost and margin, by free users per payer"],
+  ["/guides/unlimited-ai-plan-heavy-users", "Why unlimited AI plans lose money on heavy users", "margin by usage on a flat plan, fair-use limit = price x (1 - fee) x (1 - target) / cost per action"],
   ["/guides/ai-usage-limits-by-plan", "How to limit AI usage per subscription plan (free, trial and paid)", "what to count, periods and resets, knowing the plan on the backend, remaining count for the paywall, edge cases with RevenueCat and Stripe"],
   ["/guides/ai-margin-per-user-revenuecat", "How to calculate AI margin per user in a RevenueCat app", "user IDs, net revenue after store fees, trials, annual plans, refunds"],
   ["/guides/ai-cost-per-customer-stripe", "How to track AI cost per customer against Stripe revenue", "metadata.user_id, net revenue, refunds, backfilling past invoices"],
@@ -63,6 +66,7 @@ Key facts:
 - [What is covered](${BASE}/coverage): what FiscaLLM measures and what it does not
 
 ## Tools and data
+- [Pricing planner by model](${BASE}/pricing-planner): what to charge for an app built on a given model, with pages per model at ${BASE}/pricing-planner/<model-id> (for example ${BASE}/pricing-planner/gpt-5-mini): cost per action, lowest price for a 70% margin by usage, safe $9.99 plan limit and free-tier size
 - [LLM API pricing compared](${BASE}/llm-pricing): price per million tokens, cost per chat message and break-even messages per user for ${TEXT_MODELS.length} OpenAI, Anthropic and Google models, with a calculator
 - [LLM pricing API](${BASE}/llm-pricing/api): free JSON API for model prices and cost estimates, no key
 - [LLM pricing report](${BASE}/llm-pricing/report): monthly summary of what one chat message and one subscriber cost across all models, which models lose money on heavy users, and caching savings

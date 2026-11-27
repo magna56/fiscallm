@@ -10,6 +10,21 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/how-to-price-an-ai-app",
+    title: "How to price an AI app: a formula and a worked example",
+    body: "Cost per AI action, usage per user, store fees and a target margin give the lowest price; a monthly limit protects it.",
+  },
+  {
+    href: "/guides/ai-free-tier-limits",
+    title: "How many free AI messages can you afford? Sizing a free tier",
+    body: "The free allowance your paying users can carry, by free users per payer, with a worked example.",
+  },
+  {
+    href: "/guides/unlimited-ai-plan-heavy-users",
+    title: "Why unlimited AI plans lose money on heavy users, and the limit that fixes it",
+    body: "Where a flat plan stops earning its target margin, and the fair-use limit that caps the worst case.",
+  },
+  {
     href: "/guides/ai-usage-limits-by-plan",
     title: "How to limit AI usage per subscription plan (free, trial and paid)",
     body: "What to count, when to reset, how your backend knows the plan, and the remaining number that opens the paywall.",

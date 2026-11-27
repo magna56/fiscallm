@@ -1,7 +1,7 @@
 {
   "name": "fiscallm",
-  "version": "0.8.0",
-  "description": "What your AI costs: `npx fiscallm` reads Claude Code and Codex logs on your machine; the SDK tracks AI cost per user and limits AI usage by plan. Zero dependencies.",
+  "version": "0.8.1",
+  "description": "Make sure every user of your AI app pays for their AI: limit AI usage by plan and track AI cost per user against RevenueCat or Stripe revenue. Plus `npx fiscallm` for Claude Code and Codex cost. Zero dependencies.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -23,14 +23,20 @@
     "bin"
   ],
   "keywords": [
-    "claude-code",
-    "codex",
+    "ai-pricing",
+    "usage-limits",
+    "paywall",
+    "revenuecat",
+    "stripe",
     "ai-cost",
     "llm-cost",
-    "token-usage",
-    "ccusage",
+    "cost-per-user",
     "openai",
     "anthropic",
+    "gemini",
+    "claude-code",
+    "codex",
+    "token-usage",
     "cli"
   ],
   "engines": {

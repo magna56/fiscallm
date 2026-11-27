@@ -7,6 +7,11 @@ import { breakEven, MESSAGE, messageCost, PLAN, perM, TEXT_MODELS, usd } from ".
 const BASE = "https://fiscallm.com";
 
 export const GUIDE_LINKS: [string, string, string][] = [
+  ["/guides/cost-to-run-ai-chatbot-app", "How much does it cost to run an AI chatbot app? Per user, per month", "monthly AI cost per chat user by model for light, typical and heavy users"],
+  ["/guides/credits-vs-subscription-ai-app", "Credits or subscription for an AI app? How to choose", "flat subscription vs allowance vs credits vs pay as you go for AI apps"],
+  ["/guides/stop-runaway-ai-api-costs", "How to stop one user from running up your OpenAI or Claude bill", "per-user AI budgets, hard caps, rate limits and runaway-loop alerts"],
+  ["/guides/ai-app-free-trial-cost", "What a free trial of an AI app really costs, and how to cap it", "AI cost per trial and per converted customer, capping trial usage"],
+  ["/guides/cut-llm-cost-per-user", "7 ways to cut LLM cost per user without making your app worse", "prompt caching, history trimming, reply caps, model routing, measuring cost per user"],
   ["/guides/how-to-price-an-ai-app", "How to price an AI app: a formula and a worked example", "lowest price = AI cost per action x actions per month / (1 - target margin) / (1 - store fee), heavy users, fair-use limits"],
   ["/guides/ai-free-tier-limits", "How many free AI messages can you afford? Sizing a free tier", "free actions per free user from what payers leave after fees, AI cost and margin, by free users per payer"],
   ["/guides/unlimited-ai-plan-heavy-users", "Why unlimited AI plans lose money on heavy users", "margin by usage on a flat plan, fair-use limit = price x (1 - fee) x (1 - target) / cost per action"],

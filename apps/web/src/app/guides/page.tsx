@@ -10,6 +10,31 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/guides/cost-to-run-ai-chatbot-app",
+    title: "How much does it cost to run an AI chatbot app? Per user, per month",
+    body: "Monthly AI cost of a light, typical and heavy chat user on OpenAI, Claude and Gemini models.",
+  },
+  {
+    href: "/guides/credits-vs-subscription-ai-app",
+    title: "Credits or subscription for an AI app? How to choose",
+    body: "Flat, allowance, credits or pay as you go: margin, what users prefer, and what is easy to build.",
+  },
+  {
+    href: "/guides/stop-runaway-ai-api-costs",
+    title: "How to stop one user from running up your OpenAI or Claude bill",
+    body: "Per-user budgets, a hard cap on the backend, rate limits and runaway-loop alerts.",
+  },
+  {
+    href: "/guides/ai-app-free-trial-cost",
+    title: "What a free trial of an AI app really costs, and how to cap it",
+    body: "AI cost per trial and per converted customer, and trial limits that do not hurt conversion.",
+  },
+  {
+    href: "/guides/cut-llm-cost-per-user",
+    title: "7 ways to cut LLM cost per user without making your app worse",
+    body: "Prompt caching, trimming history, shorter replies, cheaper models for easy requests, and measuring per user.",
+  },
+  {
     href: "/guides/how-to-price-an-ai-app",
     title: "How to price an AI app: a formula and a worked example",
     body: "Cost per AI action, usage per user, store fees and a target margin give the lowest price; a monthly limit protects it.",

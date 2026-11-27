@@ -14,6 +14,7 @@ const ENTRIES: { date: string; items: string[] }[] = [
       "Pricing planner, free with no sign-up: pick a model, enter your plans and a free tier, and see the margin on each plan, what a heavy user costs, the lowest price for your target margin, a monthly AI limit per plan and the largest free tier you can afford.",
       "The homepage is about apps that call AI again: plan pricing before launch, then limits by plan and cost per user after. AI coding cost moved to For teams.",
       "Guides on pricing an AI app, sizing a free tier and heavy users on flat plans, and a how-much-to-charge page for each popular model.",
+      "Five more guides: what an AI chatbot user costs per month by model, credits or subscription, stopping one user from running up your bill, what a free trial costs, and 7 ways to cut LLM cost per user.",
     ],
   },
   {
